@@ -1,0 +1,38 @@
+# Dependências
+node_modules/
+.pnp
+.pnp.js
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Variáveis de ambiente — NUNCA commitar
+.env
+.env.local
+.env.production
+
+# Build nativos
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# IDEs
+.vscode/settings.json
+.idea/
+
+# EAS
+eas-cli-log*.txt
