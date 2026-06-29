@@ -36,3 +36,4 @@ npm-debug.log*
 
 # EAS
 eas-cli-log*.txt
+.vercel

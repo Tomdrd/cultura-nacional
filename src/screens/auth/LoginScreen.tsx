@@ -43,7 +43,7 @@ export function LoginScreen({ navigation }: any) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'culturanacional://auth/callback',
+          redirectTo: Platform.OS === 'web' ? 'https://cultura-nacional.vercel.app/auth/callback' : 'culturanacional://auth/callback',
           queryParams: { access_type: 'offline', prompt: 'consent' },
         },
       });
