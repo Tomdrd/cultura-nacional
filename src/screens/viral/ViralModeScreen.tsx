@@ -4,7 +4,7 @@ import {
   Dimensions, Alert, Platform,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Audio } from 'expo-av';
+import { useMicrophonePermissions } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -40,7 +40,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   const { stateId, stateName, subcategory } = route.params ?? {};
 
   const [cameraPermission,   requestCameraPermission]   = useCameraPermissions();
-  const [microphPermission,  requestMicrophPermission]  = Audio.usePermissions();
+  const [microphPermission,  requestMicrophPermission]  = useMicrophonePermissions();
 
   const [format,        setFormat]        = useState<Format>('vertical');
   const [phase,         setPhase]         = useState<Phase>('setup');
@@ -60,7 +60,6 @@ export function ViralModeScreen({ navigation, route }: any) {
 
   const cameraRef  = useRef<any>(null);
   const timerRef   = useRef<any>(null);
-  const soundRef   = useRef<Audio.Sound | null>(null);
 
   const isVertical  = format === 'vertical';
   const TOTAL_Q     = 5;
@@ -70,7 +69,6 @@ export function ViralModeScreen({ navigation, route }: any) {
     return () => {
       clearInterval(timerRef.current);
       Speech.stop();
-      soundRef.current?.unloadAsync();
     };
   }, []);
 

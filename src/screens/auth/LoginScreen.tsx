@@ -70,14 +70,20 @@ export function LoginScreen({ navigation }: any) {
 
   async function handleForgotPassword() {
     if (!email.trim()) {
-      Alert.alert('Informe seu e-mail', 'Digite seu e-mail no campo acima para receber o link de redefinição.');
+      if (Platform.OS === 'web') window.alert('Digite seu e-mail no campo acima para receber o link de redefinição.');
+      else Alert.alert('Informe seu e-mail', 'Digite seu e-mail no campo acima para receber o link de redefinição.');
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: 'culturanacional://auth/reset-password',
+      redirectTo: Platform.OS === 'web' ? 'https://cultura-nacional.vercel.app/auth/reset-password' : 'culturanacional://auth/reset-password',
     });
-    if (error) Alert.alert('Erro', error.message);
-    else Alert.alert('E-mail enviado!', 'Verifique sua caixa de entrada para redefinir a senha.');
+    if (error) {
+      if (Platform.OS === 'web') window.alert(error.message);
+      else Alert.alert('Erro', error.message);
+    } else {
+      if (Platform.OS === 'web') window.alert('E-mail enviado! Verifique sua caixa de entrada para redefinir a senha.');
+      else Alert.alert('E-mail enviado!', 'Verifique sua caixa de entrada para redefinir a senha.');
+    }
   }
 
   return (

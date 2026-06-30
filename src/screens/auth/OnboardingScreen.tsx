@@ -47,6 +47,7 @@ export function OnboardingScreen({ navigation }: any) {
   }
 
 async function handleFinish() {
+    if (saving) return;
     setSaving(true);
     if (user) {
       await supabase.from('profiles').update({
@@ -55,10 +56,7 @@ async function handleFinish() {
       }).eq('id', user.id);
     }
     setSaving(false);
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      useAuthStore.getState().setSession(data.session);
-    }
+    navigation.reset({ index: 0, routes: [{ name: 'App' }] });
   }
 
   const filteredStates = states.filter(s =>

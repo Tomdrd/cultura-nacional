@@ -26,17 +26,21 @@
       "versionCode": 1,
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [
       "expo-location",
       "expo-notifications",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-video",
+      "expo-audio"
     ],
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "167329d4-bc56-4a13-a57a-ae992ee3ad6b"
       }
     }
   }

@@ -5,15 +5,31 @@ import { useAuthStore } from '../store/authStore';
 import { AuthNavigator } from './AuthNavigator';
 import { AppNavigator } from './AppNavigator';
 import { useTheme } from '../hooks/useTheme';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Platform } from 'react-native';
+import { supabase } from '../lib/supabase';
 
 const Stack = createNativeStackNavigator();
 
 export function RootNavigator() {
   const { session, loading, init } = useAuthStore();
   const { colors } = useTheme();
+  const navigationRef = React.useRef<any>(null);
 
   useEffect(() => { init(); }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const hash = window.location.hash;
+    if (hash.includes('type=recovery')) {
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setTimeout(() => {
+            navigationRef.current?.navigate('Auth', { screen: 'ResetPassword' });
+          }, 500);
+        }
+      });
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -24,7 +40,7 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {session ? (
           <Stack.Screen name="App" component={AppNavigator} />
