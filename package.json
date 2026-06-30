@@ -22,6 +22,7 @@
     "expo-speech": "~56.0.3",
     "expo-status-bar": "~56.0.4",
     "expo-video": "~56.1.4",
+    "expo-web-browser": "~56.0.5",
     "lucide-react-native": "^1.21.0",
     "nativewind": "^4.2.6",
     "react": "19.2.3",

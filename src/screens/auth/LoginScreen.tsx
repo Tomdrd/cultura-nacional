@@ -8,6 +8,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
+import * as WebBrowser from 'expo-web-browser';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
 export function LoginScreen({ navigation }: any) {
@@ -40,14 +41,26 @@ export function LoginScreen({ navigation }: any) {
   async function handleGoogleLogin() {
     setGoogleLoading(true);
     try {
+      const redirectTo = Platform.OS === 'web'
+        ? 'https://cultura-nacional.vercel.app/auth/callback'
+        : 'culturanacional://auth/callback';
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: Platform.OS === 'web' ? 'https://cultura-nacional.vercel.app/auth/callback' : 'culturanacional://auth/callback',
+          redirectTo,
+          skipBrowserRedirect: Platform.OS !== 'web',
           queryParams: { access_type: 'offline', prompt: 'consent' },
         },
       });
       if (error) throw error;
+
+      if (Platform.OS !== 'web' && data?.url) {
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+        if (result.type === 'success') {
+          await supabase.auth.getSession();
+        }
+      }
     } catch (err: any) {
       Alert.alert('Erro com Google', err.message ?? 'Tente novamente.');
     }
@@ -57,11 +70,22 @@ export function LoginScreen({ navigation }: any) {
   async function handleAppleLogin() {
     setAppleLoading(true);
     try {
+      const redirectTo = 'culturanacional://auth/callback';
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
-        options: { redirectTo: 'culturanacional://auth/callback' },
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
       });
       if (error) throw error;
+
+      if (data?.url) {
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+        if (result.type === 'success') {
+          await supabase.auth.getSession();
+        }
+      }
     } catch (err: any) {
       Alert.alert('Erro com Apple', err.message ?? 'Tente novamente.');
     }

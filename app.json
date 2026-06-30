@@ -3,6 +3,7 @@
     "name": "Cultura Nacional",
     "slug": "cultura-nacional",
     "version": "1.0.0",
+    "scheme": "culturanacional",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -36,7 +37,8 @@
       "expo-notifications",
       "expo-sharing",
       "expo-video",
-      "expo-audio"
+      "expo-audio",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {
