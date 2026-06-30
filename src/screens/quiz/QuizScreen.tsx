@@ -11,13 +11,17 @@ interface Question {
   id: string;
   text: string;
   options: string[];
-  answer_index: number;
-  explanation: string | null;
   subcategory: string;
   difficulty: string;
 }
 
-const DIFFICULTY_XP: Record<string, number> = { easy: 10, medium: 20, hard: 35 };
+interface AnswerResult {
+  is_correct: boolean;
+  correct_index: number;
+  explanation: string | null;
+  xp: number;
+}
+
 const TOTAL_QUESTIONS = 5;
 const TIME_PER_QUESTION = 15;
 
@@ -26,17 +30,18 @@ export function QuizScreen({ route, navigation }: any) {
   const { user } = useAuthStore();
   const { stateId, stateName, subcategory, mode } = route.params ?? {};
 
-  const [questions,  setQuestions]  = useState<Question[]>([]);
-  const [current,    setCurrent]    = useState(0);
-  const [selected,   setSelected]   = useState<number | null>(null);
-  const [answered,   setAnswered]   = useState(false);
-  const [score,      setScore]      = useState(0);
-  const [xpEarned,   setXpEarned]   = useState(0);
-  const [timeLeft,   setTimeLeft]   = useState(mode === 'relampago' ? 30 : TIME_PER_QUESTION);
-  const [loading,    setLoading]    = useState(true);
-  const [finished,   setFinished]   = useState(false);
-  const [results,    setResults]    = useState<boolean[]>([]);
-  const [reportOpen, setReportOpen] = useState(false);
+  const [questions,     setQuestions]     = useState<Question[]>([]);
+  const [current,       setCurrent]       = useState(0);
+  const [selected,      setSelected]      = useState<number | null>(null);
+  const [answered,      setAnswered]      = useState(false);
+  const [answerResult,  setAnswerResult]  = useState<AnswerResult | null>(null);
+  const [score,         setScore]         = useState(0);
+  const [xpEarned,      setXpEarned]      = useState(0);
+  const [timeLeft,      setTimeLeft]      = useState(mode === 'relampago' ? 30 : TIME_PER_QUESTION);
+  const [loading,       setLoading]       = useState(true);
+  const [finished,      setFinished]      = useState(false);
+  const [results,       setResults]       = useState<boolean[]>([]);
+  const [reportOpen,    setReportOpen]    = useState(false);
 
   const timerRef     = useRef<any>(null);
   const progressAnim = useRef(new Animated.Value(1)).current;
@@ -52,13 +57,13 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function loadQuestions() {
     setLoading(true);
-    let query = supabase.from('questions').select('*').eq('active', true);
+    let query = supabase.from('questions_safe').select('*').eq('active', true);
     if (stateId)     query = query.eq('state_id', stateId);
     if (subcategory) query = query.eq('subcategory', subcategory);
     query = query.limit(mode === 'relampago' ? 5 : TOTAL_QUESTIONS);
     let { data } = await query;
     if (!data || data.length === 0) {
-      const fallback = await supabase.from('questions').select('*').eq('active', true).limit(TOTAL_QUESTIONS);
+      const fallback = await supabase.from('questions_safe').select('*').eq('active', true).limit(TOTAL_QUESTIONS);
       data = fallback.data;
     }
     if (data && data.length > 0) setQuestions(data.sort(() => Math.random() - 0.5));
@@ -79,19 +84,27 @@ export function QuizScreen({ route, navigation }: any) {
     }, 1000);
   }
 
-  function handleAnswer(index: number) {
+  async function handleAnswer(index: number) {
     if (answered) return;
     clearInterval(timerRef.current);
     setSelected(index);
     setAnswered(true);
+
     const q = questions[current];
-    const correct = index === q.answer_index;
-    const xp = correct ? (DIFFICULTY_XP[q.difficulty] ?? 10) : 0;
-    setResults(prev => [...prev, correct]);
-    if (correct) {
+    const { data } = await supabase.rpc('submit_answer', {
+      p_question_id:  q.id,
+      p_answer_index: index,
+    });
+
+    const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, explanation: null, xp: 0 };
+    setAnswerResult(result);
+    setResults(prev => [...prev, result.is_correct]);
+
+    if (result.is_correct) {
       setScore(prev => { scoreRef.current = prev + 1; return prev + 1; });
-      setXpEarned(prev => { xpRef.current = prev + xp; return prev + xp; });
+      setXpEarned(prev => { xpRef.current = prev + result.xp; return prev + result.xp; });
     }
+
     setTimeout(() => nextQuestion(), 1800);
   }
 
@@ -103,6 +116,7 @@ export function QuizScreen({ route, navigation }: any) {
         setCurrent(prev => prev + 1);
         setSelected(null);
         setAnswered(false);
+        setAnswerResult(null);
         Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
       }
     });
@@ -111,24 +125,17 @@ export function QuizScreen({ route, navigation }: any) {
   async function finishQuiz() {
     setFinished(true);
     if (!user) return;
-
-    // Atualiza XP e nível
     if (xpRef.current > 0) {
       const { data: profile } = await supabase.from('profiles').select('xp, level').eq('id', user.id).single();
       if (profile) {
         const newXp    = profile.xp + xpRef.current;
         const newLevel = Math.floor(newXp / 500) + 1;
         await supabase.from('profiles').update({
-          xp: newXp,
-          level: newLevel,
-          last_played_at: new Date().toISOString(),
+          xp: newXp, level: newLevel, last_played_at: new Date().toISOString(),
         }).eq('id', user.id);
       }
-      // Atualiza ranking da cidade
       await supabase.rpc('update_city_ranking', { p_user_id: user.id, p_xp_gained: xpRef.current });
     }
-
-    // Atualiza streak
     await supabase.rpc('update_streak_on_play', { p_user_id: user.id });
   }
 
@@ -188,7 +195,7 @@ export function QuizScreen({ route, navigation }: any) {
             onPress={() => {
               setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
               setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
-              xpRef.current = 0; scoreRef.current = 0;
+              setAnswerResult(null); xpRef.current = 0; scoreRef.current = 0;
               loadQuestions();
             }}
           >
@@ -224,12 +231,7 @@ export function QuizScreen({ route, navigation }: any) {
         </View>
       </View>
 
-      <ReportModal
-        visible={reportOpen}
-        questionId={q.id}
-        questionText={q.text}
-        onClose={() => setReportOpen(false)}
-      />
+      <ReportModal visible={reportOpen} questionId={q.id} questionText={q.text} onClose={() => setReportOpen(false)} />
 
       <View style={[styles.progressBg, { backgroundColor: colors.border }]}>
         <Animated.View style={[styles.progressFill, {
@@ -264,14 +266,14 @@ export function QuizScreen({ route, navigation }: any) {
         <Text style={[styles.questionText, { color: colors.text }]}>{q.text}</Text>
 
         <View style={styles.options}>
-          {q.options.map((opt, i) => {
-            const isCorrect  = i === q.answer_index;
+          {q.options.map((opt: string, i: number) => {
+            const isCorrect  = answered && i === answerResult?.correct_index;
             const isSelected = i === selected;
             let bg = colors.card, border = colors.border, textColor = colors.text;
             if (answered) {
-              if (isCorrect)              { bg='#009C3B20'; border='#009C3B'; textColor='#009C3B'; }
-              else if (isSelected)        { bg=colors.danger+'20'; border=colors.danger; textColor=colors.danger; }
-            } else if (isSelected)        { bg=colors.primary+'15'; border=colors.primary; textColor=colors.primary; }
+              if (isCorrect)               { bg='#009C3B20'; border='#009C3B'; textColor='#009C3B'; }
+              else if (isSelected)         { bg=colors.danger+'20'; border=colors.danger; textColor=colors.danger; }
+            } else if (isSelected)         { bg=colors.primary+'15'; border=colors.primary; textColor=colors.primary; }
             return (
               <TouchableOpacity key={i} onPress={() => handleAnswer(i)} disabled={answered}
                 style={[styles.option, { backgroundColor: bg, borderColor: border }]}
@@ -280,16 +282,16 @@ export function QuizScreen({ route, navigation }: any) {
                   <Text style={[styles.optionLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                 </View>
                 <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
-                {answered && isCorrect             && <CheckCircle size={18} color="#009C3B" />}
+                {answered && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
                 {answered && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
               </TouchableOpacity>
             );
           })}
         </View>
 
-        {answered && q.explanation && (
+        {answered && answerResult?.explanation && (
           <View style={[styles.explanation, { backgroundColor: colors.primary+'10', borderColor: colors.primary+'30' }]}>
-            <Text style={[styles.explanationText, { color: colors.textSecondary }]}>{q.explanation}</Text>
+            <Text style={[styles.explanationText, { color: colors.textSecondary }]}>{answerResult.explanation}</Text>
           </View>
         )}
       </Animated.View>
