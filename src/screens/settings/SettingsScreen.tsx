@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
 import { Moon, Sun, Smartphone, Bell, Shield, Info, ChevronRight, LogOut } from 'lucide-react-native';
+import { Linking } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useAuthStore } from '../../store/authStore';
@@ -142,13 +143,14 @@ export function SettingsScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>SOBRE</Text>
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {[
-            { Icon: Shield, label: 'Política de Privacidade' },
-            { Icon: Info,   label: 'Termos de Uso' },
-            { Icon: Info,   label: 'Versão 1.0.0' },
-          ].map(({ Icon, label }, i) => (
+          {([
+            { Icon: Shield, label: 'Política de Privacidade', url: 'https://cultura-nacional.vercel.app/privacidade.html' },
+            { Icon: Info,   label: 'Termos de Uso',             url: 'https://cultura-nacional.vercel.app/termos.html' },
+            { Icon: Info,   label: 'Versão 1.0.0',               url: null },
+          ] as { Icon: any; label: string; url: string | null }[]).map(({ Icon, label, url }, i) => (
             <TouchableOpacity
               key={label}
+              onPress={() => url && Linking.openURL(url)}
               style={[styles.menuItem, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.border }]}
             >
               <Icon size={18} color={colors.textSecondary} />

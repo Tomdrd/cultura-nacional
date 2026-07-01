@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Award, Star, Zap, BookOpen, Trophy, MapPin, Globe, Flag, TrendingUp, CheckCircle, Swords, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -63,7 +63,7 @@ export function AchievementsScreen({ navigation }: any) {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color={colors.text} />
@@ -91,13 +91,17 @@ export function AchievementsScreen({ navigation }: any) {
         </View>
       </View>
 
-      {/* Grid */}
-      <View style={styles.grid}>
-        {achievements.map(ach => {
+      <FlatList
+        data={achievements}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={styles.grid}
+        ListFooterComponent={<View style={{ height: 32 }} />}
+        renderItem={({ item: ach }) => {
           const IconComp = ICON_MAP[ach.icon] ?? Award;
           return (
             <View
-              key={ach.id}
               style={[
                 styles.achCard,
                 {
@@ -126,11 +130,9 @@ export function AchievementsScreen({ navigation }: any) {
               )}
             </View>
           );
-        })}
-      </View>
-
-      <View style={{ height: 32 }} />
-    </ScrollView>
+        }}
+      />
+    </View>
   );
 }
 
@@ -142,8 +144,9 @@ const styles = StyleSheet.create({
   statCard:    { flex: 1, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.md, alignItems: 'center', gap: 4 },
   statVal:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   statLbl:     { fontSize: 10, textAlign: 'center' },
-  grid:        { flexDirection: 'row', flexWrap: 'wrap', padding: Spacing.xl, gap: 12 },
-  achCard:     { width: '47%', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.md, gap: 6, position: 'relative' },
+  grid:        { padding: Spacing.xl, gap: 12 },
+  row:         { gap: 12, justifyContent: 'space-between' as const },
+  achCard:     { flex: 1, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.md, gap: 6, position: 'relative' as const },
   achIcon:     { width: 52, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   achName:     { fontSize: FontSize.sm, fontWeight: FontWeight.bold, lineHeight: 18 },
   achDesc:     { fontSize: 11, lineHeight: 16 },

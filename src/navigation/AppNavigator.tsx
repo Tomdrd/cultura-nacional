@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AppStackParamList, HomeTabsParamList } from '../types/navigation';
 import { Home, Trophy, User, Settings } from 'lucide-react-native';
 import { HomeScreen }            from '../screens/home/HomeScreen';
 import { RankingScreen }         from '../screens/ranking/RankingScreen';
@@ -14,8 +15,8 @@ import { AchievementsScreen }    from '../screens/achievements/AchievementsScree
 import { ViralModeScreen }       from '../screens/viral/ViralModeScreen';
 import { useTheme }              from '../hooks/useTheme';
 
-const Tab   = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
+const Tab   = createBottomTabNavigator<HomeTabsParamList>();
+const Stack = createNativeStackNavigator<AppStackParamList>();
 
 function HomeTabs() {
   const { colors } = useTheme();

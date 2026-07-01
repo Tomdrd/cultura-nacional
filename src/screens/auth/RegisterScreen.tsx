@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -102,9 +102,9 @@ export function RegisterScreen({ navigation }: any) {
 
           <Text style={[styles.terms, { color: colors.textMuted }]}>
             Ao continuar, você concorda com nossos{' '}
-            <Text style={{ color: colors.primary }}>Termos de Uso</Text>
+            <Text style={{ color: colors.primary }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/termos.html')}>Termos de Uso</Text>
             {' '}e{' '}
-            <Text style={{ color: colors.primary }}>Política de Privacidade</Text>.
+            <Text style={{ color: colors.primary }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/privacidade.html')}>Política de Privacidade</Text>.
           </Text>
         </View>
 
