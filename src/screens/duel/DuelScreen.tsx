@@ -12,9 +12,13 @@ interface Question {
   id: string;
   text: string;
   options: string[];
-  answer_index: number;
-  explanation: string | null;
   difficulty: string;
+}
+
+interface AnswerResult {
+  is_correct: boolean;
+  correct_index: number;
+  xp: number;
 }
 
 interface Opponent {
@@ -31,24 +35,37 @@ export function DuelScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { user } = useAuthStore();
 
-  const [duelState,   setDuelState]   = useState<DuelState>('lobby');
-  const [matchId,     setMatchId]     = useState<string | null>(null);
-  const [questions,   setQuestions]   = useState<Question[]>([]);
-  const [current,     setCurrent]     = useState(0);
-  const [selected,    setSelected]    = useState<number | null>(null);
-  const [answered,    setAnswered]    = useState(false);
-  const [myScore,     setMyScore]     = useState(0);
-  const [oppScore,    setOppScore]    = useState(0);
-  const [opponent,    setOpponent]    = useState<Opponent | null>(null);
-  const [timeLeft,    setTimeLeft]    = useState(TIME_PER_QUESTION);
-  const [myAnswers,   setMyAnswers]   = useState<boolean[]>([]);
-  const [loading,     setLoading]     = useState(false);
-  const [joinCode,    setJoinCode]    = useState('');
-  const [showJoin,    setShowJoin]    = useState(false);
+  const [duelState,    setDuelState]    = useState<DuelState>('lobby');
+  const [matchId,      setMatchId]      = useState<string | null>(null);
+  const [questions,    setQuestions]    = useState<Question[]>([]);
+  const [current,      setCurrent]      = useState(0);
+  const [selected,     setSelected]     = useState<number | null>(null);
+  const [answered,     setAnswered]     = useState(false);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
+  const [myScore,      setMyScore]      = useState(0);
+  const [oppScore,     setOppScore]     = useState(0);
+  const [opponent,     setOpponent]     = useState<Opponent | null>(null);
+  const [timeLeft,     setTimeLeft]     = useState(TIME_PER_QUESTION);
+  const [myAnswers,    setMyAnswers]     = useState<boolean[]>([]);
+  const [loading,      setLoading]      = useState(false);
+  const [joinCode,     setJoinCode]     = useState('');
+  const [showJoin,     setShowJoin]     = useState(false);
 
-  const timerRef     = useRef<any>(null);
-  const channelRef   = useRef<any>(null);
-  const progressAnim = useRef(new Animated.Value(1)).current;
+  const timerRef      = useRef<any>(null);
+  const channelRef    = useRef<any>(null);
+  const progressAnim  = useRef(new Animated.Value(1)).current;
+  // useRef para evitar stale closure no listener Realtime
+  const duelStateRef  = useRef<DuelState>('lobby');
+  const matchIdRef    = useRef<string | null>(null);
+  const currentRef    = useRef(0);
+  const answeredRef   = useRef(false);
+  const myFinishedRef = useRef(false);
+
+  // Sincroniza refs com state
+  useEffect(() => { duelStateRef.current  = duelState;  }, [duelState]);
+  useEffect(() => { matchIdRef.current    = matchId;    }, [matchId]);
+  useEffect(() => { currentRef.current    = current;    }, [current]);
+  useEffect(() => { answeredRef.current   = answered;   }, [answered]);
 
   useEffect(() => { return () => cleanup(); }, []);
 
@@ -61,22 +78,32 @@ export function DuelScreen({ navigation }: any) {
   async function createMatch() {
     if (!user) return;
     setLoading(true);
+
+    // Busca perguntas via view segura
     const { data: qs } = await supabase
-      .from('questions').select('*').eq('active', true).limit(TOTAL_QUESTIONS);
+      .from('questions_safe').select('*').eq('active', true).limit(TOTAL_QUESTIONS);
     if (!qs || qs.length === 0) {
       Alert.alert('Erro', 'Nenhuma pergunta disponível.');
       setLoading(false);
       return;
     }
+
+    const shuffled = qs.sort(() => Math.random() - 0.5);
+    const questionIds = shuffled.map((q: Question) => q.id);
+
+    // Salva IDs das perguntas no match para ambos jogadores usarem as mesmas
     const { data: match } = await supabase.from('matches').insert({
-      player1_id: user.id,
-      status: 'waiting',
+      player1_id:   user.id,
+      status:       'waiting',
+      question_ids: questionIds,
     }).select().single();
 
     if (match) {
       setMatchId(match.id);
-      setQuestions(qs.sort(() => Math.random() - 0.5));
+      matchIdRef.current = match.id;
+      setQuestions(shuffled);
       setDuelState('waiting');
+      duelStateRef.current = 'waiting';
       subscribeToMatch(match.id);
     }
     setLoading(false);
@@ -87,14 +114,13 @@ export function DuelScreen({ navigation }: any) {
     if (!user || !joinCode.trim()) return;
     setLoading(true);
 
-    // Busca pelo prefixo do UUID (8 chars)
     const { data: matches } = await supabase
       .from('matches')
       .select('*')
       .eq('status', 'waiting')
       .neq('player1_id', user.id);
 
-    const match = matches?.find(m =>
+    const match = matches?.find((m: any) =>
       m.id.replace(/-/g, '').slice(0, 8).toUpperCase() === joinCode.trim().toUpperCase()
     );
 
@@ -104,24 +130,33 @@ export function DuelScreen({ navigation }: any) {
       return;
     }
 
-    // Busca oponente (player1)
-    const { data: p1 } = await supabase
-      .from('profiles').select('id, username, xp, level').eq('id', match.player1_id).single();
+    // Busca oponente e perguntas em paralelo
+    const [{ data: p1 }, { data: qs }] = await Promise.all([
+      supabase.from('profiles').select('id, username, xp, level').eq('id', match.player1_id).single(),
+      // Usa os mesmos IDs de perguntas salvos no match
+      match.question_ids
+        ? supabase.from('questions_safe').select('*').in('id', match.question_ids)
+        : supabase.from('questions_safe').select('*').eq('active', true).limit(TOTAL_QUESTIONS),
+    ]);
+
     if (p1) setOpponent(p1);
+    if (qs) {
+      // Preserva a ordem original dos IDs
+      const ordered = match.question_ids
+        ? match.question_ids.map((id: string) => qs.find((q: Question) => q.id === id)).filter(Boolean)
+        : qs;
+      setQuestions(ordered);
+    }
 
-    // Busca perguntas
-    const { data: qs } = await supabase
-      .from('questions').select('*').eq('active', true).limit(TOTAL_QUESTIONS);
-    if (qs) setQuestions(qs.sort(() => Math.random() - 0.5));
-
-    // Atualiza match para active
     await supabase.from('matches').update({
       player2_id: user.id,
-      status: 'active',
+      status:     'active',
     }).eq('id', match.id);
 
     setMatchId(match.id);
+    matchIdRef.current = match.id;
     setDuelState('playing');
+    duelStateRef.current = 'playing';
     subscribeToMatch(match.id);
     startTimer();
     setLoading(false);
@@ -134,15 +169,21 @@ export function DuelScreen({ navigation }: any) {
         event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${id}`
       }, async (payload) => {
         const match = payload.new as any;
-        if (match.status === 'active' && match.player2_id && duelState === 'waiting') {
+
+        // Player1: detecta player2 entrando (usa ref, não state)
+        if (match.status === 'active' && match.player2_id && duelStateRef.current === 'waiting') {
           const { data: opp } = await supabase
             .from('profiles').select('id, username, xp, level').eq('id', match.player2_id).single();
           if (opp) setOpponent(opp);
           setDuelState('playing');
+          duelStateRef.current = 'playing';
           startTimer();
         }
-        if (match.status === 'finished') {
+
+        // Ambos os jogadores terminaram
+        if (match.status === 'finished' && match.player1_finished_at && match.player2_finished_at) {
           setDuelState('finished');
+          duelStateRef.current = 'finished';
           cleanup();
         }
       })
@@ -166,7 +207,11 @@ export function DuelScreen({ navigation }: any) {
     Animated.timing(progressAnim, { toValue: 0, duration: TIME_PER_QUESTION * 1000, useNativeDriver: false }).start();
     timerRef.current = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) { clearInterval(timerRef.current); handleAnswer(-1); return 0; }
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          if (!answeredRef.current) handleAnswer(-1);
+          return 0;
+        }
         return prev - 1;
       });
     }, 1000);
@@ -178,35 +223,80 @@ export function DuelScreen({ navigation }: any) {
     clearInterval(timerRef.current);
     setSelected(index);
     setAnswered(true);
+    answeredRef.current = true;
+
     const q = questions[current];
-    const correct = index === q.answer_index;
-    if (correct) setMyScore(prev => prev + 1);
-    setMyAnswers(prev => [...prev, correct]);
-    await supabase.from('match_answers').insert({
-      match_id: matchId, user_id: user.id, question_id: q.id,
-      answer_index: index, is_correct: correct,
-      time_ms: (TIME_PER_QUESTION - timeLeft) * 1000,
+
+    // Valida resposta no servidor
+    const { data } = await supabase.rpc('submit_answer', {
+      p_question_id:  q.id,
+      p_answer_index: index,
     });
+
+    const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, xp: 0 };
+    setAnswerResult(result);
+    setMyAnswers(prev => [...prev, result.is_correct]);
+    if (result.is_correct) setMyScore(prev => prev + 1);
+
+    // Grava resposta no banco (is_correct vem do servidor)
+    await supabase.from('match_answers').insert({
+      match_id:     matchId,
+      user_id:      user.id,
+      question_id:  q.id,
+      answer_index: index,
+      is_correct:   result.is_correct,
+      time_ms:      (TIME_PER_QUESTION - timeLeft) * 1000,
+    });
+
     setTimeout(() => nextQuestion(), 1800);
   }
 
   async function nextQuestion() {
-    if (current + 1 >= questions.length) {
-      await supabase.from('matches').update({
-        status: 'finished', finished_at: new Date().toISOString()
-      }).eq('id', matchId);
+    if (currentRef.current + 1 >= questions.length) {
+      // Marca que este jogador terminou
+      myFinishedRef.current = true;
+      const finishField = matchId
+        ? (await supabase.from('matches').select('player1_id').eq('id', matchId).single())
+          .data?.player1_id === user?.id
+          ? 'player1_finished_at'
+          : 'player2_finished_at'
+        : null;
+
+      if (finishField) {
+        await supabase.from('matches').update({
+          [finishField]: new Date().toISOString(),
+        }).eq('id', matchId);
+      }
+
+      // Verifica se oponente já terminou também
+      const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single();
+      const bothFinished = match?.player1_finished_at && match?.player2_finished_at;
+      if (bothFinished) {
+        await supabase.from('matches').update({ status: 'finished' }).eq('id', matchId);
+      }
+
       setDuelState('finished');
+      duelStateRef.current = 'finished';
       cleanup();
     } else {
-      setCurrent(prev => prev + 1);
+      setCurrent(prev => {
+        currentRef.current = prev + 1;
+        return prev + 1;
+      });
       setSelected(null);
       setAnswered(false);
+      setAnswerResult(null);
+      answeredRef.current = false;
       startTimer();
     }
   }
 
   function resetDuel() {
     cleanup();
+    myFinishedRef.current = false;
+    duelStateRef.current  = 'lobby';
+    currentRef.current    = 0;
+    answeredRef.current   = false;
     setDuelState('lobby');
     setCurrent(0);
     setMyScore(0);
@@ -216,6 +306,7 @@ export function DuelScreen({ navigation }: any) {
     setMatchId(null);
     setSelected(null);
     setAnswered(false);
+    setAnswerResult(null);
     setJoinCode('');
     setShowJoin(false);
   }
@@ -231,7 +322,6 @@ export function DuelScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topBack}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
-
         <View style={styles.center}>
           <View style={[styles.iconWrap, { backgroundColor: colors.primary + '20' }]}>
             <Swords size={48} color={colors.primary} />
@@ -240,23 +330,15 @@ export function DuelScreen({ navigation }: any) {
           <Text style={[styles.lobbySub, { color: colors.textSecondary }]}>
             Desafie um amigo ou entre em um duelo existente
           </Text>
-
           {!showJoin ? (
             <View style={styles.lobbyActions}>
-              <TouchableOpacity
-                onPress={createMatch}
-                style={[styles.lobbyBtn, { backgroundColor: colors.primary }]}
-              >
+              <TouchableOpacity onPress={createMatch} style={[styles.lobbyBtn, { backgroundColor: colors.primary }]}>
                 {loading
                   ? <ActivityIndicator color="#FFF" />
                   : <><Swords size={20} color="#FFF" /><Text style={styles.lobbyBtnText}>Criar duelo</Text></>
                 }
               </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setShowJoin(true)}
-                style={[styles.lobbyBtnOutline, { borderColor: colors.border, backgroundColor: colors.card }]}
-              >
+              <TouchableOpacity onPress={() => setShowJoin(true)} style={[styles.lobbyBtnOutline, { borderColor: colors.border, backgroundColor: colors.card }]}>
                 <Users size={20} color={colors.primary} />
                 <Text style={[styles.lobbyBtnOutlineText, { color: colors.text }]}>Entrar com código</Text>
               </TouchableOpacity>
@@ -274,21 +356,12 @@ export function DuelScreen({ navigation }: any) {
                 style={[styles.joinInput, { color: colors.text, borderColor: joinCode.length === 8 ? colors.primary : colors.border }]}
               />
               <View style={styles.joinBtns}>
-                <TouchableOpacity
-                  onPress={() => setShowJoin(false)}
-                  style={[styles.joinCancel, { borderColor: colors.border }]}
-                >
+                <TouchableOpacity onPress={() => setShowJoin(false)} style={[styles.joinCancel, { borderColor: colors.border }]}>
                   <Text style={[styles.joinCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={joinMatch}
-                  disabled={joinCode.length < 8 || loading}
-                  style={[styles.joinConfirm, { backgroundColor: joinCode.length === 8 ? colors.primary : colors.border }]}
-                >
-                  {loading
-                    ? <ActivityIndicator color="#FFF" size="small" />
-                    : <Text style={styles.joinConfirmText}>Entrar</Text>
-                  }
+                <TouchableOpacity onPress={joinMatch} disabled={joinCode.length < 8 || loading}
+                  style={[styles.joinConfirm, { backgroundColor: joinCode.length === 8 ? colors.primary : colors.border }]}>
+                  {loading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.joinConfirmText}>Entrar</Text>}
                 </TouchableOpacity>
               </View>
             </View>
@@ -307,9 +380,7 @@ export function DuelScreen({ navigation }: any) {
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
           <Text style={[styles.waitTitle, { color: colors.text }]}>Aguardando oponente...</Text>
-          <Text style={[styles.waitSub, { color: colors.textSecondary }]}>
-            Compartilhe o código com um amigo
-          </Text>
+          <Text style={[styles.waitSub, { color: colors.textSecondary }]}>Compartilhe o código com um amigo</Text>
           <View style={[styles.codeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.codeLabel, { color: colors.textMuted }]}>Código do duelo</Text>
             <Text style={[styles.codeValue, { color: colors.text }]}>
@@ -371,8 +442,8 @@ export function DuelScreen({ navigation }: any) {
         <View style={styles.questionWrap}>
           <Text style={[styles.questionText, { color: colors.text }]}>{q.text}</Text>
           <View style={styles.options}>
-            {q.options.map((opt, i) => {
-              const isCorrect  = i === q.answer_index;
+            {q.options.map((opt: string, i: number) => {
+              const isCorrect  = answered && i === answerResult?.correct_index;
               const isSelected = i === selected;
               let bg = colors.card, border = colors.border, textColor = colors.text;
               if (answered) {
@@ -387,7 +458,7 @@ export function DuelScreen({ navigation }: any) {
                     <Text style={[styles.optLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                   </View>
                   <Text style={[styles.optText, { color: textColor }]}>{opt}</Text>
-                  {answered && isCorrect            && <CheckCircle size={18} color="#009C3B" />}
+                  {answered && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
                   {answered && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
                 </TouchableOpacity>
               );
@@ -402,7 +473,7 @@ export function DuelScreen({ navigation }: any) {
   // FINISHED
   // ══════════════════════════════════════════════════════════════
   if (duelState === 'finished') {
-    const iWon  = myScore > oppScore;
+    const iWon   = myScore > oppScore;
     const isDraw = myScore === oppScore;
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
