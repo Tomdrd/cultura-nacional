@@ -455,8 +455,12 @@ export function ViralModeScreen({ navigation, route }: any) {
             <Text style={[styles.shareSub, { color: colors.textSecondary }]}>
               O vídeo será gerado com sua câmera e as perguntas respondidas
             </Text>
-            <TouchableOpacity style={[styles.shareBtn, { backgroundColor: '#E24B4A' }]}>
-              <Text style={styles.shareBtnText}>🎬 Gerar e compartilhar vídeo</Text>
+            <TouchableOpacity
+              style={[styles.shareBtn, { backgroundColor: '#E24B4A' }]}
+              onPress={handleShareResult}
+            >
+              <Share2 size={18} color="#FFF" />
+              <Text style={styles.shareBtnText}>Compartilhar resultado</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.retryBtn, { borderColor: colors.border }]}
@@ -469,6 +473,27 @@ export function ViralModeScreen({ navigation, route }: any) {
         </View>
       </View>
     );
+  }
+
+  async function handleShareResult() {
+    const pct = Math.round((scoreRef.current / TOTAL_Q) * 100);
+    const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${scoreRef.current}/${TOTAL_Q} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!`;
+
+    if (Platform.OS === 'web') {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(msg);
+        Alert.alert('Copiado!', 'Resultado copiado. Cole onde quiser compartilhar.');
+      } else {
+        Alert.alert('Seu resultado', msg);
+      }
+      return;
+    }
+
+    try {
+      await Share.share({ message: msg });
+    } catch (err: any) {
+      Alert.alert('Erro', 'Não foi possível compartilhar.');
+    }
   }
 
   return null;
