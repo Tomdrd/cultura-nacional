@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { Map, Building2, Trophy, Search, ChevronRight, ArrowLeft, Landmark, Check } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
@@ -56,14 +56,29 @@ export function OnboardingScreen({ navigation }: any) {
   async function handleFinish() {
     if (saving) return;
     setSaving(true);
-    if (user) {
-      await supabase.from('profiles').update({
-        city_natal_id:   selectedCity?.id ?? null,
-        city_changed_at: new Date().toISOString(),
-      }).eq('id', user.id);
+    try {
+      // Garante que há sessão ativa antes de salvar
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = user?.id ?? session?.user?.id;
+
+      if (userId) {
+        const { error } = await supabase.from('profiles').update({
+          city_natal_id:   selectedCity?.id ?? null,
+          city_changed_at: new Date().toISOString(),
+        }).eq('id', userId);
+
+        if (error) {
+          Alert.alert('Erro', 'Não foi possível salvar sua cidade. Tente novamente.');
+          return;
+        }
+      }
+      // Navega para o app — o RootNavigator vai redirecionar corretamente via authStore
+      navigation.reset({ index: 0, routes: [{ name: 'App' }] });
+    } catch {
+      Alert.alert('Erro', 'Ocorreu um problema. Tente novamente.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    navigation.reset({ index: 0, routes: [{ name: 'App' }] });
   }
 
   const filteredStates = states.filter(s =>
