@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Linking } from 'react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -54,7 +55,7 @@ export function RegisterScreen({ navigation }: any) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <Text style={[styles.backText, { color: colors.primary }]}>← Voltar</Text>
+            <ArrowLeft size={18} color={colors.primary} /><Text style={[styles.backText, { color: colors.primary }]}>Voltar</Text>
           </TouchableOpacity>
           <View style={[styles.logoCircle, { backgroundColor: '#1A1A1A' }]}>
             <Text style={styles.logoText}>CN</Text>
@@ -122,7 +123,7 @@ export function RegisterScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   scroll:     { flexGrow: 1, padding: Spacing.xl },
   header:     { alignItems: 'center', marginBottom: Spacing.xl, marginTop: Spacing.lg },
-  back:       { alignSelf: 'flex-start', marginBottom: Spacing.lg },
+  back:       { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginBottom: Spacing.lg },
   backText:   { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   logoCircle: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md },
   logoText:   { color: '#FFFFFF', fontSize: 20, fontWeight: '700' },

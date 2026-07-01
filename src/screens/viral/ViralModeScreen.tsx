@@ -4,7 +4,7 @@ import {
   Dimensions, Alert, Platform,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useMicrophonePermissions } from 'expo-audio';
+import { requestRecordingPermissionsAsync } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -24,46 +24,46 @@ interface Question {
 }
 
 type Format = 'vertical' | 'horizontal';
-type Phase  = 'setup' | 'countdown' | 'quiz' | 'result';
+type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
 
 const MEME_TEXTS: Record<string, string> = {
-  correct_common:   'Acertou, mizeravi!',
-  correct_streak:   'Tá voando, visse!',
-  correct_excellent:'Você é o bichão mesmo, hein!',
-  wrong:            'Eita lasqueira!',
-  timeout:          'Ô meu povo...',
-  bad_score:        'Estudar mais um poco, né?',
+  correct_common: 'Acertou, mizeravi!',
+  correct_streak: 'Tá voando, visse!',
+  correct_excellent: 'Você é o bichão mesmo, hein!',
+  wrong: 'Eita lasqueira!',
+  timeout: 'Ô meu povo...',
+  bad_score: 'Estudar mais um poco, né?',
 };
 
 export function ViralModeScreen({ navigation, route }: any) {
   const { colors } = useTheme();
   const { stateId, stateName, subcategory } = route.params ?? {};
 
-  const [cameraPermission,   requestCameraPermission]   = useCameraPermissions();
-  const [microphPermission,  requestMicrophPermission]  = useMicrophonePermissions();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
-  const [format,        setFormat]        = useState<Format>('vertical');
-  const [phase,         setPhase]         = useState<Phase>('setup');
-  const [countdown,     setCountdown]     = useState(3);
-  const [questions,     setQuestions]     = useState<Question[]>([]);
-  const [current,       setCurrent]       = useState(0);
-  const [selected,      setSelected]      = useState<number | null>(null);
-  const [answered,      setAnswered]      = useState(false);
-  const [timeLeft,      setTimeLeft]      = useState(15);
-  const [timerActive,   setTimerActive]   = useState(false);
-  const [results,       setResults]       = useState<boolean[]>([]);
-  const [memeText,      setMemeText]      = useState('');
-  const [showMeme,      setShowMeme]      = useState(false);
-  const [loading,       setLoading]       = useState(false);
+
+  const [format, setFormat] = useState<Format>('vertical');
+  const [phase, setPhase] = useState<Phase>('setup');
+  const [countdown, setCountdown] = useState(3);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [current, setCurrent] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [timerActive, setTimerActive] = useState(false);
+  const [results, setResults] = useState<boolean[]>([]);
+  const [memeText, setMemeText] = useState('');
+  const [showMeme, setShowMeme] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
-  const [score,         setScore]         = useState(0);
+  const [score, setScore] = useState(0);
 
-  const cameraRef  = useRef<any>(null);
-  const timerRef   = useRef<any>(null);
+  const cameraRef = useRef<any>(null);
+  const timerRef = useRef<any>(null);
 
-  const isVertical  = format === 'vertical';
-  const TOTAL_Q     = 5;
-  const TIME_PER_Q  = 15;
+  const isVertical = format === 'vertical';
+  const TOTAL_Q = 5;
+  const TIME_PER_Q = 15;
 
   useEffect(() => {
     return () => {
@@ -101,15 +101,15 @@ export function ViralModeScreen({ navigation, route }: any) {
   }, [timerActive, current]);
 
   async function requestAllPermissions() {
-    const cam  = await requestCameraPermission();
-    const mic  = await requestMicrophPermission();
+    const cam = await requestCameraPermission();
+    const mic = await requestRecordingPermissionsAsync();
     return cam.granted && mic.granted;
   }
 
   async function loadQuestions() {
     setLoading(true);
     let query = supabase.from('questions').select('*').eq('active', true).limit(TOTAL_Q);
-    if (stateId)    query = query.eq('state_id', stateId);
+    if (stateId) query = query.eq('state_id', stateId);
     if (subcategory) query = query.eq('subcategory', subcategory);
     let { data } = await query;
     if (!data || data.length < 3) {
@@ -170,7 +170,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     setSelected(index);
     setAnswered(true);
 
-    const q       = questions[current];
+    const q = questions[current];
     const correct = index === q.answer_index;
     const newStreak = correct ? correctStreak + 1 : 0;
 
@@ -180,7 +180,7 @@ export function ViralModeScreen({ navigation, route }: any) {
 
     if (correct) {
       if (newStreak >= 3) await playMeme('correct_streak');
-      else                await playMeme('correct_common');
+      else await playMeme('correct_common');
     } else {
       await playMeme('wrong');
     }
@@ -204,8 +204,8 @@ export function ViralModeScreen({ navigation, route }: any) {
     Speech.stop();
     clearInterval(timerRef.current);
     const pct = score / questions.length;
-    if (pct >= 0.8)      await playMeme('correct_excellent');
-    else if (pct < 0.4)  await playMeme('bad_score');
+    if (pct >= 0.8) await playMeme('correct_excellent');
+    else if (pct < 0.4) await playMeme('bad_score');
     setPhase('result');
   }
 
@@ -235,7 +235,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={[styles.backText, { color: colors.primary }]}>← Voltar</Text>
+          <ArrowLeft size={18} color={colors.primary} /><Text style={[styles.backText, { color: colors.primary }]}>Voltar</Text>
         </TouchableOpacity>
 
         <View style={styles.setupCenter}>
@@ -285,14 +285,14 @@ export function ViralModeScreen({ navigation, route }: any) {
 
           {/* Features */}
           <View style={[styles.featureList, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            {[
-              ['🎙️', 'Perguntas narradas automaticamente'],
-              ['😂', 'Efeitos sonoros com memes'],
-              ['📱', 'Compartilhe direto nas redes'],
-            ].map(([icon, text]) => (
-              <View key={text} style={styles.featureRow}>
-                <Text style={styles.featureIcon}>{icon}</Text>
-                <Text style={[styles.featureText, { color: colors.textSecondary }]}>{text}</Text>
+            {([
+              { Icon: Mic,       label: 'Perguntas narradas automaticamente', color: '#D4537E' },
+              { Icon: Volume2,   label: 'Efeitos sonoros com memes',          color: '#BA7517' },
+              { Icon: Share2,    label: 'Compartilhe direto nas redes',        color: '#378ADD' },
+            ] as { Icon: any; label: string; color: string }[]).map(({ Icon, label, color }) => (
+              <View key={label} style={styles.featureRow}>
+                <Icon size={18} color={color} />
+                <Text style={[styles.featureText, { color: colors.textSecondary }]}>{label}</Text>
               </View>
             ))}
           </View>
@@ -332,7 +332,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   // ══════════════════════════════════════════
   if (phase === 'quiz' && q) {
     const cameraH = isVertical ? SH * 0.38 : SH * 0.5;
-    const quizH   = isVertical ? SH * 0.62 : SH * 0.5;
+    const quizH = isVertical ? SH * 0.62 : SH * 0.5;
 
     return (
       <View style={[styles.fullscreen, { flexDirection: isVertical ? 'column' : 'row' }]}>
@@ -396,16 +396,16 @@ export function ViralModeScreen({ navigation, route }: any) {
           {/* Options */}
           <View style={styles.options}>
             {q.options.map((opt, i) => {
-              const isCorrect  = i === q.answer_index;
+              const isCorrect = i === q.answer_index;
               const isSelected = i === selected;
-              let bg     = colors.card;
+              let bg = colors.card;
               let border = colors.border;
-              let tc     = colors.text;
+              let tc = colors.text;
 
               if (answered) {
-                if (isCorrect)              { bg = '#009C3B20'; border = '#009C3B'; tc = '#009C3B'; }
-                else if (isSelected)        { bg = '#E24B4A20'; border = '#E24B4A'; tc = '#E24B4A'; }
-              } else if (isSelected)        { bg = colors.primary + '15'; border = colors.primary; tc = colors.primary; }
+                if (isCorrect) { bg = '#009C3B20'; border = '#009C3B'; tc = '#009C3B'; }
+                else if (isSelected) { bg = '#E24B4A20'; border = '#E24B4A'; tc = '#E24B4A'; }
+              } else if (isSelected) { bg = colors.primary + '15'; border = colors.primary; tc = colors.primary; }
 
               return (
                 <TouchableOpacity
@@ -415,10 +415,10 @@ export function ViralModeScreen({ navigation, route }: any) {
                   style={[styles.option, { backgroundColor: bg, borderColor: border }]}
                 >
                   <View style={[styles.optLetter, { backgroundColor: border + '30' }]}>
-                    <Text style={[styles.optLetterText, { color: tc }]}>{['A','B','C','D'][i]}</Text>
+                    <Text style={[styles.optLetterText, { color: tc }]}>{['A', 'B', 'C', 'D'][i]}</Text>
                   </View>
                   <Text style={[styles.optText, { color: tc }]} numberOfLines={2}>{opt}</Text>
-                  {answered && isCorrect  && <CheckCircle size={16} color="#009C3B" />}
+                  {answered && isCorrect && <CheckCircle size={16} color="#009C3B" />}
                   {answered && isSelected && !isCorrect && <XCircle size={16} color="#E24B4A" />}
                 </TouchableOpacity>
               );
@@ -433,12 +433,14 @@ export function ViralModeScreen({ navigation, route }: any) {
   // RESULT
   // ══════════════════════════════════════════
   if (phase === 'result') {
-    const pct  = Math.round((score / questions.length) * 100);
-    const msg  = pct >= 80 ? '🏆 Arrasou!' : pct >= 60 ? '⭐ Muito bem!' : '📚 Treina mais!';
+    const pct = Math.round((score / questions.length) * 100);
+    const msg = pct >= 80 ? 'Arrasou!' : pct >= 60 ? 'Muito bem!' : 'Treina mais!';
+    const ResultIcon = pct >= 80 ? Trophy : pct >= 60 ? Star : BookOpen;
+    const resultIconColor = pct >= 80 ? '#FFDF00' : pct >= 60 ? colors.primary : colors.textSecondary;
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.resultCenter}>
-          <Text style={styles.resultEmoji}>{pct >= 80 ? '🏆' : pct >= 60 ? '⭐' : '📚'}</Text>
+          <ResultIcon size={56} color={resultIconColor} />
           <Text style={[styles.resultTitle, { color: colors.text }]}>{msg}</Text>
           <Text style={[styles.resultScore, { color: '#E24B4A' }]}>{score}/{questions.length} acertos</Text>
 
@@ -473,61 +475,61 @@ export function ViralModeScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1 },
-  fullscreen:      { flex: 1 },
-  backBtn:         { padding: Spacing.xl, paddingTop: 56 },
-  backText:        { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  setupCenter:     { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
-  viralBadge:      { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
-  viralBadgeText:  { fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1 },
-  setupTitle:      { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 34 },
-  setupSub:        { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
-  formatLabel:     { fontSize: 11, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
-  formatRow:       { flexDirection: 'row', gap: 12 },
-  formatBtn:       { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: Radius.lg, borderWidth: 0.5, paddingVertical: Spacing.lg },
-  formatIcon:      { backgroundColor: 'transparent' },
-  formatName:      { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  formatSub:       { fontSize: 11 },
-  featureList:     { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 10 },
-  featureRow:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  featureIcon:     { fontSize: 18 },
-  featureText:     { fontSize: FontSize.sm, flex: 1 },
-  startBtn:        { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  startBtnText:    { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  countdownOverlay:{ alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  countdownNum:    { fontSize: 120, fontWeight: FontWeight.bold, color: '#FFF' },
-  countdownText:   { fontSize: FontSize.xl, color: '#FFF', fontWeight: FontWeight.medium },
-  cameraTopBar:    { position: 'absolute', top: 48, left: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  recDot:          { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E24B4A' },
-  recText:         { color: '#FFF', fontSize: 12, fontWeight: FontWeight.bold },
-  memeOverlay:     { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)' },
-  memeText:        { color: '#FFDF00', fontSize: 22, fontWeight: FontWeight.bold, textAlign: 'center', paddingHorizontal: 20 },
-  quizArea:        { padding: Spacing.md },
-  dotsRow:         { flexDirection: 'row', gap: 5, marginBottom: Spacing.sm },
-  dot:             { flex: 1, height: 3, borderRadius: 2 },
-  timerRow:        { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.sm },
-  timerBarBg:      { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
-  timerBarFill:    { height: 4, borderRadius: 2 },
-  timerNum:        { fontSize: 12, fontWeight: FontWeight.bold, width: 28, textAlign: 'right' },
-  questionBox:     { borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, marginBottom: Spacing.sm },
-  subcatBadge:     { fontSize: 10, marginBottom: 4, fontWeight: FontWeight.medium },
-  questionText:    { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 22 },
-  options:         { gap: 6 },
-  option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, paddingHorizontal: Spacing.sm, paddingVertical: 8, gap: 8 },
-  optLetter:       { width: 26, height: 26, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  optLetterText:   { fontSize: 12, fontWeight: FontWeight.bold },
-  optText:         { flex: 1, fontSize: 12, lineHeight: 17 },
-  resultCenter:    { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
-  resultEmoji:     { fontSize: 56, marginBottom: Spacing.sm },
-  resultTitle:     { fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginBottom: 4 },
-  resultScore:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
-  resultDots:      { flexDirection: 'row', gap: 8, marginBottom: Spacing.xl },
-  resultDot:       { width: 12, height: 12, borderRadius: 6 },
-  shareCard:       { width: '100%', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, gap: 12 },
-  shareTitle:      { fontSize: FontSize.md, fontWeight: FontWeight.bold, textAlign: 'center' },
-  shareSub:        { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
-  shareBtn:        { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  shareBtnText:    { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  retryBtn:        { height: 44, borderRadius: Radius.md, borderWidth: 0.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  retryBtnText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  container: { flex: 1 },
+  fullscreen: { flex: 1 },
+  backBtn: { padding: Spacing.xl, paddingTop: 56 },
+  backText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  setupCenter: { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
+  viralBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
+  viralBadgeText: { fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1 },
+  setupTitle: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 34 },
+  setupSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
+  formatLabel: { fontSize: 11, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
+  formatRow: { flexDirection: 'row', gap: 12 },
+  formatBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: Radius.lg, borderWidth: 0.5, paddingVertical: Spacing.lg },
+  formatIcon: { backgroundColor: 'transparent' },
+  formatName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  formatSub: { fontSize: 11 },
+  featureList: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 10 },
+  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  featureIcon: { fontSize: 18 },
+  featureText: { fontSize: FontSize.sm, flex: 1 },
+  startBtn: { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  startBtnText: { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  countdownOverlay: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  countdownNum: { fontSize: 120, fontWeight: FontWeight.bold, color: '#FFF' },
+  countdownText: { fontSize: FontSize.xl, color: '#FFF', fontWeight: FontWeight.medium },
+  cameraTopBar: { position: 'absolute', top: 48, left: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E24B4A' },
+  recText: { color: '#FFF', fontSize: 12, fontWeight: FontWeight.bold },
+  memeOverlay: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)' },
+  memeText: { color: '#FFDF00', fontSize: 22, fontWeight: FontWeight.bold, textAlign: 'center', paddingHorizontal: 20 },
+  quizArea: { padding: Spacing.md },
+  dotsRow: { flexDirection: 'row', gap: 5, marginBottom: Spacing.sm },
+  dot: { flex: 1, height: 3, borderRadius: 2 },
+  timerRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.sm },
+  timerBarBg: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
+  timerBarFill: { height: 4, borderRadius: 2 },
+  timerNum: { fontSize: 12, fontWeight: FontWeight.bold, width: 28, textAlign: 'right' },
+  questionBox: { borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, marginBottom: Spacing.sm },
+  subcatBadge: { fontSize: 10, marginBottom: 4, fontWeight: FontWeight.medium },
+  questionText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 22 },
+  options: { gap: 6 },
+  option: { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, paddingHorizontal: Spacing.sm, paddingVertical: 8, gap: 8 },
+  optLetter: { width: 26, height: 26, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  optLetterText: { fontSize: 12, fontWeight: FontWeight.bold },
+  optText: { flex: 1, fontSize: 12, lineHeight: 17 },
+  resultCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
+  resultEmoji: { fontSize: 56, marginBottom: Spacing.sm },
+  resultTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginBottom: 4 },
+  resultScore: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
+  resultDots: { flexDirection: 'row', gap: 8, marginBottom: Spacing.xl },
+  resultDot: { width: 12, height: 12, borderRadius: 6 },
+  shareCard: { width: '100%', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, gap: 12 },
+  shareTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, textAlign: 'center' },
+  shareSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
+  shareBtn: { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  shareBtnText: { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  retryBtn: { height: 44, borderRadius: Radius.md, borderWidth: 0.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  retryBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
 });

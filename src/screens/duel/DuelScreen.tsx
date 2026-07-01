@@ -491,7 +491,7 @@ export function DuelScreen({ navigation }: any) {
               <Text style={[styles.finalName, { color: colors.primary }]}>Você</Text>
               <Text style={[styles.finalVal, { color: colors.text }]}>{myScore}</Text>
             </View>
-            <Text style={[styles.finalX, { color: colors.textMuted }]}>×</Text>
+            <X size={20} color={colors.textMuted} />
             <View style={styles.finalItem}>
               <Text style={[styles.finalName, { color: colors.textSecondary }]}>{opponent?.username ?? 'Oponente'}</Text>
               <Text style={[styles.finalVal, { color: colors.text }]}>{oppScore}</Text>
