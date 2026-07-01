@@ -435,11 +435,11 @@ export function ViralModeScreen({ navigation, route }: any) {
     const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${score}/${questions.length} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!`;
 
     if (Platform.OS === 'web') {
-      if (navigator.clipboard) {
+      try {
         await navigator.clipboard.writeText(msg);
-        Alert.alert('Copiado!', 'Resultado copiado. Cole onde quiser compartilhar.');
-      } else {
-        Alert.alert('Seu resultado', msg);
+        window.alert('Resultado copiado! Cole onde quiser compartilhar.');
+      } catch {
+        window.prompt('Copie o texto abaixo:', msg);
       }
       return;
     }
