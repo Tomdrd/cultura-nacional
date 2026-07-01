@@ -430,6 +430,27 @@ export function ViralModeScreen({ navigation, route }: any) {
   }
 
   // ══════════════════════════════════════════
+  async function handleShareResult() {
+    const pct = Math.round((scoreRef.current / TOTAL_Q) * 100);
+    const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${scoreRef.current}/${TOTAL_Q} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!`;
+
+    if (Platform.OS === 'web') {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(msg);
+        Alert.alert('Copiado!', 'Resultado copiado. Cole onde quiser compartilhar.');
+      } else {
+        Alert.alert('Seu resultado', msg);
+      }
+      return;
+    }
+
+    try {
+      await Share.share({ message: msg });
+    } catch (err: any) {
+      Alert.alert('Erro', 'Não foi possível compartilhar.');
+    }
+  }
+
   // RESULT
   // ══════════════════════════════════════════
   if (phase === 'result') {
@@ -473,27 +494,6 @@ export function ViralModeScreen({ navigation, route }: any) {
         </View>
       </View>
     );
-  }
-
-  async function handleShareResult() {
-    const pct = Math.round((scoreRef.current / TOTAL_Q) * 100);
-    const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${scoreRef.current}/${TOTAL_Q} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!`;
-
-    if (Platform.OS === 'web') {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(msg);
-        Alert.alert('Copiado!', 'Resultado copiado. Cole onde quiser compartilhar.');
-      } else {
-        Alert.alert('Seu resultado', msg);
-      }
-      return;
-    }
-
-    try {
-      await Share.share({ message: msg });
-    } catch (err: any) {
-      Alert.alert('Erro', 'Não foi possível compartilhar.');
-    }
   }
 
   return null;
