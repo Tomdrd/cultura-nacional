@@ -126,15 +126,11 @@ export function QuizScreen({ route, navigation }: any) {
     setFinished(true);
     if (!user) return;
     if (xpRef.current > 0) {
-      const { data: profile } = await supabase.from('profiles').select('xp, level').eq('id', user.id).single();
-      if (profile) {
-        const newXp    = profile.xp + xpRef.current;
-        const newLevel = Math.floor(newXp / 500) + 1;
-        await supabase.from('profiles').update({
-          xp: newXp, level: newLevel, last_played_at: new Date().toISOString(),
-        }).eq('id', user.id);
-      }
-      await supabase.rpc('update_city_ranking', { p_user_id: user.id, p_xp_gained: xpRef.current });
+      // Atualiza XP atomicamente no servidor (evita race condition)
+      await Promise.all([
+        supabase.rpc('update_xp_and_level',  { p_user_id: user.id, p_xp_gained: xpRef.current }),
+        supabase.rpc('update_city_ranking',   { p_user_id: user.id, p_xp_gained: xpRef.current }),
+      ]);
     }
     await supabase.rpc('update_streak_on_play', { p_user_id: user.id });
   }

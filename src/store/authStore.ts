@@ -9,7 +9,10 @@ interface AuthState {
   setSession: (session: Session | null) => void;
   signOut:    () => Promise<void>;
   init:       () => Promise<void>;
+  cleanup:    () => void;
 }
+
+let authSubscription: { unsubscribe: () => void } | null = null;
 
 export const useAuthStore = create<AuthState>((set) => ({
   session: null,
@@ -25,11 +28,25 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   init: async () => {
+    // Garante que só existe um listener ativo
+    if (authSubscription) {
+      authSubscription.unsubscribe();
+      authSubscription = null;
+    }
+
     const { data } = await supabase.auth.getSession();
     set({ session: data.session, user: data.session?.user ?? null, loading: false });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       set({ session, user: session?.user ?? null });
     });
+    authSubscription = subscription;
+  },
+
+  cleanup: () => {
+    if (authSubscription) {
+      authSubscription.unsubscribe();
+      authSubscription = null;
+    }
   },
 }));

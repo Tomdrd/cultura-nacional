@@ -52,26 +52,18 @@ export function ProfileScreen({ navigation }: any) {
     setLoading(true);
     const { data } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, username, avatar_url, xp, level, streak, plan, city_natal_id, created_at')
       .eq('id', user.id)
       .single();
 
     if (data) {
       setProfile(data);
       if (data.city_natal_id) {
-        const { data: cityData } = await supabase
-          .from('cities')
-          .select('name, state_uf')
-          .eq('id', data.city_natal_id)
-          .single();
+        const [{ data: cityData }, { data: rankData }] = await Promise.all([
+          supabase.from('cities').select('name, state_uf').eq('id', data.city_natal_id).single(),
+          supabase.from('city_rankings').select('position').eq('city_id', data.city_natal_id).eq('user_id', user.id).single(),
+        ]);
         if (cityData) setCity(cityData);
-
-        const { data: rankData } = await supabase
-          .from('city_rankings')
-          .select('position')
-          .eq('city_id', data.city_natal_id)
-          .eq('user_id', user.id)
-          .single();
         if (rankData) setCityRank(rankData.position);
       }
     }
@@ -160,14 +152,14 @@ export function ProfileScreen({ navigation }: any) {
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>PLANO</Text>
         <View style={styles.planRow}>
           <View style={[styles.planBadge, {
-            backgroundColor: profile?.plan === 'pro' ? '#FFDF0020' : colors.background,
-            borderColor: profile?.plan === 'pro' ? '#FFDF00' : colors.border,
+            backgroundColor: profile?.plan === 'pro' ? '#FFDF0020' : profile?.plan === 'family' ? '#009C3B20' : colors.background,
+            borderColor: profile?.plan === 'pro' ? '#FFDF00' : profile?.plan === 'family' ? '#009C3B' : colors.border,
           }]}>
-            <Text style={[styles.planText, { color: profile?.plan === 'pro' ? '#FFDF00' : colors.textSecondary }]}>
-              {profile?.plan === 'pro' ? 'CN Pro' : 'Gratuito'}
+            <Text style={[styles.planText, { color: profile?.plan === 'pro' ? '#FFDF00' : profile?.plan === 'family' ? '#009C3B' : colors.textSecondary }]}>
+              {profile?.plan === 'pro' ? 'CN Pro' : profile?.plan === 'family' ? 'Família' : 'Gratuito'}
             </Text>
           </View>
-          {profile?.plan !== 'pro' && (
+          {profile?.plan !== 'pro' && profile?.plan !== 'family' && (
             <TouchableOpacity
               onPress={() => navigation.navigate('Subscription')}
               style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
