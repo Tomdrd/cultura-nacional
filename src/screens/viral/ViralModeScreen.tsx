@@ -431,8 +431,8 @@ export function ViralModeScreen({ navigation, route }: any) {
 
   // ══════════════════════════════════════════
   async function handleShareResult() {
-    const pct = Math.round((scoreRef.current / TOTAL_Q) * 100);
-    const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${scoreRef.current}/${TOTAL_Q} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!`;
+    const pct = Math.round((score / questions.length) * 100);
+    const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${score}/${questions.length} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!`;
 
     if (Platform.OS === 'web') {
       if (navigator.clipboard) {
