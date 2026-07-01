@@ -14,6 +14,7 @@ Notifications.setNotificationHandler({
  * Solicita permissão e retorna true se concedida.
  */
 export async function requestNotificationPermission(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name:       'Padrão',
@@ -34,6 +35,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * Dispara todo dia às 20h se o usuário não tiver jogado.
  */
 export async function scheduleStreakReminder(enabled: boolean) {
+  if (Platform.OS === 'web') return;
   await Notifications.cancelScheduledNotificationAsync('streak-reminder').catch(() => {});
   if (!enabled) return;
 
@@ -57,6 +59,7 @@ export async function scheduleStreakReminder(enabled: boolean) {
  * Dispara todo dia às 8h.
  */
 export async function scheduleMissionsReminder(enabled: boolean) {
+  if (Platform.OS === 'web') return;
   await Notifications.cancelScheduledNotificationAsync('missions-reminder').catch(() => {});
   if (!enabled) return;
 
@@ -79,5 +82,6 @@ export async function scheduleMissionsReminder(enabled: boolean) {
  * Cancela todas as notificações agendadas.
  */
 export async function cancelAllNotifications() {
+  if (Platform.OS === 'web') return;
   await Notifications.cancelAllScheduledNotificationsAsync();
 }

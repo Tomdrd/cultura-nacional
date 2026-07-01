@@ -9,7 +9,7 @@ import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-import { CheckCircle, XCircle, Clock, Video, RotateCcw } from 'lucide-react-native';
+import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen } from 'lucide-react-native';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
