@@ -17,23 +17,76 @@ interface RankEntry {
   state_uf?: string;
 }
 
+interface MyLocation {
+  city_natal_id: string | null;
+  state_uf: string | null;
+}
+
 export function RankingScreen() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  const [scope,   setScope]   = useState<Scope>('national');
-  const [entries, setEntries] = useState<RankEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [myRank,  setMyRank]  = useState<number | null>(null);
+  const [scope,      setScope]      = useState<Scope>('national');
+  const [entries,    setEntries]    = useState<RankEntry[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [myRank,     setMyRank]     = useState<number | null>(null);
+  const [myLocation, setMyLocation] = useState<MyLocation | null>(null);
+  const [scopeLabel, setScopeLabel] = useState('');
 
-  useEffect(() => { loadRanking(); }, [scope]);
+  // Carrega localização do usuário uma vez
+  useEffect(() => {
+    async function loadMyLocation() {
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('city_natal_id, cities(state_uf)')
+        .eq('id', user.id)
+        .single();
+      if (data) {
+        setMyLocation({
+          city_natal_id: data.city_natal_id ?? null,
+          state_uf:      (data as any).cities?.state_uf ?? null,
+        });
+      }
+    }
+    loadMyLocation();
+  }, [user]);
+
+  useEffect(() => { loadRanking(); }, [scope, myLocation]);
 
   async function loadRanking() {
     setLoading(true);
-    const { data } = await supabase
+
+    let query = supabase
       .from('profiles')
       .select('id, username, xp, level, city_natal_id, cities(name, state_uf)')
       .order('xp', { ascending: false })
       .limit(50);
+
+    if (scope === 'city' && myLocation?.city_natal_id) {
+      query = query.eq('city_natal_id', myLocation.city_natal_id);
+      setScopeLabel('sua cidade');
+    } else if (scope === 'state' && myLocation?.state_uf) {
+      // Filtra por state_uf via join com cities
+      query = supabase
+        .from('profiles')
+        .select('id, username, xp, level, city_natal_id, cities!inner(name, state_uf)')
+        .eq('cities.state_uf', myLocation.state_uf)
+        .order('xp', { ascending: false })
+        .limit(50);
+      setScopeLabel('seu estado');
+    } else if (scope === 'national') {
+      setScopeLabel('');
+    }
+
+    // Se scope requer localização mas não tem, mostra vazio
+    if ((scope === 'city' || scope === 'state') && !myLocation) {
+      setEntries([]);
+      setMyRank(null);
+      setLoading(false);
+      return;
+    }
+
+    const { data } = await query;
 
     if (data) {
       const mapped = data.map((p: any) => ({
@@ -45,8 +98,19 @@ export function RankingScreen() {
         state_uf:  p.cities?.state_uf,
       }));
       setEntries(mapped);
+
+      // Posição real do usuário no ranking filtrado
       const myIndex = mapped.findIndex(e => e.user_id === user?.id);
-      setMyRank(myIndex >= 0 ? myIndex + 1 : null);
+      if (myIndex >= 0) {
+        setMyRank(myIndex + 1);
+      } else {
+        // Busca posição real se fora do top 50
+        const { count } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .gt('xp', mapped[0]?.xp ?? 0);
+        setMyRank(count ? count + 1 : null);
+      }
     }
     setLoading(false);
   }
@@ -54,8 +118,8 @@ export function RankingScreen() {
   const podium = entries.slice(0, 3);
   const rest   = entries.slice(3);
 
-  const medalColors = ['#FFDF00', '#C0C0C0', '#CD7F32'];
-  const medalLabels = ['1º', '2º', '3º'];
+  // Mensagem quando aba requer localização não configurada
+  const needsLocation = (scope === 'city' || scope === 'state') && myLocation && !myLocation.city_natal_id;
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
@@ -64,9 +128,15 @@ export function RankingScreen() {
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <Trophy size={24} color="#FFDF00" />
         <Text style={[styles.title, { color: colors.text }]}>Ranking</Text>
-        {myRank && (
+        {myRank ? (
           <View style={[styles.myRankBadge, { backgroundColor: colors.primary + '20' }]}>
-            <Text style={[styles.myRankText, { color: colors.primary }]}>Sua posição: #{myRank}</Text>
+            <Text style={[styles.myRankText, { color: colors.primary }]}>
+              Sua posição: #{myRank}{scopeLabel ? ` em ${scopeLabel}` : ''}
+            </Text>
+          </View>
+        ) : scope !== 'national' && (
+          <View style={[styles.myRankBadge, { backgroundColor: colors.border }]}>
+            <Text style={[styles.myRankText, { color: colors.textMuted }]}>Fora do top 50</Text>
           </View>
         )}
       </View>
@@ -74,9 +144,9 @@ export function RankingScreen() {
       {/* Scope tabs */}
       <View style={[styles.tabs, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         {([
-          { key: 'national', label: 'Nacional',  Icon: Globe  },
-          { key: 'state',    label: 'Estado',    Icon: MapPin },
-          { key: 'city',     label: 'Cidade',    Icon: User   },
+          { key: 'national', label: 'Nacional', Icon: Globe  },
+          { key: 'state',    label: 'Estado',   Icon: MapPin },
+          { key: 'city',     label: 'Cidade',   Icon: User   },
         ] as { key: Scope; label: string; Icon: any }[]).map(({ key, label, Icon }) => (
           <TouchableOpacity
             key={key}
@@ -92,6 +162,13 @@ export function RankingScreen() {
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      ) : needsLocation ? (
+        <View style={styles.center}>
+          <MapPin size={40} color={colors.textMuted} />
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+            Configure sua cidade natal no perfil{'\n'}para ver o ranking local.
+          </Text>
         </View>
       ) : (
         <>
@@ -134,16 +211,10 @@ export function RankingScreen() {
             {rest.map((entry, i) => {
               const isMe = entry.user_id === user?.id;
               return (
-                <View
-                  key={entry.user_id}
-                  style={[
-                    styles.row,
-                    {
-                      backgroundColor: isMe ? colors.primary + '10' : colors.card,
-                      borderColor: isMe ? colors.primary + '40' : colors.border,
-                    }
-                  ]}
-                >
+                <View key={entry.user_id} style={[styles.row, {
+                  backgroundColor: isMe ? colors.primary + '10' : colors.card,
+                  borderColor:     isMe ? colors.primary + '40' : colors.border,
+                }]}>
                   <Text style={[styles.rank, { color: colors.textMuted }]}>#{i + 4}</Text>
                   <View style={[styles.rowAvatar, { backgroundColor: colors.border }]}>
                     <User size={16} color={colors.textMuted} />
@@ -184,30 +255,30 @@ export function RankingScreen() {
 }
 
 const styles = StyleSheet.create({
-  header:          { alignItems: 'center', padding: Spacing.xl, paddingTop: 60, gap: 8, borderBottomWidth: 0.5 },
-  title:           { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  myRankBadge:     { paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full },
-  myRankText:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  tabs:            { flexDirection: 'row', borderBottomWidth: 0.5 },
-  tab:             { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12 },
-  tabText:         { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  center:          { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  podiumWrap:      { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.lg, borderBottomWidth: 0.5 },
-  podiumItem:      { flex: 1, alignItems: 'center', gap: 4 },
-  podiumFirst:     { marginBottom: 16 },
-  podiumAvatar:    { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
-  podiumAvatarLg:  { width: 60, height: 60, borderRadius: 30 },
-  podiumMedal:     { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  podiumName:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textAlign: 'center' },
-  podiumXp:        { fontSize: 10 },
-  list:            { padding: Spacing.xl, gap: 8 },
-  row:             { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md, borderRadius: Radius.md, borderWidth: 0.5 },
-  rank:            { fontSize: FontSize.sm, fontWeight: FontWeight.bold, width: 28 },
-  rowAvatar:       { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  rowName:         { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  rowCity:         { fontSize: 11, marginTop: 2 },
-  rowXp:           { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  rowLevel:        { fontSize: 10, marginTop: 2 },
-  empty:           { alignItems: 'center', gap: 12, paddingVertical: 40 },
-  emptyText:       { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
+  header:         { alignItems: 'center', padding: Spacing.xl, paddingTop: 60, gap: 8, borderBottomWidth: 0.5 },
+  title:          { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+  myRankBadge:    { paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full },
+  myRankText:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  tabs:           { flexDirection: 'row', borderBottomWidth: 0.5 },
+  tab:            { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12 },
+  tabText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  center:         { alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 },
+  podiumWrap:     { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.lg, borderBottomWidth: 0.5 },
+  podiumItem:     { flex: 1, alignItems: 'center', gap: 4 },
+  podiumFirst:    { marginBottom: 16 },
+  podiumAvatar:   { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  podiumAvatarLg: { width: 60, height: 60, borderRadius: 30 },
+  podiumMedal:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  podiumName:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textAlign: 'center' },
+  podiumXp:       { fontSize: 10 },
+  list:           { padding: Spacing.xl, gap: 8 },
+  row:            { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md, borderRadius: Radius.md, borderWidth: 0.5 },
+  rank:           { fontSize: FontSize.sm, fontWeight: FontWeight.bold, width: 28 },
+  rowAvatar:      { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  rowName:        { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  rowCity:        { fontSize: 11, marginTop: 2 },
+  rowXp:          { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  rowLevel:       { fontSize: 10, marginTop: 2 },
+  empty:          { alignItems: 'center', gap: 12, paddingVertical: 40 },
+  emptyText:      { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
 });
