@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Alert, Platform,
-  KeyboardAvoidingView, ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';

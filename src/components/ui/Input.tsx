@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Radius, FontSize, Spacing } from '../../constants/layout';
 
@@ -41,7 +42,7 @@ export function Input({ label, placeholder, value, onChangeText, secureTextEntry
         />
         {secureTextEntry && (
           <TouchableOpacity onPress={() => setShow(!show)} style={styles.eye}>
-            <Text style={{ color: colors.textMuted, fontSize: 14 }}>{show ? '🙈' : '👁️'}</Text>
+            {show ? <EyeOff size={18} color={colors.textMuted} /> : <Eye size={18} color={colors.textMuted} />}
           </TouchableOpacity>
         )}
       </View>
