@@ -5,6 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 
 const SUBCATEGORY_ICONS: Record<string, any> = {
   Cultura:      { Icon: Star,      color: '#7F77DD' },
@@ -53,8 +54,8 @@ export function HomeScreen({ navigation }: any) {
     ? states.filter(s => s.region === region)
     : states;
 
-  const xpToNext = (profile?.level ?? 1) * 500;
-  const xpPct    = Math.min(((profile?.xp ?? 0) % xpToNext) / xpToNext, 1);
+  const xpToNext = XP_PER_LEVEL;
+  const xpPct    = getXpProgress(profile?.xp ?? 0);
 
   if (loading) {
     return (

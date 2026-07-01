@@ -5,6 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { getXpInCurrentLevel, getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 
 const LEVELS = [
   { min: 0,    label: 'Curioso',     color: '#6B6B6B' },
@@ -85,9 +86,9 @@ export function ProfileScreen({ navigation }: any) {
     );
   }
 
-  const xpToNext    = (profile?.level ?? 1) * 500;
-  const xpCurrent   = (profile?.xp ?? 0) % xpToNext;
-  const xpPct       = Math.min(xpCurrent / xpToNext, 1);
+  const xpToNext    = XP_PER_LEVEL;
+  const xpCurrent   = getXpInCurrentLevel(profile?.xp ?? 0);
+  const xpPct       = getXpProgress(profile?.xp ?? 0);
   const levelInfo   = getLevelInfo(profile?.level ?? 1);
 
   return (
