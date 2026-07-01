@@ -1,22 +1,83 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
 import { Moon, Sun, Smartphone, Bell, Shield, Info, ChevronRight, LogOut } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import {
+  requestNotificationPermission,
+  scheduleStreakReminder,
+  scheduleMissionsReminder,
+} from '../../lib/notifications';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
 export function SettingsScreen() {
   const { colors } = useTheme();
-  const { themeMode, setThemeMode } = useSettingsStore();
+  const { themeMode, setThemeMode, notifStreak, notifMissions, notifDuel, setNotifStreak, setNotifMissions, setNotifDuel } = useSettingsStore();
   const { signOut } = useAuthStore();
 
+  // Ao montar, sincroniza notificações agendadas com as preferências salvas
+  useEffect(() => {
+    scheduleStreakReminder(notifStreak);
+    scheduleMissionsReminder(notifMissions);
+  }, []);
+
+  async function handleToggleNotif(
+    type: 'streak' | 'missions' | 'duel',
+    value: boolean
+  ) {
+    const granted = await requestNotificationPermission();
+    if (!granted && value) {
+      if (Platform.OS === 'web') {
+        window.alert('Permissão de notificações negada. Habilite nas configurações do dispositivo.');
+      } else {
+        Alert.alert(
+          'Permissão necessária',
+          'Habilite as notificações nas configurações do dispositivo para usar este recurso.'
+        );
+      }
+      return;
+    }
+
+    if (type === 'streak') {
+      setNotifStreak(value);
+      await scheduleStreakReminder(value);
+    } else if (type === 'missions') {
+      setNotifMissions(value);
+      await scheduleMissionsReminder(value);
+    } else {
+      // Duelo: push futuro, por ora só salva preferência
+      setNotifDuel(value);
+    }
+  }
+
   const themeOptions: { mode: ThemeMode; label: string; Icon: any }[] = [
-    { mode: 'light',  label: 'Claro',     Icon: Sun         },
-    { mode: 'dark',   label: 'Escuro',    Icon: Moon        },
-    { mode: 'system', label: 'Automático',Icon: Smartphone  },
+    { mode: 'light',  label: 'Claro',      Icon: Sun        },
+    { mode: 'dark',   label: 'Escuro',     Icon: Moon       },
+    { mode: 'system', label: 'Automático', Icon: Smartphone },
+  ];
+
+  const notifOptions = [
+    {
+      label: 'Streak diário',
+      sub:   'Lembrete às 20h para manter sua sequência',
+      value: notifStreak,
+      onValueChange: (v: boolean) => handleToggleNotif('streak', v),
+    },
+    {
+      label: 'Missões do dia',
+      sub:   'Aviso às 8h quando novas missões estiverem disponíveis',
+      value: notifMissions,
+      onValueChange: (v: boolean) => handleToggleNotif('missions', v),
+    },
+    {
+      label: 'Desafios de duelo',
+      sub:   'Em breve — notificação quando alguém te desafiar',
+      value: notifDuel,
+      onValueChange: (v: boolean) => handleToggleNotif('duel', v),
+    },
   ];
 
   return (
@@ -35,22 +96,16 @@ export function SettingsScreen() {
             <TouchableOpacity
               key={mode}
               onPress={() => setThemeMode(mode)}
-              style={[
-                styles.themeOption,
-                i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.border },
-              ]}
+              style={[styles.themeOption, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.border }]}
             >
               <Icon size={18} color={themeMode === mode ? colors.primary : colors.textSecondary} />
               <Text style={[styles.themeLabel, { color: themeMode === mode ? colors.primary : colors.text }]}>
                 {label}
               </Text>
-              <View style={[
-                styles.radio,
-                {
-                  borderColor: themeMode === mode ? colors.primary : colors.border,
-                  backgroundColor: themeMode === mode ? colors.primary : 'transparent',
-                }
-              ]}>
+              <View style={[styles.radio, {
+                borderColor:     themeMode === mode ? colors.primary : colors.border,
+                backgroundColor: themeMode === mode ? colors.primary : 'transparent',
+              }]}>
                 {themeMode === mode && <View style={styles.radioDot} />}
               </View>
             </TouchableOpacity>
@@ -62,11 +117,7 @@ export function SettingsScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>NOTIFICAÇÕES</Text>
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {[
-            { label: 'Streak diário',     sub: 'Lembrete para manter sua sequência' },
-            { label: 'Missões do dia',    sub: 'Novas missões disponíveis' },
-            { label: 'Desafios de duelo', sub: 'Quando alguém te desafia' },
-          ].map(({ label, sub }, i) => (
+          {notifOptions.map(({ label, sub, value, onValueChange }, i) => (
             <View
               key={label}
               style={[styles.notifRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: colors.border }]}
@@ -77,10 +128,10 @@ export function SettingsScreen() {
                 <Text style={[styles.notifSub, { color: colors.textMuted }]}>{sub}</Text>
               </View>
               <Switch
-                value={true}
-                onValueChange={() => {}}
+                value={value}
+                onValueChange={onValueChange}
                 trackColor={{ false: colors.border, true: colors.primary + '60' }}
-                thumbColor={colors.primary}
+                thumbColor={value ? colors.primary : colors.textMuted}
               />
             </View>
           ))}
