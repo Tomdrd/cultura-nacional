@@ -13,6 +13,10 @@ import { SubscriptionScreen }    from '../screens/subscription/SubscriptionScree
 import { MissionsScreen }        from '../screens/missions/MissionsScreen';
 import { AchievementsScreen }    from '../screens/achievements/AchievementsScreen';
 import { ViralModeScreen }       from '../screens/viral/ViralModeScreen';
+import { OnboardingScreen }            from '../screens/auth/OnboardingScreen';
+import { EstadosScreen }               from '../screens/estados/EstadosScreen';
+import { CategoriasScreen }            from '../screens/categorias/CategoriasScreen';
+import { MusicaScreen }                from '../screens/musica/MusicaScreen';
 import { useTheme }              from '../hooks/useTheme';
 
 const Tab   = createBottomTabNavigator<HomeTabsParamList>();
@@ -60,6 +64,10 @@ export function AppNavigator() {
       <Stack.Screen name="Subscription" component={SubscriptionScreen} />
       <Stack.Screen name="Missions"     component={MissionsScreen} />
       <Stack.Screen name="Achievements" component={AchievementsScreen} />
+      <Stack.Screen name="Onboarding"  component={OnboardingScreen} />
+      <Stack.Screen name="Estados"     component={EstadosScreen} />
+      <Stack.Screen name="Categorias"  component={CategoriasScreen} />
+      <Stack.Screen name="Musica"      component={MusicaScreen} />
       <Stack.Screen name="ViralMode"    component={ViralModeScreen} options={{ animation: 'slide_from_bottom' }} />
     </Stack.Navigator>
   );
