@@ -79,16 +79,7 @@ export function HomeScreen({ navigation }: any) {
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
-        {cityNatal && (
-          <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: '#009C3B' }]}
-            onPress={() => navigation.navigate('Quiz', { stateId: cityNatal.state_id, stateName: cityNatal.stateName, cityName: cityNatal.name })}
-          >
-            <MapPin size={22} color="#FFF" />
-            <Text style={[styles.actionLabel, { color: '#FFF' }]} numberOfLines={1}>{cityNatal.name}</Text>
-            <Text style={[styles.actionSub, { color: 'rgba(255,255,255,0.8)' }]}>Sua cidade</Text>
-          </TouchableOpacity>
-        )}
+
         <TouchableOpacity
           style={[styles.actionCard, { backgroundColor: '#FFDF00' }]}
           onPress={() => navigation.navigate('Quiz', { mode: 'relampago' })}
