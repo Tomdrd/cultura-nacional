@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Vibration } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
@@ -134,6 +134,7 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function handleAnswer(index: number) {
     if (answered) return;
+    Vibration.vibrate(40);
     clearInterval(timerRef.current);
     setSelected(index);
     setAnswered(true);
