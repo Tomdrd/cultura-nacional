@@ -41,7 +41,8 @@ export function OnboardingScreen({ navigation, route }: any) {
 
   async function loadStates() {
     setLoading(true);
-    const { data } = await supabase.from('states').select('*').order('name');
+    const { data, error } = await supabase.from('states').select('*').order('name');
+    console.log('DEBUG states:', { count: data?.length, error });
     if (data) setStates(data);
     setLoading(false);
   }
