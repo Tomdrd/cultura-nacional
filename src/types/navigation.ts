@@ -7,6 +7,7 @@ export type AuthStackParamList = {
 
 export type AppStackParamList = {
   HomeTabs:     undefined;
+  Onboarding:   undefined;
   Quiz: {
     stateId?:     string;
     stateName?:   string;
