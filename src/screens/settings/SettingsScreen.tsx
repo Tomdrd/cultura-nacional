@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
-import { Moon, Sun, Smartphone, Bell, Shield, Info, ChevronRight, LogOut } from 'lucide-react-native';
+import { Moon, Sun, Smartphone, Bell, Shield, Info, ChevronRight, LogOut, Volume2 } from 'lucide-react-native';
 import { Linking } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -16,7 +16,7 @@ type ThemeMode = 'light' | 'dark' | 'system';
 
 export function SettingsScreen() {
   const { colors } = useTheme();
-  const { themeMode, setThemeMode, notifStreak, notifMissions, notifDuel, setNotifStreak, setNotifMissions, setNotifDuel } = useSettingsStore();
+  const { themeMode, setThemeMode, notifStreak, notifMissions, notifDuel, setNotifStreak, setNotifMissions, setNotifDuel, audioNarration, audioSfx, setAudioNarration, setAudioSfx } = useSettingsStore();
   const { signOut } = useAuthStore();
 
   // Ao montar, sincroniza notificações agendadas com as preferências salvas
@@ -111,6 +111,39 @@ export function SettingsScreen() {
               </View>
             </TouchableOpacity>
           ))}
+        </View>
+      </View>
+
+      {/* Audio */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>ÁUDIO</Text>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.notifRow}>
+            <Volume2 size={16} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.notifLabel, { color: colors.text }]}>Narração das perguntas</Text>
+              <Text style={[styles.notifSub, { color: colors.textMuted }]}>Lê a pergunta em voz alta antes do timer</Text>
+            </View>
+            <Switch
+              value={audioNarration}
+              onValueChange={setAudioNarration}
+              trackColor={{ false: colors.border, true: colors.primary + '60' }}
+              thumbColor={audioNarration ? colors.primary : colors.textMuted}
+            />
+          </View>
+          <View style={[styles.notifRow, { borderTopWidth: 0.5, borderTopColor: colors.border }]}>
+            <Volume2 size={16} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.notifLabel, { color: colors.text }]}>Efeitos sonoros</Text>
+              <Text style={[styles.notifSub, { color: colors.textMuted }]}>Sons de acerto, erro e resultado</Text>
+            </View>
+            <Switch
+              value={audioSfx}
+              onValueChange={setAudioSfx}
+              trackColor={{ false: colors.border, true: colors.primary + '60' }}
+              thumbColor={audioSfx ? colors.primary : colors.textMuted}
+            />
+          </View>
         </View>
       </View>
 

@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
+import * as Speech from 'expo-speech';
 import { ReportModal } from '../../components/ui/ReportModal';
+import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -23,10 +25,21 @@ interface AnswerResult {
 }
 
 const TOTAL_QUESTIONS = 5;
+
+const SFX_CORRECT = ['Acertô, mizeravi!', 'Isso aí!', 'Boa demais!', 'Acertou na mosca!'];
+const SFX_WRONG   = ['Errou, abestado!', 'Que vacilo!', 'Nem de perto!', 'Vai estudar mais!'];
+const SFX_WIN     = 'Cê é o bichão, mesmo hein!';
+const SFX_LOSE    = 'Na próxima você faz melhor!';
+
+function speak(text: string, rate = 1.1) {
+  Speech.stop();
+  Speech.speak(text, { language: 'pt-BR', rate, pitch: 0.85 });
+}
 const TIME_PER_QUESTION = 15;
 
 export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
+  const { audioNarration, audioSfx } = useSettingsStore();
   const { user } = useAuthStore();
   const { stateId, stateName, cityId, cityName, subcategory, mode } = route.params ?? {};
 
@@ -42,6 +55,7 @@ export function QuizScreen({ route, navigation }: any) {
   const [finished,      setFinished]      = useState(false);
   const [results,       setResults]       = useState<boolean[]>([]);
   const [reportOpen,    setReportOpen]    = useState(false);
+  const [narrating,     setNarrating]     = useState(false);
 
   const timerRef     = useRef<any>(null);
   const progressAnim = useRef(new Animated.Value(1)).current;
@@ -51,8 +65,22 @@ export function QuizScreen({ route, navigation }: any) {
 
   useEffect(() => { loadQuestions(); }, []);
   useEffect(() => {
-    if (!loading && !finished) startTimer();
-    return () => clearInterval(timerRef.current);
+    if (!loading && !finished) {
+      if (audioNarration && questions[current]) {
+        setNarrating(true);
+        Speech.stop();
+        Speech.speak(questions[current].text, {
+          language: 'pt-BR',
+          rate: 1.1,
+          pitch: 0.85,
+          onDone:  () => { setNarrating(false); startTimer(); },
+          onError: () => { setNarrating(false); startTimer(); },
+        });
+      } else {
+        startTimer();
+      }
+    }
+    return () => { clearInterval(timerRef.current); Speech.stop(); };
   }, [current, loading, finished]);
 
   async function loadQuestions() {
@@ -125,6 +153,8 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function finishQuiz() {
     setFinished(true);
+    const pct = scoreRef.current / questions.length;
+    if (audioSfx) setTimeout(() => speak(pct >= 0.6 ? SFX_WIN : SFX_LOSE, 0.95), 600);
     if (!user) return;
     if (xpRef.current > 0) {
       // Atualiza XP atomicamente no servidor (evita race condition)
