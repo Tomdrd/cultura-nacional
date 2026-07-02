@@ -31,8 +31,7 @@ const SFX_WRONG   = ['Errou, abestado!', 'Que vacilo!', 'Nem de perto!', 'Vai es
 const SFX_WIN     = 'Cê é o bichão, mesmo hein!';
 const SFX_LOSE    = 'Na próxima você faz melhor!';
 
-function speak(text: string, rate = 1.1) {
-  Speech.stop();
+function speak(text: string, rate = 1.3) {
   Speech.speak(text, { language: 'pt-BR', rate, pitch: 0.85 });
 }
 const TIME_PER_QUESTION = 15;
@@ -65,20 +64,20 @@ export function QuizScreen({ route, navigation }: any) {
 
   useEffect(() => { loadQuestions(); }, []);
   useEffect(() => {
-    if (!loading && !finished) {
-      if (audioNarration && questions[current]) {
-        setNarrating(true);
-        Speech.stop();
-        Speech.speak(questions[current].text, {
-          language: 'pt-BR',
-          rate: 1.1,
-          pitch: 0.85,
-          onDone:  () => { setNarrating(false); startTimer(); },
-          onError: () => { setNarrating(false); startTimer(); },
-        });
-      } else {
-        startTimer();
-      }
+    if (loading || finished) return;
+    clearInterval(timerRef.current);
+    Speech.stop();
+    if (audioNarration && questions[current]) {
+      setNarrating(true);
+      Speech.speak(questions[current].text, {
+        language: 'pt-BR',
+        rate: 1.3,
+        pitch: 0.85,
+        onDone:  () => { setNarrating(false); startTimer(); },
+        onError: () => { setNarrating(false); startTimer(); },
+      });
+    } else {
+      startTimer();
     }
     return () => { clearInterval(timerRef.current); Speech.stop(); };
   }, [current, loading, finished]);
