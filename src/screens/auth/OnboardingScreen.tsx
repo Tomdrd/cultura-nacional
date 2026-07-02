@@ -18,7 +18,7 @@ const FEATURES = [
   { Icon: Map,       label: 'Explore todos os estados',     color: '#009C3B' },
 ];
 
-export function OnboardingScreen({ navigation }: any) {
+export function OnboardingScreen({ navigation, route }: any) {
   const { colors } = useTheme();
   const { user } = useAuthStore();
 
@@ -73,7 +73,11 @@ export function OnboardingScreen({ navigation }: any) {
         }
       }
       // Navega para o app — o RootNavigator vai redirecionar corretamente via authStore
-      navigation.reset({ index: 0, routes: [{ name: 'App' }] });
+      if (route?.params?.fromProfile) {
+        navigation.goBack();
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: 'App' }] });
+      }
     } catch {
       Alert.alert('Erro', 'Ocorreu um problema. Tente novamente.');
     } finally {
