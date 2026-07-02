@@ -34,7 +34,7 @@ export function HomeScreen({ navigation }: any) {
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [region,   setRegion]   = useState<string | null>(null);
-  const [cityNatal, setCityNatal] = useState<{ id: string; name: string } | null>(null);
+  const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string } | null>(null);
 
   const regions = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
 
@@ -50,8 +50,9 @@ export function HomeScreen({ navigation }: any) {
     if (profileData) {
       setProfile(profileData);
       if (profileData.city_natal_id) {
-        const { data: cityData } = await supabase.from('cities').select('id, name').eq('id', profileData.city_natal_id).single();
-        if (cityData) setCityNatal(cityData);
+        const { data: cityData } = await supabase.from('cities').select('id, name, state_id, states(name)').eq('id', profileData.city_natal_id).single();
+        
+        if (cityData) setCityNatal({ id: cityData.id, name: cityData.name, state_id: cityData.state_id, stateName: (cityData.states as any)?.name ?? '' });
       }
     }
     setLoading(false);
@@ -110,7 +111,7 @@ export function HomeScreen({ navigation }: any) {
         {cityNatal && (
           <TouchableOpacity
             style={[styles.actionCard, { backgroundColor: '#009C3B' }]}
-            onPress={() => navigation.navigate('Quiz', { cityId: cityNatal.id, cityName: cityNatal.name })}
+            onPress={() => navigation.navigate('Quiz', { stateId: cityNatal.state_id, stateName: cityNatal.stateName, cityName: cityNatal.name })}
           >
             <MapPin size={22} color="#FFF" />
             <Text style={[styles.actionLabel, { color: '#FFF' }]} numberOfLines={1}>{cityNatal.name}</Text>
