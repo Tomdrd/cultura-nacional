@@ -57,8 +57,15 @@ export function LoginScreen({ navigation }: any) {
 
       if (Platform.OS !== 'web' && data?.url) {
         const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-        if (result.type === 'success') {
-          await supabase.auth.getSession();
+        if (result.type === 'success' && result.url) {
+          const url = new URL(result.url);
+          const access_token  = url.searchParams.get('access_token')  ?? url.hash.match(/access_token=([^&]+)/)?.[1];
+          const refresh_token = url.searchParams.get('refresh_token') ?? url.hash.match(/refresh_token=([^&]+)/)?.[1];
+          if (access_token && refresh_token) {
+            await supabase.auth.setSession({ access_token, refresh_token });
+          } else {
+            await supabase.auth.getSession();
+          }
         }
       }
     } catch (err: any) {
