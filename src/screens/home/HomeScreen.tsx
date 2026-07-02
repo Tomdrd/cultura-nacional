@@ -1,52 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { MapPin, Trophy, Zap, ChevronRight, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb, Clock, Video } from 'lucide-react-native';
+import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 
-const SUBCATEGORY_ICONS: Record<string, any> = {
-  Cultura:      { Icon: Star,      color: '#7F77DD' },
-  História:     { Icon: BookOpen,  color: '#D85A30' },
-  Gastronomia:  { Icon: Utensils,  color: '#BA7517' },
-  Natureza:     { Icon: Leaf,      color: '#009C3B' },
-  Turismo:      { Icon: Compass,   color: '#378ADD' },
-  Curiosidades: { Icon: Lightbulb, color: '#D4537E' },
-};
-
-const REGION_COLORS: Record<string, string> = {
-  Norte:        '#378ADD',
-  Nordeste:     '#D85A30',
-  'Centro-Oeste': '#BA7517',
-  Sudeste:      '#7F77DD',
-  Sul:          '#009C3B',
-};
-
-interface State { id: string; name: string; uf: string; region: string; }
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; }
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
   const { user } = useAuthStore();
-  const [states,   setStates]   = useState<State[]>([]);
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
-  const [region,   setRegion]   = useState<string | null>(null);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
-
-  const regions = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     setLoading(true);
-    const [{ data: statesData }, { data: profileData }] = await Promise.all([
-      supabase.from('states').select('*').order('name'),
-      user ? supabase.from('profiles').select('username, xp, level, streak, city_natal_id').eq('id', user.id).single() : Promise.resolve({ data: null }),
-    ]);
-    if (statesData) setStates(statesData);
+    const { data: profileData } = user ? await supabase.from('profiles').select('username, xp, level, streak, city_natal_id').eq('id', user.id).single() : { data: null };
     if (profileData) {
       setProfile(profileData);
       if (profileData.city_natal_id) {
@@ -57,10 +31,6 @@ export function HomeScreen({ navigation }: any) {
     }
     setLoading(false);
   }
-
-  const filteredStates = region
-    ? states.filter(s => s.region === region)
-    : states;
 
   const xpToNext = XP_PER_LEVEL;
   const xpPct    = getXpProgress(profile?.xp ?? 0);
@@ -146,67 +116,42 @@ export function HomeScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* Subcategories */}
+      {/* Grid de seções */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Categorias</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
-          {Object.entries(SUBCATEGORY_ICONS).map(([name, { Icon, color }]) => (
-            <TouchableOpacity
-              key={name}
-              style={[styles.catCard, { backgroundColor: color + '18', borderColor: color + '40' }]}
-              onPress={() => navigation.navigate('Quiz', { subcategory: name })}
-            >
-              <Icon size={20} color={color} />
-              <Text style={[styles.catLabel, { color }]}>{name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* States */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Explorar estados</Text>
-
-        {/* Region filter */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.regionRow}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Explorar</Text>
+        <View style={styles.sectionGrid}>
           <TouchableOpacity
-            onPress={() => setRegion(null)}
-            style={[styles.regionPill, { backgroundColor: !region ? colors.primary : colors.card, borderColor: !region ? colors.primary : colors.border }]}
+            style={[styles.sectionCard, { backgroundColor: '#378ADD' + '15', borderColor: '#378ADD' + '40' }]}
+            onPress={() => navigation.navigate('Estados')}
           >
-            <Text style={[styles.regionText, { color: !region ? '#FFF' : colors.textSecondary }]}>Todos</Text>
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#378ADD' + '25' }]}>
+              <Map size={26} color="#378ADD" />
+            </View>
+            <Text style={[styles.sectionCardName, { color: '#378ADD' }]}>Estados</Text>
+            <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Explore todos os estados do Brasil</Text>
           </TouchableOpacity>
-          {regions.map(r => (
-            <TouchableOpacity
-              key={r}
-              onPress={() => setRegion(r === region ? null : r)}
-              style={[styles.regionPill, {
-                backgroundColor: region === r ? REGION_COLORS[r] : colors.card,
-                borderColor: region === r ? REGION_COLORS[r] : colors.border,
-              }]}
-            >
-              <Text style={[styles.regionText, { color: region === r ? '#FFF' : colors.textSecondary }]}>{r}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
 
-        {/* State list */}
-        <View style={styles.stateList}>
-          {filteredStates.map(state => (
-            <TouchableOpacity
-              key={state.id}
-              onPress={() => navigation.navigate('Quiz', { stateId: state.id, stateName: state.name })}
-              style={[styles.stateCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            >
-              <View style={[styles.ufBadge, { backgroundColor: REGION_COLORS[state.region] + '20' }]}>
-                <Text style={[styles.ufText, { color: REGION_COLORS[state.region] }]}>{state.uf}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.stateName, { color: colors.text }]}>{state.name}</Text>
-                <Text style={[styles.stateRegion, { color: colors.textMuted }]}>{state.region}</Text>
-              </View>
-              <ChevronRight size={16} color={colors.textMuted} />
-            </TouchableOpacity>
-          ))}
+          <TouchableOpacity
+            style={[styles.sectionCard, { backgroundColor: '#7F77DD' + '15', borderColor: '#7F77DD' + '40' }]}
+            onPress={() => navigation.navigate('Categorias')}
+          >
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#7F77DD' + '25' }]}>
+              <Tag size={26} color="#7F77DD" />
+            </View>
+            <Text style={[styles.sectionCardName, { color: '#7F77DD' }]}>Categorias</Text>
+            <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Cultura, história, gastronomia e mais</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.sectionCard, { backgroundColor: '#7F3FBF' + '15', borderColor: '#7F3FBF' + '40' }]}
+            onPress={() => navigation.navigate('Musica')}
+          >
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#7F3FBF' + '25' }]}>
+              <Music size={26} color="#7F3FBF" />
+            </View>
+            <Text style={[styles.sectionCardName, { color: '#7F3FBF' }]}>Música</Text>
+            <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>MPB, Reggae e RAP brasileiro</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -243,10 +188,9 @@ const styles = StyleSheet.create({
   regionRow:     { gap: 8, marginBottom: Spacing.md, paddingBottom: 4 },
   regionPill:    { paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
   regionText:    { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  stateList:     { gap: 8 },
-  stateCard:     { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
-  ufBadge:       { width: 40, height: 40, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  ufText:        { fontSize: 13, fontWeight: FontWeight.bold },
-  stateName:     { fontSize: FontSize.md, fontWeight: FontWeight.medium },
-  stateRegion:   { fontSize: FontSize.xs, marginTop: 2 },
+  sectionGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  sectionCard:     { width: '47%', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
+  sectionIconWrap: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  sectionCardName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 18 },
 });
