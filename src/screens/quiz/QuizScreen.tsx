@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Vibration } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
-import { Audio } from 'expo-av';
+import { useAudioPlayer } from 'expo-audio';
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
@@ -40,6 +40,10 @@ const TIME_PER_QUESTION = 15;
 export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
   const { audioNarration, audioSfx } = useSettingsStore();
+  const playerCorrect = useAudioPlayer(require('../../../assets/sounds/correct.mp3'));
+  const playerWrong   = useAudioPlayer(require('../../../assets/sounds/wrong.mp3'));
+  const playerWin     = useAudioPlayer(require('../../../assets/sounds/win.mp3'));
+  const playerLose    = useAudioPlayer(require('../../../assets/sounds/lose.mp3'));
   const { user } = useAuthStore();
   const { stateId, stateName, cityId, cityName, subcategory, mode } = route.params ?? {};
 
