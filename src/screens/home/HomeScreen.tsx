@@ -34,6 +34,7 @@ export function HomeScreen({ navigation }: any) {
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [region,   setRegion]   = useState<string | null>(null);
+  const [cityNatal, setCityNatal] = useState<{ id: string; name: string } | null>(null);
 
   const regions = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
 
@@ -46,7 +47,13 @@ export function HomeScreen({ navigation }: any) {
       user ? supabase.from('profiles').select('username, xp, level, streak, city_natal_id').eq('id', user.id).single() : Promise.resolve({ data: null }),
     ]);
     if (statesData) setStates(statesData);
-    if (profileData) setProfile(profileData);
+    if (profileData) {
+      setProfile(profileData);
+      if (profileData.city_natal_id) {
+        const { data: cityData } = await supabase.from('cities').select('id, name').eq('id', profileData.city_natal_id).single();
+        if (cityData) setCityNatal(cityData);
+      }
+    }
     setLoading(false);
   }
 
@@ -100,6 +107,16 @@ export function HomeScreen({ navigation }: any) {
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
+        {cityNatal && (
+          <TouchableOpacity
+            style={[styles.actionCard, { backgroundColor: '#009C3B' }]}
+            onPress={() => navigation.navigate('Quiz', { cityId: cityNatal.id, cityName: cityNatal.name })}
+          >
+            <MapPin size={22} color="#FFF" />
+            <Text style={[styles.actionLabel, { color: '#FFF' }]} numberOfLines={1}>{cityNatal.name}</Text>
+            <Text style={[styles.actionSub, { color: 'rgba(255,255,255,0.8)' }]}>Sua cidade</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={[styles.actionCard, { backgroundColor: '#FFDF00' }]}
           onPress={() => navigation.navigate('Quiz', { mode: 'relampago' })}

@@ -28,7 +28,7 @@ const TIME_PER_QUESTION = 15;
 export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  const { stateId, stateName, subcategory, mode } = route.params ?? {};
+  const { stateId, stateName, cityId, cityName, subcategory, mode } = route.params ?? {};
 
   const [questions,     setQuestions]     = useState<Question[]>([]);
   const [current,       setCurrent]       = useState(0);
@@ -59,6 +59,7 @@ export function QuizScreen({ route, navigation }: any) {
     setLoading(true);
     let query = supabase.from('questions_safe').select('*').eq('active', true);
     if (stateId)     query = query.eq('state_id', stateId);
+    if (cityId)      query = query.eq('city_id', cityId);
     if (subcategory) query = query.eq('subcategory', subcategory);
     query = query.limit(mode === 'relampago' ? 5 : TOTAL_QUESTIONS);
     let { data } = await query;

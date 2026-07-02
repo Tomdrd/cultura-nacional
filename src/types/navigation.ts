@@ -8,6 +8,7 @@ export type AuthStackParamList = {
 export type AppStackParamList = {
   HomeTabs:     undefined;
   Onboarding:   { fromProfile?: boolean };
+  CityQuiz:     { cityId: string; cityName: string };
   Quiz: {
     stateId?:     string;
     stateName?:   string;
