@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Image as ExpoImage } from 'expo-image';
 import { MapPin, Trophy, Zap, ChevronRight, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb, Clock, Video } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -81,16 +80,7 @@ export function HomeScreen({ navigation }: any) {
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View>
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>Olá,</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'} 👋</Text>
-            {cityNatal?.stateUf ? (
-              <ExpoImage
-                source={{ uri: `https://assets.codante.io/codante-apis/bandeiras-do-brasil/${cityNatal.stateUf}-circle.svg` }}
-                style={{ width: 28, height: 28, borderRadius: 14 }}
-                contentFit="cover"
-              />
-            ) : null}
-          </View>
+          <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'} 👋</Text>
         </View>
         <View style={[styles.streakBadge, { backgroundColor: colors.primary + '20' }]}>
           <Zap size={14} color={colors.primary} />

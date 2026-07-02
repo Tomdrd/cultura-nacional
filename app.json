@@ -39,7 +39,8 @@
       "expo-sharing",
       "expo-video",
       "expo-audio",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-image"
     ],
     "extra": {
       "eas": {
