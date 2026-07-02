@@ -120,6 +120,18 @@ export function HomeScreen({ navigation }: any) {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Explorar</Text>
         <View style={styles.sectionGrid}>
+          {cityNatal && (
+            <TouchableOpacity
+              style={[styles.sectionCard, { backgroundColor: '#009C3B' + '15', borderColor: '#009C3B' + '40' }]}
+              onPress={() => navigation.navigate('Quiz', { stateId: cityNatal.state_id, stateName: cityNatal.stateName, cityName: cityNatal.name })}
+            >
+              <View style={[styles.sectionIconWrap, { backgroundColor: '#009C3B' + '25' }]}>
+                <MapPin size={26} color="#009C3B" />
+              </View>
+              <Text style={[styles.sectionCardName, { color: '#009C3B' }]}>{cityNatal.name}</Text>
+              <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Perguntas da sua cidade natal</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[styles.sectionCard, { backgroundColor: '#378ADD' + '15', borderColor: '#378ADD' + '40' }]}
             onPress={() => navigation.navigate('Estados')}
