@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
-import { AudioPlayer } from 'expo-audio';
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
@@ -62,10 +61,16 @@ export function QuizScreen({ route, navigation }: any) {
   const progressAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim     = useRef(new Animated.Value(1)).current;
   const xpRef        = useRef(0);
-  const sfxCorrect   = useRef(new AudioPlayer(require('../../../assets/sounds/correct.mp3')));
-  const sfxWrong     = useRef(new AudioPlayer(require('../../../assets/sounds/wrong.mp3')));
-  const sfxWin       = useRef(new AudioPlayer(require('../../../assets/sounds/win.mp3')));
-  const sfxLose      = useRef(new AudioPlayer(require('../../../assets/sounds/lose.mp3')));
+  async function playSound(file: any) {
+    try {
+      const { sound } = await import('expo-av').then(av =>
+        av.Audio.Sound.createAsync(file, { shouldPlay: true })
+      );
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.didJustFinish) sound.unloadAsync();
+      });
+    } catch {}
+  }
   const scoreRef     = useRef(0);
 
   useEffect(() => { loadQuestions(); }, []);
@@ -167,7 +172,7 @@ export function QuizScreen({ route, navigation }: any) {
   async function finishQuiz() {
     setFinished(true);
     const pct = scoreRef.current / questions.length;
-    if (audioSfx) setTimeout(() => { const p = scoreRef.current / questions.length; if (p >= 0.6) { sfxWin.current.seekTo(0); sfxWin.current.play(); } else { sfxLose.current.seekTo(0); sfxLose.current.play(); } }, 600);
+    if (audioSfx) setTimeout(() => { const p = scoreRef.current / questions.length; playSound(p >= 0.6 ? require('../../../assets/sounds/win.mp3') : require('../../../assets/sounds/lose.mp3')); }, 600);
     if (!user) return;
     if (xpRef.current > 0) {
       // Atualiza XP atomicamente no servidor (evita race condition)
