@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
+import { AudioPlayer } from 'expo-audio';
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
@@ -55,32 +56,45 @@ export function QuizScreen({ route, navigation }: any) {
   const [results,       setResults]       = useState<boolean[]>([]);
   const [reportOpen,    setReportOpen]    = useState(false);
   const [narrating,     setNarrating]     = useState(false);
+  const [timerActive,   setTimerActive]   = useState(false);
 
   const timerRef     = useRef<any>(null);
   const progressAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim     = useRef(new Animated.Value(1)).current;
   const xpRef        = useRef(0);
+  const sfxCorrect   = useRef(new AudioPlayer(require('../../../assets/sounds/correct.mp3')));
+  const sfxWrong     = useRef(new AudioPlayer(require('../../../assets/sounds/wrong.mp3')));
+  const sfxWin       = useRef(new AudioPlayer(require('../../../assets/sounds/win.mp3')));
+  const sfxLose      = useRef(new AudioPlayer(require('../../../assets/sounds/lose.mp3')));
   const scoreRef     = useRef(0);
 
   useEffect(() => { loadQuestions(); }, []);
+  // Narração ao mudar de pergunta
   useEffect(() => {
     if (loading || finished) return;
     clearInterval(timerRef.current);
+    setTimerActive(false);
     Speech.stop();
     if (audioNarration && questions[current]) {
-      setNarrating(true);
       Speech.speak(questions[current].text, {
         language: 'pt-BR',
         rate: 1.3,
         pitch: 0.85,
-        onDone:  () => { setNarrating(false); startTimer(); },
-        onError: () => { setNarrating(false); startTimer(); },
+        onDone:  () => setTimerActive(true),
+        onError: () => setTimerActive(true),
       });
     } else {
-      startTimer();
+      setTimerActive(true);
     }
     return () => { clearInterval(timerRef.current); Speech.stop(); };
   }, [current, loading, finished]);
+
+  // Timer só corre quando timerActive === true
+  useEffect(() => {
+    if (!timerActive) return;
+    startTimer();
+    return () => clearInterval(timerRef.current);
+  }, [timerActive]);
 
   async function loadQuestions() {
     setLoading(true);
@@ -153,7 +167,7 @@ export function QuizScreen({ route, navigation }: any) {
   async function finishQuiz() {
     setFinished(true);
     const pct = scoreRef.current / questions.length;
-    if (audioSfx) setTimeout(() => speak(pct >= 0.6 ? SFX_WIN : SFX_LOSE, 0.95), 600);
+    if (audioSfx) setTimeout(() => { const p = scoreRef.current / questions.length; if (p >= 0.6) { sfxWin.current.seekTo(0); sfxWin.current.play(); } else { sfxLose.current.seekTo(0); sfxLose.current.play(); } }, 600);
     if (!user) return;
     if (xpRef.current > 0) {
       // Atualiza XP atomicamente no servidor (evita race condition)
