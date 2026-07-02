@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
+import { Audio } from 'expo-av';
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
@@ -63,13 +64,13 @@ export function QuizScreen({ route, navigation }: any) {
   const xpRef        = useRef(0);
   async function playSound(file: any) {
     try {
-      const { sound } = await import('expo-av').then(av =>
-        av.Audio.Sound.createAsync(file, { shouldPlay: true })
-      );
+      const { sound } = await Audio.Sound.createAsync(file, { shouldPlay: true });
       sound.setOnPlaybackStatusUpdate((status: any) => {
         if (status.didJustFinish) sound.unloadAsync();
       });
-    } catch {}
+    } catch (e) {
+      console.log('SFX error:', e);
+    }
   }
   const scoreRef     = useRef(0);
 
