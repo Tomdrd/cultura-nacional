@@ -13,9 +13,9 @@ interface State { id: string; name: string; uf: string; region: string; }
 interface City  { id: string; name: string; state_uf: string; is_capital: boolean; }
 
 const FEATURES = [
-  { Icon: Building2, label: 'Perguntas da sua cidade natal', color: '#378ADD' },
-  { Icon: Trophy,    label: 'Ranking entre os moradores',   color: '#FFDF00' },
-  { Icon: Map,       label: 'Explore todos os estados',     color: '#009C3B' },
+  { Icon: Building2, label: 'Perguntas da sua cidade natal', color: '#378ADD', action: 'city' },
+  { Icon: Trophy,    label: 'Ranking entre os moradores',   color: '#FFDF00', action: 'ranking' },
+  { Icon: Map,       label: 'Explore todos os estados',     color: '#009C3B', action: 'home' },
 ];
 
 export function OnboardingScreen({ navigation, route }: any) {
@@ -107,13 +107,25 @@ export function OnboardingScreen({ navigation, route }: any) {
             Vamos personalizar sua experiência.{'\n'}Nos conte de onde você é!
           </Text>
           <View style={styles.featureList}>
-            {FEATURES.map(({ Icon, label, color }) => (
-              <View key={label} style={[styles.feature, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {FEATURES.map(({ Icon, label, color, action }) => (
+              <TouchableOpacity
+                key={label}
+                style={[styles.feature, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={() => {
+                  if (action === 'home') {
+                    handleFinish();
+                  } else {
+                    setStep('state');
+                    setSearch('');
+                  }
+                }}
+              >
                 <View style={[styles.featureIconWrap, { backgroundColor: color + '20' }]}>
                   <Icon size={18} color={color} />
                 </View>
                 <Text style={[styles.featureText, { color: colors.text }]}>{label}</Text>
-              </View>
+                <ChevronRight size={16} color={colors.textMuted} />
+              </TouchableOpacity>
             ))}
           </View>
         </View>
