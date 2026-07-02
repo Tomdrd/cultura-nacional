@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { MapPin, Trophy, Zap, ChevronRight, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb, Clock, Video } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -34,7 +35,7 @@ export function HomeScreen({ navigation }: any) {
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [region,   setRegion]   = useState<string | null>(null);
-  const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string } | null>(null);
+  const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
 
   const regions = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
 
@@ -50,9 +51,9 @@ export function HomeScreen({ navigation }: any) {
     if (profileData) {
       setProfile(profileData);
       if (profileData.city_natal_id) {
-        const { data: cityData } = await supabase.from('cities').select('id, name, state_id, states(name)').eq('id', profileData.city_natal_id).single();
+        const { data: cityData } = await supabase.from('cities').select('id, name, state_id, states(name, uf)').eq('id', profileData.city_natal_id).single();
         
-        if (cityData) setCityNatal({ id: cityData.id, name: cityData.name, state_id: cityData.state_id, stateName: (cityData.states as any)?.name ?? '' });
+        if (cityData) setCityNatal({ id: cityData.id, name: cityData.name, state_id: cityData.state_id, stateName: (cityData.states as any)?.name ?? '', stateUf: (cityData.states as any)?.uf?.trim()?.toLowerCase() ?? '' });
       }
     }
     setLoading(false);
@@ -80,7 +81,16 @@ export function HomeScreen({ navigation }: any) {
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View>
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>Olá,</Text>
-          <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'} 👋</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'} 👋</Text>
+            {cityNatal?.stateUf ? (
+              <ExpoImage
+                source={{ uri: `https://assets.codante.io/codante-apis/bandeiras-do-brasil/${cityNatal.stateUf}-circle.svg` }}
+                style={{ width: 28, height: 28, borderRadius: 14 }}
+                contentFit="cover"
+              />
+            ) : null}
+          </View>
         </View>
         <View style={[styles.streakBadge, { backgroundColor: colors.primary + '20' }]}>
           <Zap size={14} color={colors.primary} />
