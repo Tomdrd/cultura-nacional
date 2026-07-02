@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { User, MapPin, Trophy, Zap, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb, LogOut, ChevronRight, Award } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -89,7 +89,14 @@ export function ProfileScreen({ navigation }: any) {
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View style={[styles.avatar, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}>
-          <User size={36} color={colors.primary} />
+          {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
+            <Image
+              source={{ uri: profile?.avatar_url ?? user?.user_metadata?.avatar_url }}
+              style={{ width: 80, height: 80, borderRadius: 40 }}
+            />
+          ) : (
+            <User size={36} color={colors.primary} />
+          )}
         </View>
         <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
         <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
