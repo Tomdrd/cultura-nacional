@@ -315,10 +315,11 @@ export function QuizScreen({ route, navigation }: any) {
 
         <View style={styles.options}>
           {q.options.map((opt: string, i: number) => {
-            const isCorrect  = answered && i === answerResult?.correct_index;
+            const revealed   = answerResult !== null;
+            const isCorrect  = revealed && i === answerResult?.correct_index;
             const isSelected = i === selected;
             let bg = colors.card, border = colors.border, textColor = colors.text;
-            if (answered) {
+            if (revealed) {
               if (isCorrect)               { bg='#009C3B20'; border='#009C3B'; textColor='#009C3B'; }
               else if (isSelected)         { bg=colors.danger+'20'; border=colors.danger; textColor=colors.danger; }
             } else if (isSelected)         { bg=colors.primary+'15'; border=colors.primary; textColor=colors.primary; }
@@ -330,8 +331,8 @@ export function QuizScreen({ route, navigation }: any) {
                   <Text style={[styles.optionLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                 </View>
                 <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
-                {answered && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
-                {answered && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
+                {revealed && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
+                {revealed && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
               </TouchableOpacity>
             );
           })}
