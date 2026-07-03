@@ -98,17 +98,20 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function loadQuestions() {
     setLoading(true);
-    let query = supabase.from('questions_safe').select('*').eq('active', true);
-    if (stateId)     query = query.eq('state_id', stateId);
-    if (cityId)      query = query.eq('city_id', cityId);
-    if (subcategory) query = query.eq('subcategory', subcategory);
-    query = query.limit(mode === 'relampago' ? 5 : TOTAL_QUESTIONS);
-    let { data } = await query;
+    const limit = mode === 'relampago' ? 5 : TOTAL_QUESTIONS;
+    let { data } = await supabase.rpc('get_random_quiz_questions', {
+      p_state_id:    stateId ?? null,
+      p_city_id:     cityId ?? null,
+      p_subcategory: subcategory ?? null,
+      p_limit:       limit,
+    });
     if (!data || data.length === 0) {
-      const fallback = await supabase.from('questions_safe').select('*').eq('active', true).limit(TOTAL_QUESTIONS);
+      const fallback = await supabase.rpc('get_random_quiz_questions', {
+        p_state_id: null, p_city_id: null, p_subcategory: null, p_limit: limit,
+      });
       data = fallback.data;
     }
-    if (data && data.length > 0) setQuestions(data.sort(() => Math.random() - 0.5));
+    if (data && data.length > 0) setQuestions(data);
     setLoading(false);
   }
 
