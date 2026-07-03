@@ -142,6 +142,11 @@ export function QuizScreen({ route, navigation }: any) {
     const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, explanation: null, xp: 0 };
     setAnswerResult(result);
     setResults(prev => [...prev, result.is_correct]);
+    if (audioSfx) {
+      const player = result.is_correct ? playerCorrect : playerWrong;
+      player.seekTo(0);
+      player.play();
+    }
 
     if (result.is_correct) {
       setScore(prev => { scoreRef.current = prev + 1; return prev + 1; });
