@@ -66,16 +66,6 @@ export function QuizScreen({ route, navigation }: any) {
   const progressAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim     = useRef(new Animated.Value(1)).current;
   const xpRef        = useRef(0);
-  async function playSound(file: any) {
-    try {
-      const { sound } = await Audio.Sound.createAsync(file, { shouldPlay: true });
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.didJustFinish) sound.unloadAsync();
-      });
-    } catch (e) {
-      console.log('SFX error:', e);
-    }
-  }
   const scoreRef     = useRef(0);
 
   useEffect(() => { loadQuestions(); }, []);
@@ -178,7 +168,9 @@ export function QuizScreen({ route, navigation }: any) {
   async function finishQuiz() {
     setFinished(true);
     const pct = scoreRef.current / questions.length;
-    if (audioSfx) setTimeout(() => { const p = scoreRef.current / questions.length; playSound(p >= 0.6 ? require('../../../assets/sounds/win.mp3') : require('../../../assets/sounds/lose.mp3')); }, 600);
+    if (audioSfx) setTimeout(() => { const p = scoreRef.current / questions.length; const player = p >= 0.6 ? playerWin : playerLose;
+        player.seekTo(0);
+        player.play(); }, 600);
     if (!user) return;
     if (xpRef.current > 0) {
       // Atualiza XP atomicamente no servidor (evita race condition)
