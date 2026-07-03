@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { requestRecordingPermissionsAsync } from 'expo-audio';
+import * as Sharing from 'expo-sharing';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -60,6 +61,9 @@ export function ViralModeScreen({ navigation, route }: any) {
 
   const cameraRef = useRef<any>(null);
   const timerRef = useRef<any>(null);
+  const recordingPromiseRef = useRef<Promise<any> | null>(null);
+  const [recordedVideoUri, setRecordedVideoUri] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
 
   const isVertical = format === 'vertical';
   const TOTAL_Q = 5;
@@ -134,6 +138,15 @@ export function ViralModeScreen({ navigation, route }: any) {
     setPhase('quiz');
     await narrateQuestion(questions[0]);
   }
+  useEffect(() => {
+    if (phase === 'quiz' && Platform.OS !== 'web' && cameraRef.current && !isRecording) {
+      setIsRecording(true);
+      recordingPromiseRef.current = cameraRef.current.recordAsync().catch((err: any) => {
+        console.log('Erro ao gravar vídeo:', err);
+        return null;
+      });
+    }
+  }, [phase]);
 
   async function narrateQuestion(q: Question) {
     setTimerActive(false);
@@ -203,6 +216,16 @@ export function ViralModeScreen({ navigation, route }: any) {
   async function finishQuiz() {
     Speech.stop();
     clearInterval(timerRef.current);
+    if (Platform.OS !== 'web' && isRecording && cameraRef.current) {
+      try {
+        cameraRef.current.stopRecording();
+        const result = await recordingPromiseRef.current;
+        if (result?.uri) setRecordedVideoUri(result.uri);
+      } catch (err) {
+        console.log('Erro ao parar gravação:', err);
+      }
+      setIsRecording(false);
+    }
     const pct = score / questions.length;
     if (pct >= 0.8) await playMeme('correct_excellent');
     else if (pct < 0.4) await playMeme('bad_score');
