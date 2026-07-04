@@ -8,6 +8,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
+import CnLogo from '../../../assets/images/cn-logo.svg';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
 type ScreenState = 'form' | 'success';
@@ -113,8 +114,8 @@ export function RegisterScreen({ navigation }: any) {
             <ArrowLeft size={18} color={colors.primary} />
             <Text style={[styles.backText, { color: colors.primary }]}>Voltar</Text>
           </TouchableOpacity>
-          <View style={[styles.logoCircle, { backgroundColor: '#009C3B' }]}>
-            <Text style={styles.logoText}>CN</Text>
+          <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+            <CnLogo width={48} height={48} />
           </View>
           <Text style={[styles.title, { color: colors.text }]}>Criar conta</Text>
           <Text style={[styles.sub, { color: colors.textSecondary }]}>Junte-se a milhares de brasileiros</Text>
@@ -191,7 +192,6 @@ const styles = StyleSheet.create({
   back:             { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginBottom: Spacing.lg },
   backText:         { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   logoCircle:       { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md },
-  logoText:         { color: '#FFFFFF', fontSize: 20, fontWeight: '700' },
   title:            { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
   sub:              { fontSize: FontSize.sm, marginTop: 4 },
   card:             { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, marginBottom: Spacing.lg },

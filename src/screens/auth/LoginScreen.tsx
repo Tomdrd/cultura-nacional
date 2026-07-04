@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import CnLogo from '../../../assets/images/cn-logo.svg';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
+import { CustomAlert } from '../../components/ui/CustomAlert';
 import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
@@ -20,6 +21,11 @@ export function LoginScreen({ navigation }: any) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading,  setAppleLoading]  = useState(false);
   const [errors,   setErrors]   = useState<{ email?: string; password?: string }>({});
+  const [alert, setAlert] = useState<{ visible: boolean; title: string; message?: string }>({ visible: false, title: '' });
+
+  function showAlert(title: string, message?: string) {
+    setAlert({ visible: true, title, message });
+  }
 
   function validate() {
     const e: typeof errors = {};
@@ -36,7 +42,7 @@ export function LoginScreen({ navigation }: any) {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
-    if (error) Alert.alert('Erro ao entrar', error.message);
+    if (error) showAlert('Erro ao entrar', error.message);
   }
 
   async function handleGoogleLogin() {
@@ -70,7 +76,7 @@ export function LoginScreen({ navigation }: any) {
         }
       }
     } catch (err: any) {
-      Alert.alert('Erro com Google', err.message ?? 'Tente novamente.');
+      showAlert('Erro com Google', err.message ?? 'Tente novamente.');
     }
     setGoogleLoading(false);
   }
@@ -95,7 +101,7 @@ export function LoginScreen({ navigation }: any) {
         }
       }
     } catch (err: any) {
-      Alert.alert('Erro com Apple', err.message ?? 'Tente novamente.');
+      showAlert('Erro com Apple', err.message ?? 'Tente novamente.');
     }
     setAppleLoading(false);
   }
@@ -103,7 +109,7 @@ export function LoginScreen({ navigation }: any) {
   async function handleForgotPassword() {
     if (!email.trim()) {
       if (Platform.OS === 'web') window.alert('Digite seu e-mail no campo acima para receber o link de redefinição.');
-      else Alert.alert('Informe seu e-mail', 'Digite seu e-mail no campo acima para receber o link de redefinição.');
+      else showAlert('Informe seu e-mail', 'Digite seu e-mail no campo acima para receber o link de redefinição.');
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
@@ -111,10 +117,10 @@ export function LoginScreen({ navigation }: any) {
     });
     if (error) {
       if (Platform.OS === 'web') window.alert(error.message);
-      else Alert.alert('Erro', error.message);
+      else showAlert('Erro', error.message);
     } else {
       if (Platform.OS === 'web') window.alert('E-mail enviado! Verifique sua caixa de entrada para redefinir a senha.');
-      else Alert.alert('E-mail enviado!', 'Verifique sua caixa de entrada para redefinir a senha.');
+      else showAlert('E-mail enviado!', 'Verifique sua caixa de entrada para redefinir a senha.');
     }
   }
 
@@ -212,6 +218,13 @@ export function LoginScreen({ navigation }: any) {
         </View>
 
         <Text style={styles.flag}>🇧🇷</Text>
+
+        <CustomAlert
+          visible={alert.visible}
+          title={alert.title}
+          message={alert.message}
+          onDismiss={() => setAlert({ visible: false, title: '' })}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

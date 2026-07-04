@@ -7,6 +7,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
+import CnLogo from '../../../assets/images/cn-logo.svg';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
 export function ResetPasswordScreen({ navigation }: any) {
@@ -49,8 +50,8 @@ export function ResetPasswordScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoWrap}>
-          <View style={[styles.logoCircle, { backgroundColor: '#1A1A1A' }]}>
-            <Text style={styles.logoText}>CN</Text>
+          <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+            <CnLogo width={48} height={48} />
           </View>
           <Text style={[styles.appName, { color: colors.text }]}>Nova Senha</Text>
           <Text style={[styles.appSub, { color: colors.textSecondary }]}>Digite sua nova senha abaixo</Text>
@@ -84,7 +85,6 @@ const styles = StyleSheet.create({
   scroll:     { flexGrow: 1, padding: Spacing.xl, justifyContent: 'center' },
   logoWrap:   { alignItems: 'center', marginBottom: Spacing.xl },
   logoCircle: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md },
-  logoText:   { color: '#FFFFFF', fontSize: 26, fontWeight: '700' },
   appName:    { fontSize: FontSize.xl, fontWeight: FontWeight.bold, letterSpacing: -0.5 },
   appSub:     { fontSize: FontSize.sm, marginTop: 4, textAlign: 'center' },
   card:       { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl },
