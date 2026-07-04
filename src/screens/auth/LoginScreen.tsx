@@ -3,7 +3,8 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { Lock, Globe2 } from 'lucide-react-native';
+import { Globe2 } from 'lucide-react-native';
+import CnLogo from '../../../assets/images/cn-logo.svg';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -126,9 +127,7 @@ export function LoginScreen({ navigation }: any) {
       >
         {/* Logo */}
         <View style={styles.logoWrap}>
-          <View style={[styles.logoCircle, { backgroundColor: '#1A1A1A' }]}>
-            <Text style={styles.logoText}>CN</Text>
-          </View>
+          <CnLogo width={72} height={72} />
           <Text style={[styles.appName, { color: colors.text }]}>Cultura Nacional</Text>
           <Text style={[styles.appSub, { color: colors.textSecondary }]}>Quanto você sabe sobre o Brasil?</Text>
         </View>
@@ -215,7 +214,6 @@ const styles = StyleSheet.create({
   scroll:       { flexGrow: 1, padding: Spacing.xl, justifyContent: 'center' },
   logoWrap:     { alignItems: 'center', marginBottom: Spacing.xl },
   logoCircle:   { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md },
-  logoText:     { color: '#FFFFFF', fontSize: 26, fontWeight: '700' },
   appName:      { fontSize: FontSize.xl, fontWeight: FontWeight.bold, letterSpacing: -0.5 },
   appSub:       { fontSize: FontSize.sm, marginTop: 4, textAlign: 'center' },
   oauthRow:     { flexDirection: 'row', gap: 12, marginBottom: Spacing.lg },
