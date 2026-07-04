@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Alert, Platform,
+  Dimensions, Alert, Platform, Share,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { requestRecordingPermissionsAsync } from 'expo-audio';
@@ -63,6 +63,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   const timerRef = useRef<any>(null);
   const recordingPromiseRef = useRef<Promise<any> | null>(null);
   const [recordedVideoUri, setRecordedVideoUri] = useState<string | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
   const isVertical = format === 'vertical';
@@ -135,18 +136,19 @@ export function ViralModeScreen({ navigation, route }: any) {
   }
 
   async function startQuiz() {
+    setCameraReady(false);
     setPhase('quiz');
     await narrateQuestion(questions[0]);
   }
   useEffect(() => {
-    if (phase === 'quiz' && Platform.OS !== 'web' && cameraRef.current && !isRecording) {
+    if (phase === 'quiz' && cameraReady && Platform.OS !== 'web' && cameraRef.current && !isRecording) {
       setIsRecording(true);
       recordingPromiseRef.current = cameraRef.current.recordAsync().catch((err: any) => {
         console.log('Erro ao gravar vídeo:', err);
         return null;
       });
     }
-  }, [phase]);
+  }, [phase, cameraReady]);
 
   async function narrateQuestion(q: Question) {
     setTimerActive(false);
@@ -341,7 +343,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   if (phase === 'countdown') {
     return (
       <View style={styles.fullscreen}>
-        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
         <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
           <Text style={styles.countdownNum}>{countdown}</Text>
           <Text style={styles.countdownText}>Prepare-se!</Text>
@@ -362,7 +364,7 @@ export function ViralModeScreen({ navigation, route }: any) {
 
         {/* Camera */}
         <View style={isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
+          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
 
           {/* Meme overlay */}
           {showMeme && (
