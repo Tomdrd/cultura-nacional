@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Alert, Platform, Share,
+  Dimensions, Alert, Platform, Share, ScrollView,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { requestRecordingPermissionsAsync } from 'expo-audio';
@@ -29,6 +29,16 @@ interface AnswerResult {
   xp: number;
 }
 
+const VIRAL_CATEGORIES = [
+  { name: 'Aleatório',    color: '#E24B4A' },
+  { name: 'Cultura',      color: '#7F77DD' },
+  { name: 'História',     color: '#D85A30' },
+  { name: 'Gastronomia',  color: '#BA7517' },
+  { name: 'Natureza',     color: '#009C3B' },
+  { name: 'Turismo',      color: '#378ADD' },
+  { name: 'Curiosidades', color: '#D4537E' },
+  { name: 'Reggae',       color: '#2E8B57' },
+];
 type Format = 'vertical' | 'horizontal';
 type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
 
@@ -50,6 +60,7 @@ export function ViralModeScreen({ navigation, route }: any) {
 
 
   const [format, setFormat] = useState<Format>('vertical');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Aleatório');
   const [phase, setPhase] = useState<Phase>('setup');
   const [countdown, setCountdown] = useState(3);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -120,10 +131,11 @@ export function ViralModeScreen({ navigation, route }: any) {
 
   async function loadQuestions() {
     setLoading(true);
+    const categoryFilter = selectedCategory === 'Aleatório' ? null : selectedCategory;
     let { data } = await supabase.rpc('get_random_quiz_questions', {
       p_state_id:    stateId ?? null,
       p_city_id:     null,
-      p_subcategory: subcategory ?? null,
+      p_subcategory: categoryFilter,
       p_limit:       TOTAL_Q,
     });
     if (!data || data.length < 3) {
@@ -297,37 +309,35 @@ export function ViralModeScreen({ navigation, route }: any) {
             Sua câmera + quiz + memes = conteúdo viral{'\n'}para Reels, TikTok e YouTube Shorts
           </Text>
 
-          {/* Format selector */}
-          <Text style={[styles.formatLabel, { color: colors.textSecondary }]}>Escolha o formato</Text>
-          <View style={styles.formatRow}>
-            {(['vertical', 'horizontal'] as Format[]).map(f => (
-              <TouchableOpacity
-                key={f}
-                onPress={() => setFormat(f)}
-                style={[
-                  styles.formatBtn,
-                  {
-                    backgroundColor: format === f ? '#E24B4A15' : colors.card,
-                    borderColor: format === f ? '#E24B4A' : colors.border,
-                  }
-                ]}
-              >
-                <View style={[
-                  styles.formatIcon,
-                  f === 'vertical'
-                    ? { width: 22, height: 36, borderColor: format === f ? '#E24B4A' : colors.textMuted }
-                    : { width: 36, height: 22, borderColor: format === f ? '#E24B4A' : colors.textMuted },
-                  { borderWidth: 2, borderRadius: 4 }
-                ]} />
-                <Text style={[styles.formatName, { color: format === f ? '#E24B4A' : colors.text }]}>
-                  {f === 'vertical' ? 'Vertical' : 'Horizontal'}
-                </Text>
-                <Text style={[styles.formatSub, { color: colors.textMuted }]}>
-                  {f === 'vertical' ? 'Reels / TikTok' : 'YouTube Shorts'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {/* Category selector */}
+          <Text style={[styles.formatLabel, { color: colors.textSecondary }]}>Escolha a categoria</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryScroll}
+            contentContainerStyle={styles.categoryRow}
+          >
+            {VIRAL_CATEGORIES.map(({ name, color }) => {
+              const active = selectedCategory === name;
+              return (
+                <TouchableOpacity
+                  key={name}
+                  onPress={() => setSelectedCategory(name)}
+                  style={[
+                    styles.categoryChip,
+                    {
+                      backgroundColor: active ? color + '20' : colors.card,
+                      borderColor: active ? color : colors.border,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.categoryChipText, { color: active ? color : colors.textSecondary }]}>
+                    {name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
           {/* Features */}
           <View style={[styles.featureList, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -558,6 +568,10 @@ const styles = StyleSheet.create({
   setupSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
   formatLabel: { fontSize: 11, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
   formatRow: { flexDirection: 'row', gap: 12 },
+  categoryScroll: { flexGrow: 0 },
+  categoryRow: { flexDirection: 'row', gap: 8, paddingVertical: 4, alignItems: 'center' },
+  categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.full, borderWidth: 0.5 },
+  categoryChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   formatBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: Radius.lg, borderWidth: 0.5, paddingVertical: Spacing.lg },
   formatIcon: { backgroundColor: 'transparent' },
   formatName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
