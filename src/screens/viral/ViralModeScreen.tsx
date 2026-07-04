@@ -8,6 +8,7 @@ import { requestRecordingPermissionsAsync } from 'expo-audio';
 import * as Sharing from 'expo-sharing';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
+import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen } from 'lucide-react-native';
@@ -42,6 +43,7 @@ const MEME_TEXTS: Record<string, string> = {
 
 export function ViralModeScreen({ navigation, route }: any) {
   const { colors } = useTheme();
+  const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { stateId, stateName, subcategory } = route.params ?? {};
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -189,6 +191,7 @@ export function ViralModeScreen({ navigation, route }: any) {
 
   async function handleAnswer(index: number) {
     if (answered || !timerActive) return;
+    vibrateSelect();
     clearInterval(timerRef.current);
     setTimerActive(false);
     setSelected(index);
@@ -207,6 +210,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     setResults(r => [...r, correct]);
     setCorrectStreak(newStreak);
     if (correct) setScore(s => s + 1);
+    if (correct) { playCorrect(); } else { playWrong(); }
 
     if (correct) {
       if (newStreak >= 3) await playMeme('correct_streak');
@@ -247,6 +251,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     const pct = score / questions.length;
     if (pct >= 0.8) await playMeme('correct_excellent');
     else if (pct < 0.4) await playMeme('bad_score');
+    playResult(pct >= 0.6);
     setPhase('result');
   }
 
