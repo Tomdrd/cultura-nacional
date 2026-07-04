@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { Lock, Globe2 } from 'lucide-react-native';
+import CnLogo from '../../../assets/images/cn-logo.svg';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
+import { CustomAlert } from '../../components/ui/CustomAlert';
 import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
@@ -19,6 +21,11 @@ export function LoginScreen({ navigation }: any) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading,  setAppleLoading]  = useState(false);
   const [errors,   setErrors]   = useState<{ email?: string; password?: string }>({});
+  const [alert, setAlert] = useState<{ visible: boolean; title: string; message?: string }>({ visible: false, title: '' });
+
+  function showAlert(title: string, message?: string) {
+    setAlert({ visible: true, title, message });
+  }
 
   function validate() {
     const e: typeof errors = {};
@@ -35,7 +42,7 @@ export function LoginScreen({ navigation }: any) {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
-    if (error) Alert.alert('Erro ao entrar', error.message);
+    if (error) showAlert('Erro ao entrar', error.message);
   }
 
   async function handleGoogleLogin() {
@@ -69,7 +76,7 @@ export function LoginScreen({ navigation }: any) {
         }
       }
     } catch (err: any) {
-      Alert.alert('Erro com Google', err.message ?? 'Tente novamente.');
+      showAlert('Erro com Google', err.message ?? 'Tente novamente.');
     }
     setGoogleLoading(false);
   }
@@ -94,7 +101,7 @@ export function LoginScreen({ navigation }: any) {
         }
       }
     } catch (err: any) {
-      Alert.alert('Erro com Apple', err.message ?? 'Tente novamente.');
+      showAlert('Erro com Apple', err.message ?? 'Tente novamente.');
     }
     setAppleLoading(false);
   }
@@ -102,7 +109,7 @@ export function LoginScreen({ navigation }: any) {
   async function handleForgotPassword() {
     if (!email.trim()) {
       if (Platform.OS === 'web') window.alert('Digite seu e-mail no campo acima para receber o link de redefinição.');
-      else Alert.alert('Informe seu e-mail', 'Digite seu e-mail no campo acima para receber o link de redefinição.');
+      else showAlert('Informe seu e-mail', 'Digite seu e-mail no campo acima para receber o link de redefinição.');
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
@@ -110,10 +117,10 @@ export function LoginScreen({ navigation }: any) {
     });
     if (error) {
       if (Platform.OS === 'web') window.alert(error.message);
-      else Alert.alert('Erro', error.message);
+      else showAlert('Erro', error.message);
     } else {
       if (Platform.OS === 'web') window.alert('E-mail enviado! Verifique sua caixa de entrada para redefinir a senha.');
-      else Alert.alert('E-mail enviado!', 'Verifique sua caixa de entrada para redefinir a senha.');
+      else showAlert('E-mail enviado!', 'Verifique sua caixa de entrada para redefinir a senha.');
     }
   }
 
@@ -126,8 +133,8 @@ export function LoginScreen({ navigation }: any) {
       >
         {/* Logo */}
         <View style={styles.logoWrap}>
-          <View style={[styles.logoCircle, { backgroundColor: '#1A1A1A' }]}>
-            <Text style={styles.logoText}>CN</Text>
+          <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+            <CnLogo width={48} height={48} />
           </View>
           <Text style={[styles.appName, { color: colors.text }]}>Cultura Nacional</Text>
           <Text style={[styles.appSub, { color: colors.textSecondary }]}>Quanto você sabe sobre o Brasil?</Text>
@@ -142,7 +149,12 @@ export function LoginScreen({ navigation }: any) {
           >
             {googleLoading
               ? <ActivityIndicator size="small" color={colors.text} />
-              : <Globe2 size={18} color="#4285F4" />
+              : <Svg width={18} height={18} viewBox="0 0 48 48">
+                  <Path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.1-2.7-.4-4z"/>
+                  <Path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                  <Path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.5 35.5 26.9 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.6 4.9C9.8 39.8 16.4 44 24 44z"/>
+                  <Path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.5-4.6 5.8l6.2 5.2C40.8 35.7 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/>
+                </Svg>
             }
             <Text style={[styles.oauthText, { color: colors.text }]}>Google</Text>
           </TouchableOpacity>
@@ -206,6 +218,13 @@ export function LoginScreen({ navigation }: any) {
         </View>
 
         <Text style={styles.flag}>🇧🇷</Text>
+
+        <CustomAlert
+          visible={alert.visible}
+          title={alert.title}
+          message={alert.message}
+          onDismiss={() => setAlert({ visible: false, title: '' })}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -215,7 +234,6 @@ const styles = StyleSheet.create({
   scroll:       { flexGrow: 1, padding: Spacing.xl, justifyContent: 'center' },
   logoWrap:     { alignItems: 'center', marginBottom: Spacing.xl },
   logoCircle:   { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md },
-  logoText:     { color: '#FFFFFF', fontSize: 26, fontWeight: '700' },
   appName:      { fontSize: FontSize.xl, fontWeight: FontWeight.bold, letterSpacing: -0.5 },
   appSub:       { fontSize: FontSize.sm, marginTop: 4, textAlign: 'center' },
   oauthRow:     { flexDirection: 'row', gap: 12, marginBottom: Spacing.lg },

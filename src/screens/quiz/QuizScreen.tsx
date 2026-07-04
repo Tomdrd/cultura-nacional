@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
+import * as Speech from 'expo-speech';
+
 import { ReportModal } from '../../components/ui/ReportModal';
+import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
+import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -23,10 +27,21 @@ interface AnswerResult {
 }
 
 const TOTAL_QUESTIONS = 5;
+
+const SFX_CORRECT = ['Acertô, mizeravi!', 'Isso aí!', 'Boa demais!', 'Acertou na mosca!'];
+const SFX_WRONG   = ['Errou, abestado!', 'Que vacilo!', 'Nem de perto!', 'Vai estudar mais!'];
+const SFX_WIN     = 'Cê é o bichão, mesmo hein!';
+const SFX_LOSE    = 'Na próxima você faz melhor!';
+
+function speak(text: string, rate = 1.3) {
+  Speech.speak(text, { language: 'pt-BR', rate, pitch: 0.85 });
+}
 const TIME_PER_QUESTION = 15;
 
 export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
+  const { audioNarration } = useSettingsStore();
+  const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { user } = useAuthStore();
   const { stateId, stateName, cityId, cityName, subcategory, mode } = route.params ?? {};
 
@@ -42,6 +57,8 @@ export function QuizScreen({ route, navigation }: any) {
   const [finished,      setFinished]      = useState(false);
   const [results,       setResults]       = useState<boolean[]>([]);
   const [reportOpen,    setReportOpen]    = useState(false);
+  const [narrating,     setNarrating]     = useState(false);
+  const [timerActive,   setTimerActive]   = useState(false);
 
   const timerRef     = useRef<any>(null);
   const progressAnim = useRef(new Animated.Value(1)).current;
@@ -50,24 +67,49 @@ export function QuizScreen({ route, navigation }: any) {
   const scoreRef     = useRef(0);
 
   useEffect(() => { loadQuestions(); }, []);
+  // Narração ao mudar de pergunta
   useEffect(() => {
-    if (!loading && !finished) startTimer();
-    return () => clearInterval(timerRef.current);
+    if (loading || finished) return;
+    clearInterval(timerRef.current);
+    setTimerActive(false);
+    Speech.stop();
+    if (audioNarration && questions[current]) {
+      Speech.speak(questions[current].text, {
+        language: 'pt-BR',
+        rate: 1.3,
+        pitch: 0.85,
+        onDone:  () => setTimerActive(true),
+        onError: () => setTimerActive(true),
+      });
+    } else {
+      setTimerActive(true);
+    }
+    return () => { clearInterval(timerRef.current); Speech.stop(); };
   }, [current, loading, finished]);
+
+  // Timer só corre quando timerActive === true
+  useEffect(() => {
+    if (!timerActive) return;
+    startTimer();
+    return () => clearInterval(timerRef.current);
+  }, [timerActive]);
 
   async function loadQuestions() {
     setLoading(true);
-    let query = supabase.from('questions_safe').select('*').eq('active', true);
-    if (stateId)     query = query.eq('state_id', stateId);
-    if (cityId)      query = query.eq('city_id', cityId);
-    if (subcategory) query = query.eq('subcategory', subcategory);
-    query = query.limit(mode === 'relampago' ? 5 : TOTAL_QUESTIONS);
-    let { data } = await query;
+    const limit = mode === 'relampago' ? 5 : TOTAL_QUESTIONS;
+    let { data } = await supabase.rpc('get_random_quiz_questions', {
+      p_state_id:    stateId ?? null,
+      p_city_id:     cityId ?? null,
+      p_subcategory: subcategory ?? null,
+      p_limit:       limit,
+    });
     if (!data || data.length === 0) {
-      const fallback = await supabase.from('questions_safe').select('*').eq('active', true).limit(TOTAL_QUESTIONS);
+      const fallback = await supabase.rpc('get_random_quiz_questions', {
+        p_state_id: null, p_city_id: null, p_subcategory: null, p_limit: limit,
+      });
       data = fallback.data;
     }
-    if (data && data.length > 0) setQuestions(data.sort(() => Math.random() - 0.5));
+    if (data && data.length > 0) setQuestions(data);
     setLoading(false);
   }
 
@@ -87,6 +129,7 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function handleAnswer(index: number) {
     if (answered) return;
+    vibrateSelect();
     clearInterval(timerRef.current);
     setSelected(index);
     setAnswered(true);
@@ -100,6 +143,7 @@ export function QuizScreen({ route, navigation }: any) {
     const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, explanation: null, xp: 0 };
     setAnswerResult(result);
     setResults(prev => [...prev, result.is_correct]);
+    if (result.is_correct) { playCorrect(); } else { playWrong(); }
 
     if (result.is_correct) {
       setScore(prev => { scoreRef.current = prev + 1; return prev + 1; });
@@ -125,6 +169,8 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function finishQuiz() {
     setFinished(true);
+    const pct = scoreRef.current / questions.length;
+    setTimeout(() => { playResult(pct >= 0.6); }, 600);
     if (!user) return;
     if (xpRef.current > 0) {
       // Atualiza XP atomicamente no servidor (evita race condition)
@@ -264,10 +310,11 @@ export function QuizScreen({ route, navigation }: any) {
 
         <View style={styles.options}>
           {q.options.map((opt: string, i: number) => {
-            const isCorrect  = answered && i === answerResult?.correct_index;
+            const revealed   = answerResult !== null;
+            const isCorrect  = revealed && i === answerResult?.correct_index;
             const isSelected = i === selected;
             let bg = colors.card, border = colors.border, textColor = colors.text;
-            if (answered) {
+            if (revealed) {
               if (isCorrect)               { bg='#009C3B20'; border='#009C3B'; textColor='#009C3B'; }
               else if (isSelected)         { bg=colors.danger+'20'; border=colors.danger; textColor=colors.danger; }
             } else if (isSelected)         { bg=colors.primary+'15'; border=colors.primary; textColor=colors.primary; }
@@ -279,8 +326,8 @@ export function QuizScreen({ route, navigation }: any) {
                   <Text style={[styles.optionLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                 </View>
                 <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
-                {answered && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
-                {answered && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
+                {revealed && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
+                {revealed && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
               </TouchableOpacity>
             );
           })}

@@ -1,15 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Alert, Platform,
+  Dimensions, Alert, Platform, Share, ScrollView, Image,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { requestRecordingPermissionsAsync } from 'expo-audio';
+import * as Sharing from 'expo-sharing';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
+import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen } from 'lucide-react-native';
+import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen, Smartphone } from 'lucide-react-native';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -17,49 +19,60 @@ interface Question {
   id: string;
   text: string;
   options: string[];
-  answer_index: number;
-  explanation: string | null;
   difficulty: string;
   subcategory: string;
 }
+interface AnswerResult {
+  is_correct: boolean;
+  correct_index: number;
+  explanation: string | null;
+  xp: number;
+}
 
+const VIRAL_CATEGORIES = [
+  { name: 'Aleatório',    color: '#E24B4A' },
+  { name: 'Cultura',      color: '#7F77DD' },
+  { name: 'História',     color: '#D85A30' },
+  { name: 'Gastronomia',  color: '#BA7517' },
+  { name: 'Natureza',     color: '#009C3B' },
+  { name: 'Turismo',      color: '#378ADD' },
+  { name: 'Curiosidades', color: '#D4537E' },
+  { name: 'Reggae',       color: '#2E8B57' },
+];
 type Format = 'vertical' | 'horizontal';
 type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
 
-const MEME_TEXTS: Record<string, string> = {
-  correct_common: 'Acertou, mizeravi!',
-  correct_streak: 'Tá voando, visse!',
-  correct_excellent: 'Você é o bichão mesmo, hein!',
-  wrong: 'Eita lasqueira!',
-  timeout: 'Ô meu povo...',
-  bad_score: 'Estudar mais um poco, né?',
-};
 
 export function ViralModeScreen({ navigation, route }: any) {
   const { colors } = useTheme();
+  const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { stateId, stateName, subcategory } = route.params ?? {};
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
 
   const [format, setFormat] = useState<Format>('vertical');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Aleatório');
   const [phase, setPhase] = useState<Phase>('setup');
   const [countdown, setCountdown] = useState(3);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerActive, setTimerActive] = useState(false);
   const [results, setResults] = useState<boolean[]>([]);
-  const [memeText, setMemeText] = useState('');
-  const [showMeme, setShowMeme] = useState(false);
   const [loading, setLoading] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
   const [score, setScore] = useState(0);
 
   const cameraRef = useRef<any>(null);
   const timerRef = useRef<any>(null);
+  const recordingPromiseRef = useRef<Promise<any> | null>(null);
+  const [recordedVideoUri, setRecordedVideoUri] = useState<string | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   const isVertical = format === 'vertical';
   const TOTAL_Q = 5;
@@ -108,15 +121,20 @@ export function ViralModeScreen({ navigation, route }: any) {
 
   async function loadQuestions() {
     setLoading(true);
-    let query = supabase.from('questions').select('*').eq('active', true).limit(TOTAL_Q);
-    if (stateId) query = query.eq('state_id', stateId);
-    if (subcategory) query = query.eq('subcategory', subcategory);
-    let { data } = await query;
+    const categoryFilter = selectedCategory === 'Aleatório' ? null : selectedCategory;
+    let { data } = await supabase.rpc('get_random_quiz_questions', {
+      p_state_id:    stateId ?? null,
+      p_city_id:     null,
+      p_subcategory: categoryFilter,
+      p_limit:       TOTAL_Q,
+    });
     if (!data || data.length < 3) {
-      const fallback = await supabase.from('questions').select('*').eq('active', true).limit(TOTAL_Q);
+      const fallback = await supabase.rpc('get_random_quiz_questions', {
+        p_state_id: null, p_city_id: null, p_subcategory: null, p_limit: TOTAL_Q,
+      });
       data = fallback.data;
     }
-    if (data) setQuestions(data.sort(() => Math.random() - 0.5).slice(0, TOTAL_Q));
+    if (data) setQuestions(data);
     setLoading(false);
   }
 
@@ -131,9 +149,19 @@ export function ViralModeScreen({ navigation, route }: any) {
   }
 
   async function startQuiz() {
+    setCameraReady(false);
     setPhase('quiz');
     await narrateQuestion(questions[0]);
   }
+  useEffect(() => {
+    if (phase === 'quiz' && cameraReady && Platform.OS !== 'web' && cameraRef.current && !isRecording) {
+      setIsRecording(true);
+      recordingPromiseRef.current = cameraRef.current.recordAsync().catch((err: any) => {
+        console.log('Erro ao gravar vídeo:', err);
+        return null;
+      });
+    }
+  }, [phase, cameraReady]);
 
   async function narrateQuestion(q: Question) {
     setTimerActive(false);
@@ -149,41 +177,36 @@ export function ViralModeScreen({ navigation, route }: any) {
     });
   }
 
-  async function playMeme(key: string) {
-    setMemeText(MEME_TEXTS[key] ?? '');
-    setShowMeme(true);
-    setTimeout(() => setShowMeme(false), 2000);
-  }
 
   function handleTimeout() {
     setAnswered(true);
     setResults(r => [...r, false]);
     setCorrectStreak(0);
-    playMeme('timeout');
     setTimeout(() => goNext(), 2500);
   }
 
   async function handleAnswer(index: number) {
     if (answered || !timerActive) return;
+    vibrateSelect();
     clearInterval(timerRef.current);
     setTimerActive(false);
     setSelected(index);
     setAnswered(true);
 
     const q = questions[current];
-    const correct = index === q.answer_index;
+    const { data } = await supabase.rpc('submit_answer', {
+      p_question_id:  q.id,
+      p_answer_index: index,
+    });
+    const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, explanation: null, xp: 0 };
+    setAnswerResult(result);
+    const correct = result.is_correct;
     const newStreak = correct ? correctStreak + 1 : 0;
 
     setResults(r => [...r, correct]);
     setCorrectStreak(newStreak);
     if (correct) setScore(s => s + 1);
-
-    if (correct) {
-      if (newStreak >= 3) await playMeme('correct_streak');
-      else await playMeme('correct_common');
-    } else {
-      await playMeme('wrong');
-    }
+    if (correct) { playCorrect(); } else { playWrong(); }
 
     setTimeout(() => goNext(), 2200);
   }
@@ -196,6 +219,7 @@ export function ViralModeScreen({ navigation, route }: any) {
       setCurrent(nextIdx);
       setSelected(null);
       setAnswered(false);
+      setAnswerResult(null);
       await narrateQuestion(questions[nextIdx]);
     }
   }
@@ -203,9 +227,18 @@ export function ViralModeScreen({ navigation, route }: any) {
   async function finishQuiz() {
     Speech.stop();
     clearInterval(timerRef.current);
+    if (Platform.OS !== 'web' && isRecording && cameraRef.current) {
+      try {
+        cameraRef.current.stopRecording();
+        const result = await recordingPromiseRef.current;
+        if (result?.uri) setRecordedVideoUri(result.uri);
+      } catch (err) {
+        console.log('Erro ao parar gravação:', err);
+      }
+      setIsRecording(false);
+    }
     const pct = score / questions.length;
-    if (pct >= 0.8) await playMeme('correct_excellent');
-    else if (pct < 0.4) await playMeme('bad_score');
+    playResult(pct >= 0.6);
     setPhase('result');
   }
 
@@ -220,8 +253,6 @@ export function ViralModeScreen({ navigation, route }: any) {
     setResults([]);
     setScore(0);
     setCorrectStreak(0);
-    setMemeText('');
-    setShowMeme(false);
     setQuestions([]);
   }
 
@@ -248,46 +279,55 @@ export function ViralModeScreen({ navigation, route }: any) {
             Grave seu quiz{'\n'}e compartilhe!
           </Text>
           <Text style={[styles.setupSub, { color: colors.textSecondary }]}>
-            Sua câmera + quiz + memes = conteúdo viral{'\n'}para Reels, TikTok e YouTube Shorts
+            Sua câmera + quiz = conteúdo pronto{'\n'}para Reels, TikTok e YouTube Shorts
           </Text>
 
-          {/* Format selector */}
-          <Text style={[styles.formatLabel, { color: colors.textSecondary }]}>Escolha o formato</Text>
-          <View style={styles.formatRow}>
-            {(['vertical', 'horizontal'] as Format[]).map(f => (
-              <TouchableOpacity
-                key={f}
-                onPress={() => setFormat(f)}
-                style={[
-                  styles.formatBtn,
-                  {
-                    backgroundColor: format === f ? '#E24B4A15' : colors.card,
-                    borderColor: format === f ? '#E24B4A' : colors.border,
-                  }
-                ]}
-              >
-                <View style={[
-                  styles.formatIcon,
-                  f === 'vertical'
-                    ? { width: 22, height: 36, borderColor: format === f ? '#E24B4A' : colors.textMuted }
-                    : { width: 36, height: 22, borderColor: format === f ? '#E24B4A' : colors.textMuted },
-                  { borderWidth: 2, borderRadius: 4 }
-                ]} />
-                <Text style={[styles.formatName, { color: format === f ? '#E24B4A' : colors.text }]}>
-                  {f === 'vertical' ? 'Vertical' : 'Horizontal'}
-                </Text>
-                <Text style={[styles.formatSub, { color: colors.textMuted }]}>
-                  {f === 'vertical' ? 'Reels / TikTok' : 'YouTube Shorts'}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          {/* Category selector */}
+          <Text style={[styles.formatLabel, { color: colors.textSecondary }]}>Escolha a categoria</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryScroll}
+            contentContainerStyle={styles.categoryRow}
+          >
+            {VIRAL_CATEGORIES.map(({ name, color }) => {
+              const active = selectedCategory === name;
+              return (
+                <TouchableOpacity
+                  key={name}
+                  onPress={() => setSelectedCategory(name)}
+                  style={[
+                    styles.categoryChip,
+                    {
+                      backgroundColor: active ? color + '20' : colors.card,
+                      borderColor: active ? color : colors.border,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.categoryChipText, { color: active ? color : colors.textSecondary }]}>
+                    {name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* Aviso importante */}
+          <View style={[styles.warningCard, { backgroundColor: '#BA751715', borderColor: '#BA751740' }]}>
+            <View style={styles.warningHeader}>
+              <Smartphone size={20} color="#BA7517" />
+              <Text style={[styles.warningTitle, { color: '#BA7517' }]}>Antes de começar</Text>
+            </View>
+            <Text style={[styles.warningText, { color: colors.textSecondary }]}>
+              Ative a gravação de tela do seu celular antes de iniciar. O app grava sua câmera, mas é a gravação de tela que captura tudo junto: pergunta, resposta e sua reação.
+            </Text>
           </View>
 
           {/* Features */}
           <View style={[styles.featureList, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {([
               { Icon: Mic,       label: 'Perguntas narradas automaticamente', color: '#D4537E' },
-              { Icon: Volume2,   label: 'Efeitos sonoros com memes',          color: '#BA7517' },
+              { Icon: Volume2,   label: 'Efeitos sonoros e vibração ao responder', color: '#BA7517' },
               { Icon: Share2,    label: 'Compartilhe direto nas redes',        color: '#378ADD' },
             ] as { Icon: any; label: string; color: string }[]).map(({ Icon, label, color }) => (
               <View key={label} style={styles.featureRow}>
@@ -313,49 +353,47 @@ export function ViralModeScreen({ navigation, route }: any) {
   }
 
   // ══════════════════════════════════════════
-  // COUNTDOWN
+  // COUNTDOWN + QUIZ + CÂMERA (câmera única, sem remontar entre fases)
   // ══════════════════════════════════════════
-  if (phase === 'countdown') {
-    return (
-      <View style={styles.fullscreen}>
-        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
-        <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
-          <Text style={styles.countdownNum}>{countdown}</Text>
-          <Text style={styles.countdownText}>Prepare-se!</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // QUIZ + CÂMERA
-  // ══════════════════════════════════════════
-  if (phase === 'quiz' && q) {
+  if (phase === 'countdown' || (phase === 'quiz' && q)) {
     const cameraH = isVertical ? SH * 0.38 : SH * 0.5;
     const quizH = isVertical ? SH * 0.62 : SH * 0.5;
+    const isQuiz = phase === 'quiz';
 
     return (
-      <View style={[styles.fullscreen, { flexDirection: isVertical ? 'column' : 'row' }]}>
+      <View style={[styles.fullscreen, { flexDirection: isQuiz && isVertical ? 'column' : isQuiz ? 'row' : 'column' }]}>
 
-        {/* Camera */}
-        <View style={isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
+        {/* Camera — mesma instância entre countdown e quiz */}
+        <View style={isQuiz ? (isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }) : styles.fullscreen}>
+          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
 
-          {/* Meme overlay */}
-          {showMeme && (
-            <View style={styles.memeOverlay}>
-              <Text style={styles.memeText}>{memeText}</Text>
+          {/* Marca d'água */}
+          <Image
+            source={require('../../../assets/images/icon.png')}
+            style={styles.watermark}
+          />
+
+          {/* Countdown overlay */}
+          {phase === 'countdown' && (
+            <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
+              <Text style={styles.countdownNum}>{countdown}</Text>
+              <Text style={styles.countdownText}>Prepare-se!</Text>
             </View>
           )}
 
           {/* Top bar */}
-          <View style={styles.cameraTopBar}>
-            <View style={styles.recDot} />
-            <Text style={styles.recText}>REC</Text>
-          </View>
+          {isQuiz && (
+            <View style={styles.cameraTopBar}>
+              <View style={styles.recDot} />
+              <Text style={styles.recText}>REC</Text>
+            </View>
+          )}
         </View>
 
+        {!isQuiz && null}
+
         {/* Quiz area */}
+        {isQuiz && (
         <View style={[
           isVertical
             ? { height: quizH, width: SW }
@@ -396,13 +434,14 @@ export function ViralModeScreen({ navigation, route }: any) {
           {/* Options */}
           <View style={styles.options}>
             {q.options.map((opt, i) => {
-              const isCorrect = i === q.answer_index;
+              const revealed  = answerResult !== null;
+              const isCorrect = revealed && i === answerResult?.correct_index;
               const isSelected = i === selected;
               let bg = colors.card;
               let border = colors.border;
               let tc = colors.text;
 
-              if (answered) {
+              if (revealed) {
                 if (isCorrect) { bg = '#009C3B20'; border = '#009C3B'; tc = '#009C3B'; }
                 else if (isSelected) { bg = '#E24B4A20'; border = '#E24B4A'; tc = '#E24B4A'; }
               } else if (isSelected) { bg = colors.primary + '15'; border = colors.primary; tc = colors.primary; }
@@ -418,13 +457,14 @@ export function ViralModeScreen({ navigation, route }: any) {
                     <Text style={[styles.optLetterText, { color: tc }]}>{['A', 'B', 'C', 'D'][i]}</Text>
                   </View>
                   <Text style={[styles.optText, { color: tc }]} numberOfLines={2}>{opt}</Text>
-                  {answered && isCorrect && <CheckCircle size={16} color="#009C3B" />}
-                  {answered && isSelected && !isCorrect && <XCircle size={16} color="#E24B4A" />}
+                  {revealed && isCorrect && <CheckCircle size={16} color="#009C3B" />}
+                  {revealed && isSelected && !isCorrect && <XCircle size={16} color="#E24B4A" />}
                 </TouchableOpacity>
               );
             })}
           </View>
         </View>
+        )}
       </View>
     );
   }
@@ -511,10 +551,18 @@ const styles = StyleSheet.create({
   setupSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
   formatLabel: { fontSize: 11, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
   formatRow: { flexDirection: 'row', gap: 12 },
+  categoryScroll: { flexGrow: 0 },
+  categoryRow: { flexDirection: 'row', gap: 8, paddingVertical: 4, alignItems: 'center' },
+  categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.full, borderWidth: 0.5 },
+  categoryChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   formatBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: Radius.lg, borderWidth: 0.5, paddingVertical: Spacing.lg },
   formatIcon: { backgroundColor: 'transparent' },
   formatName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   formatSub: { fontSize: 11 },
+  warningCard: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
+  warningHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  warningTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  warningText: { fontSize: FontSize.xs, lineHeight: 18 },
   featureList: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 10 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   featureIcon: { fontSize: 18 },
@@ -525,10 +573,9 @@ const styles = StyleSheet.create({
   countdownNum: { fontSize: 120, fontWeight: FontWeight.bold, color: '#FFF' },
   countdownText: { fontSize: FontSize.xl, color: '#FFF', fontWeight: FontWeight.medium },
   cameraTopBar: { position: 'absolute', top: 48, left: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  watermark: { position: 'absolute', top: 48, right: Spacing.lg, width: 32, height: 32, borderRadius: 8, opacity: 0.85 },
   recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E24B4A' },
   recText: { color: '#FFF', fontSize: 12, fontWeight: FontWeight.bold },
-  memeOverlay: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)' },
-  memeText: { color: '#FFDF00', fontSize: 22, fontWeight: FontWeight.bold, textAlign: 'center', paddingHorizontal: 20 },
   quizArea: { padding: Spacing.md },
   dotsRow: { flexDirection: 'row', gap: 5, marginBottom: Spacing.sm },
   dot: { flex: 1, height: 3, borderRadius: 2 },

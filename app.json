@@ -40,7 +40,14 @@
       "expo-video",
       "expo-audio",
       "expo-web-browser",
-      "expo-image"
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O Cultura Nacional precisa de acesso à câmera para o Modo Viral.",
+          "microphonePermission": "O Cultura Nacional precisa de acesso ao microfone para gravar vídeos no Modo Viral.",
+          "recordAudioAndroid": true
+        }
+      ]
     ],
     "extra": {
       "eas": {
