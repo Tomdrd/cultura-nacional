@@ -18,10 +18,14 @@ interface Question {
   id: string;
   text: string;
   options: string[];
-  answer_index: number;
-  explanation: string | null;
   difficulty: string;
   subcategory: string;
+}
+interface AnswerResult {
+  is_correct: boolean;
+  correct_index: number;
+  explanation: string | null;
+  xp: number;
 }
 
 type Format = 'vertical' | 'horizontal';
@@ -50,6 +54,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerActive, setTimerActive] = useState(false);
   const [results, setResults] = useState<boolean[]>([]);
@@ -113,15 +118,19 @@ export function ViralModeScreen({ navigation, route }: any) {
 
   async function loadQuestions() {
     setLoading(true);
-    let query = supabase.from('questions').select('*').eq('active', true).limit(TOTAL_Q);
-    if (stateId) query = query.eq('state_id', stateId);
-    if (subcategory) query = query.eq('subcategory', subcategory);
-    let { data } = await query;
+    let { data } = await supabase.rpc('get_random_quiz_questions', {
+      p_state_id:    stateId ?? null,
+      p_city_id:     null,
+      p_subcategory: subcategory ?? null,
+      p_limit:       TOTAL_Q,
+    });
     if (!data || data.length < 3) {
-      const fallback = await supabase.from('questions').select('*').eq('active', true).limit(TOTAL_Q);
+      const fallback = await supabase.rpc('get_random_quiz_questions', {
+        p_state_id: null, p_city_id: null, p_subcategory: null, p_limit: TOTAL_Q,
+      });
       data = fallback.data;
     }
-    if (data) setQuestions(data.sort(() => Math.random() - 0.5).slice(0, TOTAL_Q));
+    if (data) setQuestions(data);
     setLoading(false);
   }
 
@@ -186,7 +195,13 @@ export function ViralModeScreen({ navigation, route }: any) {
     setAnswered(true);
 
     const q = questions[current];
-    const correct = index === q.answer_index;
+    const { data } = await supabase.rpc('submit_answer', {
+      p_question_id:  q.id,
+      p_answer_index: index,
+    });
+    const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, explanation: null, xp: 0 };
+    setAnswerResult(result);
+    const correct = result.is_correct;
     const newStreak = correct ? correctStreak + 1 : 0;
 
     setResults(r => [...r, correct]);
@@ -211,6 +226,7 @@ export function ViralModeScreen({ navigation, route }: any) {
       setCurrent(nextIdx);
       setSelected(null);
       setAnswered(false);
+      setAnswerResult(null);
       await narrateQuestion(questions[nextIdx]);
     }
   }
@@ -420,13 +436,14 @@ export function ViralModeScreen({ navigation, route }: any) {
           {/* Options */}
           <View style={styles.options}>
             {q.options.map((opt, i) => {
-              const isCorrect = i === q.answer_index;
+              const revealed  = answerResult !== null;
+              const isCorrect = revealed && i === answerResult?.correct_index;
               const isSelected = i === selected;
               let bg = colors.card;
               let border = colors.border;
               let tc = colors.text;
 
-              if (answered) {
+              if (revealed) {
                 if (isCorrect) { bg = '#009C3B20'; border = '#009C3B'; tc = '#009C3B'; }
                 else if (isSelected) { bg = '#E24B4A20'; border = '#E24B4A'; tc = '#E24B4A'; }
               } else if (isSelected) { bg = colors.primary + '15'; border = colors.primary; tc = colors.primary; }
@@ -442,8 +459,8 @@ export function ViralModeScreen({ navigation, route }: any) {
                     <Text style={[styles.optLetterText, { color: tc }]}>{['A', 'B', 'C', 'D'][i]}</Text>
                   </View>
                   <Text style={[styles.optText, { color: tc }]} numberOfLines={2}>{opt}</Text>
-                  {answered && isCorrect && <CheckCircle size={16} color="#009C3B" />}
-                  {answered && isSelected && !isCorrect && <XCircle size={16} color="#E24B4A" />}
+                  {revealed && isCorrect && <CheckCircle size={16} color="#009C3B" />}
+                  {revealed && isSelected && !isCorrect && <XCircle size={16} color="#E24B4A" />}
                 </TouchableOpacity>
               );
             })}
