@@ -127,7 +127,9 @@ export function LoginScreen({ navigation }: any) {
       >
         {/* Logo */}
         <View style={styles.logoWrap}>
-          <CnLogo width={72} height={72} />
+          <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+            <CnLogo width={48} height={48} />
+          </View>
           <Text style={[styles.appName, { color: colors.text }]}>Cultura Nacional</Text>
           <Text style={[styles.appSub, { color: colors.textSecondary }]}>Quanto você sabe sobre o Brasil?</Text>
         </View>
