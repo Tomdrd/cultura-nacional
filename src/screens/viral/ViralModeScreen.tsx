@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Alert, Platform, Share, ScrollView,
+  Dimensions, Alert, Platform, Share, ScrollView, Image,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { requestRecordingPermissionsAsync } from 'expo-audio';
@@ -11,7 +11,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen } from 'lucide-react-native';
+import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen, Smartphone } from 'lucide-react-native';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -42,14 +42,6 @@ const VIRAL_CATEGORIES = [
 type Format = 'vertical' | 'horizontal';
 type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
 
-const MEME_TEXTS: Record<string, string> = {
-  correct_common: 'Acertou, mizeravi!',
-  correct_streak: 'Tá voando, visse!',
-  correct_excellent: 'Você é o bichão mesmo, hein!',
-  wrong: 'Eita lasqueira!',
-  timeout: 'Ô meu povo...',
-  bad_score: 'Estudar mais um poco, né?',
-};
 
 export function ViralModeScreen({ navigation, route }: any) {
   const { colors } = useTheme();
@@ -71,8 +63,6 @@ export function ViralModeScreen({ navigation, route }: any) {
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerActive, setTimerActive] = useState(false);
   const [results, setResults] = useState<boolean[]>([]);
-  const [memeText, setMemeText] = useState('');
-  const [showMeme, setShowMeme] = useState(false);
   const [loading, setLoading] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -187,17 +177,11 @@ export function ViralModeScreen({ navigation, route }: any) {
     });
   }
 
-  async function playMeme(key: string) {
-    setMemeText(MEME_TEXTS[key] ?? '');
-    setShowMeme(true);
-    setTimeout(() => setShowMeme(false), 2000);
-  }
 
   function handleTimeout() {
     setAnswered(true);
     setResults(r => [...r, false]);
     setCorrectStreak(0);
-    playMeme('timeout');
     setTimeout(() => goNext(), 2500);
   }
 
@@ -223,13 +207,6 @@ export function ViralModeScreen({ navigation, route }: any) {
     setCorrectStreak(newStreak);
     if (correct) setScore(s => s + 1);
     if (correct) { playCorrect(); } else { playWrong(); }
-
-    if (correct) {
-      if (newStreak >= 3) await playMeme('correct_streak');
-      else await playMeme('correct_common');
-    } else {
-      await playMeme('wrong');
-    }
 
     setTimeout(() => goNext(), 2200);
   }
@@ -261,8 +238,6 @@ export function ViralModeScreen({ navigation, route }: any) {
       setIsRecording(false);
     }
     const pct = score / questions.length;
-    if (pct >= 0.8) await playMeme('correct_excellent');
-    else if (pct < 0.4) await playMeme('bad_score');
     playResult(pct >= 0.6);
     setPhase('result');
   }
@@ -278,8 +253,6 @@ export function ViralModeScreen({ navigation, route }: any) {
     setResults([]);
     setScore(0);
     setCorrectStreak(0);
-    setMemeText('');
-    setShowMeme(false);
     setQuestions([]);
   }
 
@@ -306,7 +279,7 @@ export function ViralModeScreen({ navigation, route }: any) {
             Grave seu quiz{'\n'}e compartilhe!
           </Text>
           <Text style={[styles.setupSub, { color: colors.textSecondary }]}>
-            Sua câmera + quiz + memes = conteúdo viral{'\n'}para Reels, TikTok e YouTube Shorts
+            Sua câmera + quiz = conteúdo pronto{'\n'}para Reels, TikTok e YouTube Shorts
           </Text>
 
           {/* Category selector */}
@@ -339,11 +312,22 @@ export function ViralModeScreen({ navigation, route }: any) {
             })}
           </ScrollView>
 
+          {/* Aviso importante */}
+          <View style={[styles.warningCard, { backgroundColor: '#BA751715', borderColor: '#BA751740' }]}>
+            <View style={styles.warningHeader}>
+              <Smartphone size={20} color="#BA7517" />
+              <Text style={[styles.warningTitle, { color: '#BA7517' }]}>Antes de começar</Text>
+            </View>
+            <Text style={[styles.warningText, { color: colors.textSecondary }]}>
+              Ative a gravação de tela do seu celular antes de iniciar. O app grava sua câmera, mas é a gravação de tela que captura tudo junto: pergunta, resposta e sua reação.
+            </Text>
+          </View>
+
           {/* Features */}
           <View style={[styles.featureList, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {([
               { Icon: Mic,       label: 'Perguntas narradas automaticamente', color: '#D4537E' },
-              { Icon: Volume2,   label: 'Efeitos sonoros com memes',          color: '#BA7517' },
+              { Icon: Volume2,   label: 'Efeitos sonoros e vibração ao responder', color: '#BA7517' },
               { Icon: Share2,    label: 'Compartilhe direto nas redes',        color: '#378ADD' },
             ] as { Icon: any; label: string; color: string }[]).map(({ Icon, label, color }) => (
               <View key={label} style={styles.featureRow}>
@@ -383,18 +367,17 @@ export function ViralModeScreen({ navigation, route }: any) {
         <View style={isQuiz ? (isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }) : styles.fullscreen}>
           <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
 
+          {/* Marca d'água */}
+          <Image
+            source={require('../../../assets/images/icon.png')}
+            style={styles.watermark}
+          />
+
           {/* Countdown overlay */}
           {phase === 'countdown' && (
             <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
               <Text style={styles.countdownNum}>{countdown}</Text>
               <Text style={styles.countdownText}>Prepare-se!</Text>
-            </View>
-          )}
-
-          {/* Meme overlay */}
-          {isQuiz && showMeme && (
-            <View style={styles.memeOverlay}>
-              <Text style={styles.memeText}>{memeText}</Text>
             </View>
           )}
 
@@ -576,6 +559,10 @@ const styles = StyleSheet.create({
   formatIcon: { backgroundColor: 'transparent' },
   formatName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   formatSub: { fontSize: 11 },
+  warningCard: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
+  warningHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  warningTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  warningText: { fontSize: FontSize.xs, lineHeight: 18 },
   featureList: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 10 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   featureIcon: { fontSize: 18 },
@@ -586,10 +573,9 @@ const styles = StyleSheet.create({
   countdownNum: { fontSize: 120, fontWeight: FontWeight.bold, color: '#FFF' },
   countdownText: { fontSize: FontSize.xl, color: '#FFF', fontWeight: FontWeight.medium },
   cameraTopBar: { position: 'absolute', top: 48, left: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  watermark: { position: 'absolute', top: 48, right: Spacing.lg, width: 32, height: 32, borderRadius: 8, opacity: 0.85 },
   recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E24B4A' },
   recText: { color: '#FFF', fontSize: 12, fontWeight: FontWeight.bold },
-  memeOverlay: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)' },
-  memeText: { color: '#FFDF00', fontSize: 22, fontWeight: FontWeight.bold, textAlign: 'center', paddingHorizontal: 20 },
   quizArea: { padding: Spacing.md },
   dotsRow: { flexDirection: 'row', gap: 5, marginBottom: Spacing.sm },
   dot: { flex: 1, height: 3, borderRadius: 2 },
