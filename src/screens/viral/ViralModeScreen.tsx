@@ -338,49 +338,48 @@ export function ViralModeScreen({ navigation, route }: any) {
   }
 
   // ══════════════════════════════════════════
-  // COUNTDOWN
+  // COUNTDOWN + QUIZ + CÂMERA (câmera única, sem remontar entre fases)
   // ══════════════════════════════════════════
-  if (phase === 'countdown') {
-    return (
-      <View style={styles.fullscreen}>
-        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
-        <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
-          <Text style={styles.countdownNum}>{countdown}</Text>
-          <Text style={styles.countdownText}>Prepare-se!</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // QUIZ + CÂMERA
-  // ══════════════════════════════════════════
-  if (phase === 'quiz' && q) {
+  if (phase === 'countdown' || (phase === 'quiz' && q)) {
     const cameraH = isVertical ? SH * 0.38 : SH * 0.5;
     const quizH = isVertical ? SH * 0.62 : SH * 0.5;
+    const isQuiz = phase === 'quiz';
 
     return (
-      <View style={[styles.fullscreen, { flexDirection: isVertical ? 'column' : 'row' }]}>
+      <View style={[styles.fullscreen, { flexDirection: isQuiz && isVertical ? 'column' : isQuiz ? 'row' : 'column' }]}>
 
-        {/* Camera */}
-        <View style={isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }}>
+        {/* Camera — mesma instância entre countdown e quiz */}
+        <View style={isQuiz ? (isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }) : styles.fullscreen}>
           <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
 
+          {/* Countdown overlay */}
+          {phase === 'countdown' && (
+            <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
+              <Text style={styles.countdownNum}>{countdown}</Text>
+              <Text style={styles.countdownText}>Prepare-se!</Text>
+            </View>
+          )}
+
           {/* Meme overlay */}
-          {showMeme && (
+          {isQuiz && showMeme && (
             <View style={styles.memeOverlay}>
               <Text style={styles.memeText}>{memeText}</Text>
             </View>
           )}
 
           {/* Top bar */}
-          <View style={styles.cameraTopBar}>
-            <View style={styles.recDot} />
-            <Text style={styles.recText}>REC</Text>
-          </View>
+          {isQuiz && (
+            <View style={styles.cameraTopBar}>
+              <View style={styles.recDot} />
+              <Text style={styles.recText}>REC</Text>
+            </View>
+          )}
         </View>
 
+        {!isQuiz && null}
+
         {/* Quiz area */}
+        {isQuiz && (
         <View style={[
           isVertical
             ? { height: quizH, width: SW }
@@ -450,6 +449,7 @@ export function ViralModeScreen({ navigation, route }: any) {
             })}
           </View>
         </View>
+        )}
       </View>
     );
   }
