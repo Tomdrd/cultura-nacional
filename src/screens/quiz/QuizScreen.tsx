@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Vibration } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
-import { useAudioPlayer } from 'expo-audio';
+
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
+import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -39,11 +40,8 @@ const TIME_PER_QUESTION = 15;
 
 export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
-  const { audioNarration, audioSfx } = useSettingsStore();
-  const playerCorrect = useAudioPlayer(require('../../../assets/sounds/correct.mp3'));
-  const playerWrong   = useAudioPlayer(require('../../../assets/sounds/wrong.mp3'));
-  const playerWin     = useAudioPlayer(require('../../../assets/sounds/win.mp3'));
-  const playerLose    = useAudioPlayer(require('../../../assets/sounds/lose.mp3'));
+  const { audioNarration } = useSettingsStore();
+  const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { user } = useAuthStore();
   const { stateId, stateName, cityId, cityName, subcategory, mode } = route.params ?? {};
 
@@ -131,7 +129,7 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function handleAnswer(index: number) {
     if (answered) return;
-    Vibration.vibrate(40);
+    vibrateSelect();
     clearInterval(timerRef.current);
     setSelected(index);
     setAnswered(true);
@@ -145,11 +143,7 @@ export function QuizScreen({ route, navigation }: any) {
     const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, explanation: null, xp: 0 };
     setAnswerResult(result);
     setResults(prev => [...prev, result.is_correct]);
-    if (audioSfx) {
-      const player = result.is_correct ? playerCorrect : playerWrong;
-      player.seekTo(0);
-      player.play();
-    }
+    if (result.is_correct) { playCorrect(); } else { playWrong(); }
 
     if (result.is_correct) {
       setScore(prev => { scoreRef.current = prev + 1; return prev + 1; });
@@ -176,9 +170,7 @@ export function QuizScreen({ route, navigation }: any) {
   async function finishQuiz() {
     setFinished(true);
     const pct = scoreRef.current / questions.length;
-    if (audioSfx) setTimeout(() => { const p = scoreRef.current / questions.length; const player = p >= 0.6 ? playerWin : playerLose;
-        player.seekTo(0);
-        player.play(); }, 600);
+    setTimeout(() => { playResult(pct >= 0.6); }, 600);
     if (!user) return;
     if (xpRef.current > 0) {
       // Atualiza XP atomicamente no servidor (evita race condition)
