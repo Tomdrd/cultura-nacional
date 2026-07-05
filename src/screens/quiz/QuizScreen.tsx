@@ -150,7 +150,6 @@ export function QuizScreen({ route, navigation }: any) {
       setXpEarned(prev => { xpRef.current = prev + result.xp; return prev + result.xp; });
     }
 
-    setTimeout(() => nextQuestion(), 1800);
   }
 
   function nextQuestion() {
@@ -338,6 +337,17 @@ export function QuizScreen({ route, navigation }: any) {
             <Text style={[styles.explanationText, { color: colors.textSecondary }]}>{answerResult.explanation}</Text>
           </View>
         )}
+
+        {answered && (
+          <TouchableOpacity
+            onPress={nextQuestion}
+            style={[styles.nextBtn, { backgroundColor: colors.primary }]}
+          >
+            <Text style={styles.nextBtnText}>
+              {current + 1 >= questions.length ? 'Ver resultado' : 'Próxima pergunta'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </Animated.View>
     </View>
   );
@@ -386,6 +396,8 @@ const styles = StyleSheet.create({
   statLbl:         { fontSize: FontSize.xs, marginTop: 2 },
   statDivider:     { width: 0.5, height: 40 },
   resultActions:   { paddingHorizontal: Spacing.xl, gap: 10 },
+  nextBtn:         { marginTop: Spacing.lg, height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  nextBtnText:     { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
   resultBtn:       { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   resultBtnText:   { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.medium },
 });

@@ -11,6 +11,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { APP_SHARE_URL } from '../../constants/app';
 import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen, Smartphone } from 'lucide-react-native';
 
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -361,7 +362,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     const isQuiz = phase === 'quiz';
 
     return (
-      <View style={[styles.fullscreen, { flexDirection: isQuiz && isVertical ? 'column' : isQuiz ? 'row' : 'column' }]}>
+      <View style={[styles.fullscreen, { flexDirection: isQuiz && isVertical ? 'column' : isQuiz ? 'row' : 'column', backgroundColor: colors.background }]}>
 
         {/* Camera — mesma instância entre countdown e quiz */}
         <View style={isQuiz ? (isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }) : styles.fullscreen}>
@@ -472,7 +473,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   // ══════════════════════════════════════════
   async function handleShareResult() {
     const pct = Math.round((score / questions.length) * 100);
-    const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${score}/${questions.length} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!`;
+    const msg = `Joguei Cultura Nacional no Modo Viral e acertei ${score}/${questions.length} perguntas (${pct}%)! 🇧🇷\nBaixe o app e me desafie!\n${APP_SHARE_URL}`;
 
     if (Platform.OS === 'web') {
       try {
@@ -485,7 +486,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     }
 
     try {
-      await Share.share({ message: msg });
+      await Share.share({ message: msg, url: APP_SHARE_URL });
     } catch (err: any) {
       Alert.alert('Erro', 'Não foi possível compartilhar.');
     }

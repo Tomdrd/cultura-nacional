@@ -60,42 +60,42 @@ export function HomeScreen({ navigation }: any) {
       </View>
 
       {/* XP Card */}
-      <View style={[styles.xpCard, { backgroundColor: colors.primary }]}>
+      <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.primary + '40', borderWidth: 0.5 }]}>
         <View style={styles.xpRow}>
           <View>
-            <Text style={styles.xpLevel}>Nível {profile?.level ?? 1}</Text>
-            <Text style={styles.xpPoints}>{profile?.xp ?? 0} XP</Text>
+            <Text style={[styles.xpLevel, { color: colors.textSecondary }]}>Nível {profile?.level ?? 1}</Text>
+            <Text style={[styles.xpPoints, { color: colors.primary }]}>{profile?.xp ?? 0} XP</Text>
           </View>
-          <View style={[styles.xpBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+          <View style={[styles.xpBadge, { backgroundColor: colors.primary + '20' }]}>
             <Trophy size={20} color="#FFDF00" />
-            <Text style={styles.xpBadgeText}>Curioso</Text>
+            <Text style={[styles.xpBadgeText, { color: colors.primary }]}>Curioso</Text>
           </View>
         </View>
-        <View style={styles.xpBarBg}>
+        <View style={[styles.xpBarBg, { backgroundColor: colors.primary + '30' }]}>
           <View style={[styles.xpBarFill, { width: `${xpPct * 100}%` }]} />
         </View>
-        <Text style={styles.xpHint}>{Math.round(xpPct * xpToNext)} / {xpToNext} XP para o próximo nível</Text>
+        <Text style={[styles.xpHint, { color: colors.textMuted }]}>{Math.round(xpPct * xpToNext)} / {xpToNext} XP para o próximo nível</Text>
       </View>
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
 
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: '#FFDF00' }]}
+          style={[styles.actionCard, { backgroundColor: '#FFDF00' + '15', borderColor: '#FFDF00' + '40', borderWidth: 0.5 }]}
           onPress={() => navigation.navigate('Quiz', { mode: 'relampago' })}
         >
-          <Zap size={22} color="#002776" />
-          <Text style={[styles.actionLabel, { color: '#002776' }]}>Relâmpago</Text>
-          <Text style={[styles.actionSub, { color: '#002776' + 'AA' }]}>30 segundos</Text>
+          <Zap size={22} color="#FFDF00" />
+          <Text style={[styles.actionLabel, { color: '#FFDF00' }]}>Relâmpago</Text>
+          <Text style={[styles.actionSub, { color: '#FFDF00' + 'AA' }]}>30 segundos</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: '#E24B4A' }]}
+          style={[styles.actionCard, { backgroundColor: '#E24B4A' + '15', borderColor: '#E24B4A' + '40', borderWidth: 0.5 }]}
           onPress={() => navigation.navigate('ViralMode')}
         >
-          <Video size={22} color="#FFF" />
-          <Text style={[styles.actionLabel, { color: '#FFF' }]}>Modo Viral</Text>
-          <Text style={[styles.actionSub, { color: 'rgba(255,255,255,0.8)' }]}>Grave e compartilhe</Text>
+          <Video size={22} color="#E24B4A" />
+          <Text style={[styles.actionLabel, { color: '#E24B4A' }]}>Modo Viral</Text>
+          <Text style={[styles.actionSub, { color: '#E24B4A' + 'AA' }]}>Grave e compartilhe</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -173,13 +173,13 @@ const styles = StyleSheet.create({
   streakText:    { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   xpCard:        { margin: Spacing.xl, borderRadius: Radius.lg, padding: Spacing.xl },
   xpRow:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
-  xpLevel:       { color: 'rgba(255,255,255,0.8)', fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  xpPoints:      { color: '#FFFFFF', fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginTop: 2 },
+  xpLevel:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  xpPoints:      { fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginTop: 2 },
   xpBadge:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.full },
-  xpBadgeText:   { color: '#FFDF00', fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  xpBarBg:       { height: 6, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 6 },
+  xpBadgeText:   { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  xpBarBg:       { height: 6, borderRadius: 3, marginBottom: 6 },
   xpBarFill:     { height: 6, backgroundColor: '#FFDF00', borderRadius: 3 },
-  xpHint:        { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+  xpHint:        { fontSize: 11 },
   quickActions:  { flexDirection: 'row', gap: 10, paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
   actionCard:    { flex: 1, borderRadius: Radius.lg, padding: Spacing.md, gap: 4 },
   actionLabel:   { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginTop: 4 },
