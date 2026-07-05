@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { Trophy, MapPin, Globe, User } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
@@ -13,6 +13,7 @@ interface RankEntry {
   xp: number;
   level: number;
   username: string;
+  avatar_url?: string | null;
   city_name?: string;
   state_uf?: string;
 }
@@ -38,7 +39,7 @@ export function RankingScreen() {
       if (!user) return;
       const { data } = await supabase
         .from('profiles')
-        .select('city_natal_id, cities(state_uf)')
+        .select('city_natal_id, cities!city_natal_id(state_uf)')
         .eq('id', user.id)
         .single();
       if (data) {
@@ -58,7 +59,7 @@ export function RankingScreen() {
 
     let query = supabase
       .from('profiles')
-      .select('id, username, xp, level, city_natal_id, cities!city_natal_id(name, state_uf)')
+      .select('id, username, xp, level, avatar_url, city_natal_id, cities!city_natal_id(name, state_uf)')
       .order('xp', { ascending: false })
       .limit(50);
 
@@ -69,7 +70,7 @@ export function RankingScreen() {
       // Filtra por state_uf via join com cities
       query = supabase
         .from('profiles')
-        .select('id, username, xp, level, city_natal_id, cities!city_natal_id(name, state_uf)')
+        .select('id, username, xp, level, avatar_url, city_natal_id, cities!city_natal_id(name, state_uf)')
         .eq('cities.state_uf', myLocation.state_uf.trim())
         .order('xp', { ascending: false })
         .limit(50);
@@ -94,6 +95,7 @@ export function RankingScreen() {
         xp:        p.xp,
         level:     p.level,
         username:  p.username ?? 'Anônimo',
+        avatar_url: p.avatar_url ?? null,
         city_name: p.cities?.name ?? null,
         state_uf:  p.cities?.state_uf ?? null,
       }));
@@ -173,22 +175,24 @@ export function RankingScreen() {
       ) : (
         <>
           {/* Podium */}
-          {podium.length >= 3 && (
+          {podium.length >= 1 && (
             <View style={[styles.podiumWrap, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
               {/* 2nd */}
               <View style={styles.podiumItem}>
-                <View style={[styles.podiumAvatar, { backgroundColor: '#C0C0C020', borderColor: '#C0C0C0' }]}>
-                  <User size={20} color="#C0C0C0" />
-                </View>
+                {podium[1]?.avatar_url
+                  ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#C0C0C0' }]} />
+                  : <View style={[styles.podiumAvatar, { backgroundColor: '#C0C0C020', borderColor: '#C0C0C0' }]}><User size={20} color="#C0C0C0" /></View>
+                }
                 <Text style={[styles.podiumMedal, { color: '#C0C0C0' }]}>2º</Text>
                 <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[1]?.xp} XP</Text>
               </View>
               {/* 1st */}
               <View style={[styles.podiumItem, styles.podiumFirst]}>
-                <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: '#FFDF0020', borderColor: '#FFDF00' }]}>
-                  <User size={28} color="#FFDF00" />
-                </View>
+                {podium[0]?.avatar_url
+                  ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: '#FFDF00' }]} />
+                  : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: '#FFDF0020', borderColor: '#FFDF00' }]}><User size={28} color="#FFDF00" /></View>
+                }
                 <Trophy size={18} color="#FFDF00" />
                 <Text style={[styles.podiumMedal, { color: '#FFDF00' }]}>1º</Text>
                 <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
@@ -196,9 +200,10 @@ export function RankingScreen() {
               </View>
               {/* 3rd */}
               <View style={styles.podiumItem}>
-                <View style={[styles.podiumAvatar, { backgroundColor: '#CD7F3220', borderColor: '#CD7F32' }]}>
-                  <User size={20} color="#CD7F32" />
-                </View>
+                {podium[2]?.avatar_url
+                  ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#CD7F32' }]} />
+                  : <View style={[styles.podiumAvatar, { backgroundColor: '#CD7F3220', borderColor: '#CD7F32' }]}><User size={20} color="#CD7F32" /></View>
+                }
                 <Text style={[styles.podiumMedal, { color: '#CD7F32' }]}>3º</Text>
                 <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[2]?.xp} XP</Text>
@@ -216,9 +221,10 @@ export function RankingScreen() {
                   borderColor:     isMe ? colors.primary + '40' : colors.border,
                 }]}>
                   <Text style={[styles.rank, { color: colors.textMuted }]}>#{i + 4}</Text>
-                  <View style={[styles.rowAvatar, { backgroundColor: colors.border }]}>
-                    <User size={16} color={colors.textMuted} />
-                  </View>
+                  {entry.avatar_url
+                    ? <Image source={{ uri: entry.avatar_url }} style={styles.rowAvatar} />
+                    : <View style={[styles.rowAvatar, { backgroundColor: colors.border }]}><User size={16} color={colors.textMuted} /></View>
+                  }
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.rowName, { color: isMe ? colors.primary : colors.text }]}>
                       {entry.username}{isMe ? ' (você)' : ''}
@@ -266,7 +272,7 @@ const styles = StyleSheet.create({
   podiumWrap:     { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.lg, borderBottomWidth: 0.5 },
   podiumItem:     { flex: 1, alignItems: 'center', gap: 4 },
   podiumFirst:    { marginBottom: 16 },
-  podiumAvatar:   { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  podiumAvatar:   { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 2, overflow: 'hidden' },
   podiumAvatarLg: { width: 60, height: 60, borderRadius: 30 },
   podiumMedal:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   podiumName:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textAlign: 'center' },
@@ -274,7 +280,7 @@ const styles = StyleSheet.create({
   list:           { padding: Spacing.xl, gap: 8 },
   row:            { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md, borderRadius: Radius.md, borderWidth: 0.5 },
   rank:           { fontSize: FontSize.sm, fontWeight: FontWeight.bold, width: 28 },
-  rowAvatar:      { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  rowAvatar:      { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   rowName:        { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   rowCity:        { fontSize: 11, marginTop: 2 },
   rowXp:          { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
