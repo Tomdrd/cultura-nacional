@@ -22,6 +22,7 @@ export type AppStackParamList = {
   Subscription: undefined;
   Missions:     undefined;
   Achievements: undefined;
+  CidadeSetup: undefined;
   ViralMode: {
     stateId?:     string;
     stateName?:   string;

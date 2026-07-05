@@ -17,7 +17,9 @@ import { OnboardingScreen }            from '../screens/auth/OnboardingScreen';
 import { EstadosScreen }               from '../screens/estados/EstadosScreen';
 import { CategoriasScreen }            from '../screens/categorias/CategoriasScreen';
 import { MusicaScreen }                from '../screens/musica/MusicaScreen';
+import { CidadeSetupScreen }           from '../screens/onboarding/CidadeSetupScreen';
 import { useTheme }              from '../hooks/useTheme';
+import { useAuthStore }           from '../store/authStore';
 
 const Tab   = createBottomTabNavigator<HomeTabsParamList>();
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -56,8 +58,12 @@ function HomeTabs() {
 }
 
 export function AppNavigator() {
+  const { cityNatalId, profileLoading } = useAuthStore();
+
+  if (profileLoading) return null;
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={cityNatalId === null ? 'CidadeSetup' : 'HomeTabs'}>
       <Stack.Screen name="HomeTabs"     component={HomeTabs} />
       <Stack.Screen name="Quiz"         component={QuizScreen} />
       <Stack.Screen name="Duel"         component={DuelScreen} />
@@ -69,6 +75,7 @@ export function AppNavigator() {
       <Stack.Screen name="Categorias"  component={CategoriasScreen} />
       <Stack.Screen name="Musica"      component={MusicaScreen} />
       <Stack.Screen name="ViralMode"    component={ViralModeScreen} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="CidadeSetup"  component={CidadeSetupScreen} options={{ animation: 'slide_from_bottom' }} />
     </Stack.Navigator>
   );
 }
