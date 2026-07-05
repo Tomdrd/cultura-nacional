@@ -58,7 +58,7 @@ export function RankingScreen() {
 
     let query = supabase
       .from('profiles')
-      .select('id, username, xp, level, city_natal_id, cities(name, state_uf)')
+      .select('id, username, xp, level, city_natal_id, cities!city_natal_id(name, state_uf)')
       .order('xp', { ascending: false })
       .limit(50);
 
@@ -69,8 +69,8 @@ export function RankingScreen() {
       // Filtra por state_uf via join com cities
       query = supabase
         .from('profiles')
-        .select('id, username, xp, level, city_natal_id, cities!inner(name, state_uf)')
-        .eq('cities.state_uf', myLocation.state_uf)
+        .select('id, username, xp, level, city_natal_id, cities!city_natal_id(name, state_uf)')
+        .eq('cities.state_uf', myLocation.state_uf.trim())
         .order('xp', { ascending: false })
         .limit(50);
       setScopeLabel('seu estado');
@@ -93,9 +93,9 @@ export function RankingScreen() {
         user_id:   p.id,
         xp:        p.xp,
         level:     p.level,
-        username:  p.username,
-        city_name: p.cities?.name,
-        state_uf:  p.cities?.state_uf,
+        username:  p.username ?? 'Anônimo',
+        city_name: p.cities?.name ?? null,
+        state_uf:  p.cities?.state_uf ?? null,
       }));
       setEntries(mapped);
 
