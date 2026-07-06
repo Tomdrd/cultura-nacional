@@ -21,6 +21,7 @@ export function LoginScreen({ navigation }: any) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading,  setAppleLoading]  = useState(false);
   const [errors,   setErrors]   = useState<{ email?: string; password?: string }>({});
+  const passwordRef = React.useRef<any>(null);
   const [alert, setAlert] = useState<{ visible: boolean; title: string; message?: string }>({ visible: false, title: '' });
 
   function showAlert(title: string, message?: string) {
@@ -191,6 +192,8 @@ export function LoginScreen({ navigation }: any) {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
             error={errors.email}
           />
           <Input
@@ -199,6 +202,9 @@ export function LoginScreen({ navigation }: any) {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            returnKeyType="go"
+            onSubmitEditing={handleLogin}
+            inputRef={passwordRef}
             error={errors.password}
           />
 
