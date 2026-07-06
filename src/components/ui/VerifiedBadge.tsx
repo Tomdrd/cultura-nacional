@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   wrapper:     { lineHeight: 0 },
   avatarBadge: {
     position:        'absolute',
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     alignItems:      'center',
     justifyContent:  'center',
     zIndex:          10,
