@@ -30,7 +30,7 @@ const linking = {
 };
 
 export function RootNavigator() {
-  const { session, loading, init } = useAuthStore();
+  const { session, loading, profileLoading, init } = useAuthStore();
   const { colors } = useTheme();
   const navigationRef = React.useRef<any>(null);
 
@@ -39,7 +39,6 @@ export function RootNavigator() {
   useEffect(() => {
     async function handleDeepLink(url: string) {
       if (!url) return;
-
       if (Platform.OS === 'web') {
         if (url.includes('type=recovery')) {
           const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -53,7 +52,6 @@ export function RootNavigator() {
         }
         return;
       }
-
       if (url.includes('auth/reset-password') || url.includes('type=recovery')) {
         const { data } = await supabase.auth.getSession();
         if (data.session) {
@@ -74,7 +72,7 @@ export function RootNavigator() {
     return () => sub.remove();
   }, []);
 
-  if (loading) {
+  if (loading || (session && profileLoading)) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator color={colors.primary} size="large" />

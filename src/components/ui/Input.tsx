@@ -12,11 +12,14 @@ interface InputProps {
   secureTextEntry?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send';
+  onSubmitEditing?: () => void;
+  inputRef?: React.RefObject<TextInput>;
   error?: string;
   style?: ViewStyle;
 }
 
-export function Input({ label, placeholder, value, onChangeText, secureTextEntry, autoCapitalize = 'none', keyboardType = 'default', error, style }: InputProps) {
+export function Input({ label, placeholder, value, onChangeText, secureTextEntry, autoCapitalize = 'none', keyboardType = 'default', returnKeyType, onSubmitEditing, inputRef, error, style }: InputProps) {
   const { colors } = useTheme();
   const [show, setShow] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -29,6 +32,7 @@ export function Input({ label, placeholder, value, onChangeText, secureTextEntry
         { backgroundColor: colors.backgroundAlt ?? colors.card, borderColor: focused ? colors.primary : (error ? colors.danger : colors.border) }
       ]}>
         <TextInput
+          ref={inputRef}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -36,6 +40,8 @@ export function Input({ label, placeholder, value, onChangeText, secureTextEntry
           secureTextEntry={secureTextEntry && !show}
           autoCapitalize={autoCapitalize}
           keyboardType={keyboardType}
+          returnKeyType={returnKeyType}
+          onSubmitEditing={onSubmitEditing}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           style={[styles.input, { color: colors.text }]}
