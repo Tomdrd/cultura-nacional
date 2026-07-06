@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { ArrowLeft, ChevronRight } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
+import { StateFlagIcon } from '../../components/ui/StateFlagIcon';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
 const REGION_COLORS: Record<string, string> = {
@@ -13,10 +14,17 @@ const REGION_COLORS: Record<string, string> = {
   Sul:            '#009C3B',
 };
 
+// Largura mínima confortável por item (ícone + nome), usada para calcular colunas
+const ITEM_MIN_WIDTH = 92;
+const GRID_GAP = 12;
+const MAX_COLUMNS = 10;
+const CONTENT_MAX_WIDTH = 960;
+
 interface State { id: string; name: string; uf: string; region: string; }
 
 export function EstadosScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
   const [states,  setStates]  = useState<State[]>([]);
   const [region,  setRegion]  = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +38,12 @@ export function EstadosScreen({ navigation }: any) {
   }, []);
 
   const filtered = region ? states.filter(s => s.region === region) : states;
+
+  // Colunas responsivas: mínimo 4 (mobile), cresce conforme a tela fica mais larga
+  const effectiveWidth = Math.min(width, CONTENT_MAX_WIDTH);
+  const availableWidth = effectiveWidth - Spacing.xl * 2;
+  const numColumns = Math.max(4, Math.min(MAX_COLUMNS, Math.floor((availableWidth + GRID_GAP) / (ITEM_MIN_WIDTH + GRID_GAP))));
+  const itemWidth = (availableWidth - GRID_GAP * (numColumns - 1)) / numColumns;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -54,19 +68,18 @@ export function EstadosScreen({ navigation }: any) {
               </TouchableOpacity>
             ))}
           </ScrollView>
-          <View style={styles.list}>
+          <View style={{ width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' }}>
+          <View style={[styles.grid, { columnGap: GRID_GAP }]}>
             {filtered.map(state => (
-              <TouchableOpacity key={state.id} onPress={() => navigation.navigate('Quiz', { stateId: state.id, stateName: state.name })} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={[styles.ufBadge, { backgroundColor: REGION_COLORS[state.region] + '20' }]}>
-                  <Text style={[styles.ufText, { color: REGION_COLORS[state.region] }]}>{state.uf}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.stateName, { color: colors.text }]}>{state.name}</Text>
-                  <Text style={[styles.stateRegion, { color: colors.textMuted }]}>{state.region}</Text>
-                </View>
-                <ChevronRight size={16} color={colors.textMuted} />
+              <TouchableOpacity
+                key={state.id}
+                onPress={() => navigation.navigate('Quiz', { stateId: state.id, stateName: state.name })}
+                style={[styles.gridItem, { width: itemWidth }]}
+              >
+                <StateFlagIcon uf={state.uf} name={state.name} size={56} />
               </TouchableOpacity>
             ))}
+          </View>
           </View>
           <View style={{ height: 32 }} />
         </ScrollView>
@@ -84,10 +97,6 @@ const styles = StyleSheet.create({
   regionRow:   { gap: 8, padding: Spacing.xl, paddingBottom: Spacing.md },
   regionPill:  { paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
   regionText:  { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  list:        { paddingHorizontal: Spacing.xl, gap: 8 },
-  card:        { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
-  ufBadge:     { width: 40, height: 40, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  ufText:      { fontSize: 13, fontWeight: FontWeight.bold },
-  stateName:   { fontSize: FontSize.md, fontWeight: FontWeight.medium },
-  stateRegion: { fontSize: FontSize.xs, marginTop: 2 },
+  grid:        { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: Spacing.xl, rowGap: 20 },
+  gridItem:    { alignItems: 'center' },
 });
