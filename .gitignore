@@ -39,3 +39,4 @@ eas-cli-log*.txt
 .vercel
 supabase/config.toml
 supabase/.gitignore
+assets/flags-backup-*/
