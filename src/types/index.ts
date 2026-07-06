@@ -48,6 +48,8 @@ export interface Question {
   image_url:    string | null;
 }
 
+export type Plan = 'free' | 'pro' | 'family' | 'education';
+
 export interface Profile {
   id:               string;
   username:         string;
@@ -59,7 +61,8 @@ export interface Profile {
   level:            number;
   streak:           number;
   last_played_at:   string | null;
-  plan:             'free' | 'pro' | 'family' | 'edu';
+  plan:             Plan;
+  plan_expires_at:  string | null;
 }
 
 export interface Match {

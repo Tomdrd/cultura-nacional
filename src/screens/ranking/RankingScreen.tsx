@@ -5,6 +5,8 @@ import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
+import { Plan } from '../../types';
 
 type Scope = 'national' | 'state' | 'city';
 
@@ -16,6 +18,7 @@ interface RankEntry {
   avatar_url?: string | null;
   city_name?: string;
   state_uf?: string;
+  plan?: Plan;
 }
 
 interface MyLocation {
@@ -59,7 +62,7 @@ export function RankingScreen() {
 
     let query = supabase
       .from('profiles')
-      .select('id, username, xp, level, avatar_url, city_natal_id, cities!city_natal_id(name, state_uf)')
+      .select('id, username, xp, level, avatar_url, plan, city_natal_id, cities!city_natal_id(name, state_uf)')
       .order('xp', { ascending: false })
       .limit(50);
 
@@ -70,7 +73,7 @@ export function RankingScreen() {
       // Filtra por state_uf via join com cities
       query = supabase
         .from('profiles')
-        .select('id, username, xp, level, avatar_url, city_natal_id, cities!city_natal_id(name, state_uf)')
+        .select('id, username, xp, level, avatar_url, plan, city_natal_id, cities!city_natal_id(name, state_uf)')
         .eq('cities.state_uf', myLocation.state_uf.trim())
         .order('xp', { ascending: false })
         .limit(50);
@@ -96,8 +99,9 @@ export function RankingScreen() {
         level:     p.level,
         username:  p.username ?? 'Anônimo',
         avatar_url: p.avatar_url ?? null,
-        city_name: p.cities?.name ?? null,
-        state_uf:  p.cities?.state_uf ?? null,
+        city_name:  p.cities?.name ?? null,
+        state_uf:   p.cities?.state_uf ?? null,
+        plan:       (p.plan ?? 'free') as Plan,
       }));
       setEntries(mapped);
 
@@ -179,33 +183,51 @@ export function RankingScreen() {
             <View style={[styles.podiumWrap, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
               {/* 2nd */}
               <View style={styles.podiumItem}>
-                {podium[1]?.avatar_url
-                  ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#C0C0C0' }]} />
-                  : <View style={[styles.podiumAvatar, { backgroundColor: '#C0C0C020', borderColor: '#C0C0C0' }]}><User size={20} color="#C0C0C0" /></View>
-                }
+                <View style={{ position: 'relative' }}>
+                  {podium[1]?.avatar_url
+                    ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#C0C0C0' }]} />
+                    : <View style={[styles.podiumAvatar, { backgroundColor: '#C0C0C020', borderColor: '#C0C0C0' }]}><User size={20} color="#C0C0C0" /></View>
+                  }
+                  {podium[1]?.plan && <AvatarVerifiedBadge plan={podium[1].plan} avatarSize={48} />}
+                </View>
                 <Text style={[styles.podiumMedal, { color: '#C0C0C0' }]}>2º</Text>
-                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
+                  {podium[1]?.plan && <VerifiedBadge plan={podium[1].plan} size={13} />}
+                </View>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[1]?.xp} XP</Text>
               </View>
               {/* 1st */}
               <View style={[styles.podiumItem, styles.podiumFirst]}>
-                {podium[0]?.avatar_url
-                  ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: '#FFDF00' }]} />
-                  : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: '#FFDF0020', borderColor: '#FFDF00' }]}><User size={28} color="#FFDF00" /></View>
-                }
+                <View style={{ position: 'relative' }}>
+                  {podium[0]?.avatar_url
+                    ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: '#FFDF00' }]} />
+                    : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: '#FFDF0020', borderColor: '#FFDF00' }]}><User size={28} color="#FFDF00" /></View>
+                  }
+                  {podium[0]?.plan && <AvatarVerifiedBadge plan={podium[0].plan} avatarSize={64} />}
+                </View>
                 <Trophy size={18} color="#FFDF00" />
                 <Text style={[styles.podiumMedal, { color: '#FFDF00' }]}>1º</Text>
-                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
+                  {podium[0]?.plan && <VerifiedBadge plan={podium[0].plan} size={13} />}
+                </View>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[0]?.xp} XP</Text>
               </View>
               {/* 3rd */}
               <View style={styles.podiumItem}>
-                {podium[2]?.avatar_url
-                  ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#CD7F32' }]} />
-                  : <View style={[styles.podiumAvatar, { backgroundColor: '#CD7F3220', borderColor: '#CD7F32' }]}><User size={20} color="#CD7F32" /></View>
-                }
+                <View style={{ position: 'relative' }}>
+                  {podium[2]?.avatar_url
+                    ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#CD7F32' }]} />
+                    : <View style={[styles.podiumAvatar, { backgroundColor: '#CD7F3220', borderColor: '#CD7F32' }]}><User size={20} color="#CD7F32" /></View>
+                  }
+                  {podium[2]?.plan && <AvatarVerifiedBadge plan={podium[2].plan} avatarSize={48} />}
+                </View>
                 <Text style={[styles.podiumMedal, { color: '#CD7F32' }]}>3º</Text>
-                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
+                  {podium[2]?.plan && <VerifiedBadge plan={podium[2].plan} size={13} />}
+                </View>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[2]?.xp} XP</Text>
               </View>
             </View>
@@ -221,14 +243,20 @@ export function RankingScreen() {
                   borderColor:     isMe ? colors.primary + '40' : colors.border,
                 }]}>
                   <Text style={[styles.rank, { color: colors.textMuted }]}>#{i + 4}</Text>
-                  {entry.avatar_url
-                    ? <Image source={{ uri: entry.avatar_url }} style={styles.rowAvatar} />
-                    : <View style={[styles.rowAvatar, { backgroundColor: colors.border }]}><User size={16} color={colors.textMuted} /></View>
-                  }
+                  <View style={{ position: 'relative' }}>
+                    {entry.avatar_url
+                      ? <Image source={{ uri: entry.avatar_url }} style={styles.rowAvatar} />
+                      : <View style={[styles.rowAvatar, { backgroundColor: colors.border }]}><User size={16} color={colors.textMuted} /></View>
+                    }
+                    {entry.plan && <AvatarVerifiedBadge plan={entry.plan} avatarSize={36} />}
+                  </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.rowName, { color: isMe ? colors.primary : colors.text }]}>
-                      {entry.username}{isMe ? ' (você)' : ''}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Text style={[styles.rowName, { color: isMe ? colors.primary : colors.text }]}>
+                        {entry.username}{isMe ? ' (você)' : ''}
+                      </Text>
+                      {entry.plan && <VerifiedBadge plan={entry.plan} size={14} />}
+                    </View>
                     {entry.city_name && (
                       <Text style={[styles.rowCity, { color: colors.textMuted }]}>
                         {entry.city_name}, {entry.state_uf}
