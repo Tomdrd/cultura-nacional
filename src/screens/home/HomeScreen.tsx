@@ -7,12 +7,15 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
+import { WelcomePlanModal } from '../../components/ui/WelcomePlanModal';
+import { useUserPlan } from '../../hooks';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; }
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
   const { user } = useAuthStore();
+  const { plan } = useUserPlan();
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
@@ -160,6 +163,7 @@ export function HomeScreen({ navigation }: any) {
       </View>
 
       <View style={{ height: 32 }} />
+      <WelcomePlanModal plan={plan} username={profile?.username ?? ''} />
     </ScrollView>
   );
 }
