@@ -63,13 +63,18 @@ export function OnboardingScreen({ navigation, route }: any) {
       const userId = user?.id ?? session?.user?.id;
 
       if (userId) {
-        const { error } = await supabase.from('profiles').update({
+        const { data, error } = await supabase.from('profiles').update({
           city_natal_id:   selectedCity?.id ?? null,
           city_changed_at: new Date().toISOString(),
-        }).eq('id', userId);
+        }).eq('id', userId).select('id');
 
         if (error) {
           Alert.alert('Erro', 'Não foi possível salvar sua cidade. Tente novamente.');
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          Alert.alert('Erro', 'Não encontramos seu perfil. Tente sair e entrar novamente.');
           return;
         }
       }

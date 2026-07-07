@@ -56,14 +56,21 @@ export function CidadeSetupScreen({ navigation }: any) {
   async function selectCity(city: City) {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .update({ city_natal_id: city.id })
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select('id');
     setSaving(false);
 
     if (error) {
       console.error('Erro ao salvar cidade natal:', error.message);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      // Update não encontrou nenhuma linha (perfil ausente ou bloqueado por RLS)
+      console.error('Nenhum perfil encontrado para atualizar a cidade natal.');
       return;
     }
 
