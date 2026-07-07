@@ -7,6 +7,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../store/authStore';
 import CnLogo from '../../../assets/images/cn-logo.svg';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
@@ -38,7 +39,7 @@ export function ResetPasswordScreen({ navigation }: any) {
     } else {
       if (Platform.OS === 'web') window.alert('Senha alterada com sucesso!');
       else Alert.alert('Sucesso', 'Senha alterada com sucesso!');
-      navigation.navigate('Login');
+      useAuthStore.getState().setIsPasswordRecovery(false);
     }
   }
 

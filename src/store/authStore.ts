@@ -8,8 +8,10 @@ interface AuthState {
   loading:       boolean;
   profileLoading: boolean;
   cityNatalId:   string | null | undefined;
+  isPasswordRecovery: boolean;
   setSession:    (session: Session | null) => void;
   setCityNatalId:(id: string | null) => void;
+  setIsPasswordRecovery: (value: boolean) => void;
   signOut:       () => Promise<void>;
   init:          () => Promise<void>;
   cleanup:       () => void;
@@ -24,11 +26,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading:     true,
   profileLoading: true,
   cityNatalId: undefined,
+  isPasswordRecovery: false,
 
   setSession: (session) =>
     set({ session, user: session?.user ?? null }),
 
   setCityNatalId: (id) => set({ cityNatalId: id }),
+
+  setIsPasswordRecovery: (value) => set({ isPasswordRecovery: value }),
 
   loadProfile: async () => {
     const { user } = get();
@@ -70,6 +75,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const newUser = session?.user ?? null;
       set({ session, user: newUser });
+      if (_event === 'PASSWORD_RECOVERY') {
+        set({ isPasswordRecovery: true });
+      }
+      if (_event === 'SIGNED_OUT') {
+        set({ isPasswordRecovery: false });
+      }
       if (newUser) {
         set({ profileLoading: true });
         const { data: profile } = await supabase

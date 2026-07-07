@@ -30,11 +30,17 @@ const linking = {
 };
 
 export function RootNavigator() {
-  const { session, loading, profileLoading, init } = useAuthStore();
+  const { session, loading, profileLoading, init, isPasswordRecovery } = useAuthStore();
   const { colors } = useTheme();
   const navigationRef = React.useRef<any>(null);
 
   useEffect(() => { init(); }, []);
+
+  useEffect(() => {
+    if (isPasswordRecovery) {
+      navigationRef.current?.navigate('Auth', { screen: 'ResetPassword' });
+    }
+  }, [isPasswordRecovery]);
 
   useEffect(() => {
     async function handleDeepLink(url: string) {
@@ -83,7 +89,7 @@ export function RootNavigator() {
   return (
     <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {session ? (
+        {session && !isPasswordRecovery ? (
           <Stack.Screen name="App" component={AppNavigator} />
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
