@@ -56,12 +56,19 @@ export function CidadeSetupScreen({ navigation }: any) {
   async function selectCity(city: City) {
     if (!user) return;
     setSaving(true);
-    await supabase
+    const { error } = await supabase
       .from('profiles')
       .update({ city_natal_id: city.id })
       .eq('id', user.id);
-    setCityNatalId(city.id);
     setSaving(false);
+
+    if (error) {
+      console.error('Erro ao salvar cidade natal:', error.message);
+      return;
+    }
+
+    setCityNatalId(city.id);
+    navigation.reset({ index: 0, routes: [{ name: 'HomeTabs' }] });
   }
 
   return (
