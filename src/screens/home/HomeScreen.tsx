@@ -5,15 +5,18 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
+import { useUserPlan } from '../../hooks';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { CategoryColors, QuickActionColors, withOpacity } from '../../constants/colors';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
+import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; }
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
   const { user } = useAuthStore();
+  const { plan } = useUserPlan();
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
@@ -52,7 +55,10 @@ export function HomeScreen({ navigation }: any) {
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View>
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>Olá,</Text>
-          <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'} 👋</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
+            {plan && <VerifiedBadge plan={plan} size={20} />}
+          </View>
         </View>
         <View style={[styles.streakBadge, { backgroundColor: withOpacity(colors.primary, 20) }]}>
           <Zap size={14} color={colors.primary} />
