@@ -41,7 +41,7 @@ export function CustomAlert({ visible, title, message, buttons, onDismiss }: Cus
               >
                 <Text style={[
                   styles.btnText,
-                  btn.variant === 'danger'    && { color: '#EF4444' },
+                  btn.variant === 'danger'    && { color: colors.danger },
                   btn.variant === 'secondary' && { color: colors.textMuted },
                   (!btn.variant || btn.variant === 'primary') && { color: colors.primary, fontWeight: FontWeight.bold },
                 ]}>

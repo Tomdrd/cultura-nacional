@@ -4,10 +4,10 @@ import { useAuthStore } from '../store/authStore';
 import { Plan } from '../types';
 
 interface UserPlanState {
-  plan:           Plan;
-  planExpiresAt:  string | null;
-  loading:        boolean;
-  isPremium:      boolean;
+  plan:          Plan;
+  planExpiresAt: string | null;
+  loading:       boolean;
+  isPremium:     boolean;
 }
 
 export function useUserPlan(): UserPlanState {
