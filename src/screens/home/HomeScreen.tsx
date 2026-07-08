@@ -6,16 +6,14 @@ import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { CategoryColors, QuickActionColors, withOpacity } from '../../constants/colors';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
-import { WelcomePlanModal } from '../../components/ui/WelcomePlanModal';
-import { useUserPlan } from '../../hooks';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; }
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
   const { user } = useAuthStore();
-  const { plan } = useUserPlan();
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
@@ -56,26 +54,26 @@ export function HomeScreen({ navigation }: any) {
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>Olá,</Text>
           <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'} 👋</Text>
         </View>
-        <View style={[styles.streakBadge, { backgroundColor: colors.primary + '20' }]}>
+        <View style={[styles.streakBadge, { backgroundColor: withOpacity(colors.primary, 20) }]}>
           <Zap size={14} color={colors.primary} />
           <Text style={[styles.streakText, { color: colors.primary }]}>{profile?.streak ?? 0} dias</Text>
         </View>
       </View>
 
       {/* XP Card */}
-      <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.primary + '40', borderWidth: 0.5 }]}>
+      <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: withOpacity(colors.primary, 65), borderWidth: 0.5 }]}>
         <View style={styles.xpRow}>
           <View>
             <Text style={[styles.xpLevel, { color: colors.textSecondary }]}>Nível {profile?.level ?? 1}</Text>
             <Text style={[styles.xpPoints, { color: colors.primary }]}>{profile?.xp ?? 0} XP</Text>
           </View>
-          <View style={[styles.xpBadge, { backgroundColor: colors.primary + '20' }]}>
+          <View style={[styles.xpBadge, { backgroundColor: withOpacity(colors.primary, 20) }]}>
             <Trophy size={20} color="#FFDF00" />
             <Text style={[styles.xpBadgeText, { color: colors.primary }]}>Curioso</Text>
           </View>
         </View>
-        <View style={[styles.xpBarBg, { backgroundColor: colors.primary + '30' }]}>
-          <View style={[styles.xpBarFill, { width: `${xpPct * 100}%` }]} />
+        <View style={[styles.xpBarBg, { backgroundColor: withOpacity(colors.primary, 30) }]}>
+          <View style={[styles.xpBarFill, { width: `${xpPct * 100}%`, backgroundColor: colors.primary }]} />
         </View>
         <Text style={[styles.xpHint, { color: colors.textMuted }]}>{Math.round(xpPct * xpToNext)} / {xpToNext} XP para o próximo nível</Text>
       </View>
@@ -84,30 +82,30 @@ export function HomeScreen({ navigation }: any) {
       <View style={styles.quickActions}>
 
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: '#FFDF00' + '15', borderColor: '#FFDF00' + '40', borderWidth: 0.5 }]}
+          style={[styles.actionCard, { backgroundColor: QuickActionColors.relampago.bg, borderColor: QuickActionColors.relampago.border, borderWidth: 0.5 }]}
           onPress={() => navigation.navigate('Quiz', { mode: 'relampago' })}
         >
-          <Zap size={22} color="#FFDF00" />
-          <Text style={[styles.actionLabel, { color: '#FFDF00' }]}>Relâmpago</Text>
-          <Text style={[styles.actionSub, { color: '#FFDF00' + 'AA' }]}>30 segundos</Text>
+          <Zap size={22} color={QuickActionColors.relampago.fg} />
+          <Text style={[styles.actionLabel, { color: QuickActionColors.relampago.fg }]}>Relâmpago</Text>
+          <Text style={[styles.actionSub, { color: withOpacity(QuickActionColors.relampago.fg, 85) }]}>30 segundos</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: '#E24B4A' + '15', borderColor: '#E24B4A' + '40', borderWidth: 0.5 }]}
+          style={[styles.actionCard, { backgroundColor: QuickActionColors.viral.bg, borderColor: QuickActionColors.viral.border, borderWidth: 0.5 }]}
           onPress={() => navigation.navigate('ViralMode')}
         >
-          <Video size={22} color="#E24B4A" />
-          <Text style={[styles.actionLabel, { color: '#E24B4A' }]}>Modo Viral</Text>
-          <Text style={[styles.actionSub, { color: '#E24B4A' + 'AA' }]}>Grave e compartilhe</Text>
+          <Video size={22} color={QuickActionColors.viral.fg} />
+          <Text style={[styles.actionLabel, { color: QuickActionColors.viral.fg }]}>Modo Viral</Text>
+          <Text style={[styles.actionSub, { color: withOpacity(QuickActionColors.viral.fg, 85) }]}>Grave e compartilhe</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 0.5 }]}
+          style={[styles.actionCard, { backgroundColor: QuickActionColors.duelo.bg, borderColor: QuickActionColors.duelo.border, borderWidth: 0.5 }]}
           onPress={() => navigation.navigate('Duel')}
         >
-          <Trophy size={22} color={colors.primary} />
-          <Text style={[styles.actionLabel, { color: colors.text }]}>Duelo</Text>
-          <Text style={[styles.actionSub, { color: colors.textMuted }]}>1 vs 1</Text>
+          <Trophy size={22} color={QuickActionColors.duelo.fg} />
+          <Text style={[styles.actionLabel, { color: QuickActionColors.duelo.fg }]}>Duelo</Text>
+          <Text style={[styles.actionSub, { color: withOpacity(QuickActionColors.duelo.fg, 85) }]}>1 vs 1</Text>
         </TouchableOpacity>
       </View>
 
@@ -117,53 +115,52 @@ export function HomeScreen({ navigation }: any) {
         <View style={styles.sectionGrid}>
           {cityNatal && (
             <TouchableOpacity
-              style={[styles.sectionCard, { backgroundColor: '#009C3B' + '15', borderColor: '#009C3B' + '40' }]}
+              style={[styles.sectionCard, { backgroundColor: withOpacity(CategoryColors.natureza, 15), borderColor: withOpacity(CategoryColors.natureza, 65) }]}
               onPress={() => navigation.navigate('Quiz', { stateId: cityNatal.state_id, stateName: cityNatal.stateName, cityName: cityNatal.name })}
             >
-              <View style={[styles.sectionIconWrap, { backgroundColor: '#009C3B' + '25' }]}>
-                <MapPin size={26} color="#009C3B" />
+              <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.natureza, 25) }]}>
+                <MapPin size={26} color={CategoryColors.natureza} />
               </View>
-              <Text style={[styles.sectionCardName, { color: '#009C3B' }]}>{cityNatal.name}</Text>
+              <Text style={[styles.sectionCardName, { color: colors.text }]}>{cityNatal.name}</Text>
               <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Perguntas da sua cidade natal</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
-            style={[styles.sectionCard, { backgroundColor: '#378ADD' + '15', borderColor: '#378ADD' + '40' }]}
+            style={[styles.sectionCard, { backgroundColor: withOpacity(CategoryColors.turismo, 15), borderColor: withOpacity(CategoryColors.turismo, 65) }]}
             onPress={() => navigation.navigate('Estados')}
           >
-            <View style={[styles.sectionIconWrap, { backgroundColor: '#378ADD' + '25' }]}>
-              <Map size={26} color="#378ADD" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.turismo, 25) }]}>
+              <Map size={26} color={CategoryColors.turismo} />
             </View>
-            <Text style={[styles.sectionCardName, { color: '#378ADD' }]}>Estados</Text>
+            <Text style={[styles.sectionCardName, { color: colors.text }]}>Estados</Text>
             <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Explore todos os estados do Brasil</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.sectionCard, { backgroundColor: '#7F77DD' + '15', borderColor: '#7F77DD' + '40' }]}
+            style={[styles.sectionCard, { backgroundColor: withOpacity(CategoryColors.cultura, 15), borderColor: withOpacity(CategoryColors.cultura, 65) }]}
             onPress={() => navigation.navigate('Categorias')}
           >
-            <View style={[styles.sectionIconWrap, { backgroundColor: '#7F77DD' + '25' }]}>
-              <Tag size={26} color="#7F77DD" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.cultura, 25) }]}>
+              <Tag size={26} color={CategoryColors.cultura} />
             </View>
-            <Text style={[styles.sectionCardName, { color: '#7F77DD' }]}>Categorias</Text>
+            <Text style={[styles.sectionCardName, { color: colors.text }]}>Categorias</Text>
             <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Cultura, história, gastronomia e mais</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.sectionCard, { backgroundColor: '#7F3FBF' + '15', borderColor: '#7F3FBF' + '40' }]}
+            style={[styles.sectionCard, { backgroundColor: withOpacity(CategoryColors.musica, 15), borderColor: withOpacity(CategoryColors.musica, 65) }]}
             onPress={() => navigation.navigate('Musica')}
           >
-            <View style={[styles.sectionIconWrap, { backgroundColor: '#7F3FBF' + '25' }]}>
-              <Music size={26} color="#7F3FBF" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.musica, 25) }]}>
+              <Music size={26} color={CategoryColors.musica} />
             </View>
-            <Text style={[styles.sectionCardName, { color: '#7F3FBF' }]}>Música</Text>
+            <Text style={[styles.sectionCardName, { color: colors.text }]}>Música</Text>
             <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>MPB, Reggae e RAP brasileiro</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={{ height: 32 }} />
-      <WelcomePlanModal plan={plan} username={profile?.username ?? ''} />
     </ScrollView>
   );
 }
@@ -182,22 +179,16 @@ const styles = StyleSheet.create({
   xpBadge:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.full },
   xpBadgeText:   { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   xpBarBg:       { height: 6, borderRadius: 3, marginBottom: 6 },
-  xpBarFill:     { height: 6, backgroundColor: '#FFDF00', borderRadius: 3 },
-  xpHint:        { fontSize: 11 },
+  xpBarFill:     { height: 6, borderRadius: 3 },
+  xpHint:        { fontSize: FontSize.xs },
   quickActions:  { flexDirection: 'row', gap: 10, paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
   actionCard:    { flex: 1, borderRadius: Radius.lg, padding: Spacing.md, gap: 4 },
   actionLabel:   { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginTop: 4 },
-  actionSub:     { fontSize: 11 },
+  actionSub:     { fontSize: FontSize.xs },
   section:       { paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
   sectionTitle:  { fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: Spacing.md },
-  catRow:        { gap: 10, paddingBottom: 4 },
-  catCard:       { alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: Radius.md, borderWidth: 0.5 },
-  catLabel:      { fontSize: 11, fontWeight: FontWeight.medium },
-  regionRow:     { gap: 8, marginBottom: Spacing.md, paddingBottom: 4 },
-  regionPill:    { paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
-  regionText:    { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  sectionGrid:     { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12 },
-  sectionCard:     { width: '48%', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
+  sectionGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+  sectionCard:     { flexGrow: 1, flexBasis: 150, minWidth: 150, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
   sectionIconWrap: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   sectionCardName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 18 },
