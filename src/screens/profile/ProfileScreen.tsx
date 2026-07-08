@@ -6,6 +6,8 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { getXpInCurrentLevel, getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
+import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
+import { Plan } from '../../types';
 
 const LEVELS = [
   { min: 0,    label: 'Curioso',     color: '#6B6B6B' },
@@ -29,7 +31,8 @@ interface Profile {
   xp: number;
   level: number;
   streak: number;
-  plan: string;
+  plan: Plan;
+  plan_expires_at: string | null;
   city_natal_id: string | null;
   created_at: string;
 }
@@ -52,7 +55,7 @@ export function ProfileScreen({ navigation }: any) {
     setLoading(true);
     const { data } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, xp, level, streak, plan, city_natal_id, created_at')
+      .select('id, username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, created_at')
       .eq('id', user.id)
       .single();
 
@@ -88,17 +91,23 @@ export function ProfileScreen({ navigation }: any) {
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-        <View style={[styles.avatar, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}>
-          {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
-            <Image
-              source={{ uri: profile?.avatar_url ?? user?.user_metadata?.avatar_url }}
-              style={{ width: 80, height: 80, borderRadius: 40 }}
-            />
-          ) : (
-            <User size={36} color={colors.primary} />
-          )}
+        <View style={{ position: 'relative' }}>
+          <View style={[styles.avatar, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}>
+            {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
+              <Image
+                source={{ uri: profile?.avatar_url ?? user?.user_metadata?.avatar_url }}
+                style={{ width: 80, height: 80, borderRadius: 40 }}
+              />
+            ) : (
+              <User size={36} color={colors.primary} />
+            )}
+          </View>
+          {profile?.plan && <AvatarVerifiedBadge plan={profile.plan} avatarSize={80} />}
         </View>
-        <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
+          {profile?.plan && <VerifiedBadge plan={profile.plan} size={20} />}
+        </View>
         <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
 
         {/* Level badge */}
@@ -158,22 +167,28 @@ export function ProfileScreen({ navigation }: any) {
       <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>PLANO</Text>
         <View style={styles.planRow}>
-          <View style={[styles.planBadge, {
-            backgroundColor: profile?.plan === 'pro' ? '#FFDF0020' : profile?.plan === 'family' ? '#009C3B20' : colors.background,
-            borderColor: profile?.plan === 'pro' ? '#FFDF00' : profile?.plan === 'family' ? '#009C3B' : colors.border,
-          }]}>
-            <Text style={[styles.planText, { color: profile?.plan === 'pro' ? '#FFDF00' : profile?.plan === 'family' ? '#009C3B' : colors.textSecondary }]}>
-              {profile?.plan === 'pro' ? 'CN Pro' : profile?.plan === 'family' ? 'Família' : 'Gratuito'}
-            </Text>
-          </View>
-          {profile?.plan !== 'pro' && profile?.plan !== 'family' && (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Subscription')}
-              style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
-            >
-              <Text style={styles.upgradeBtnText}>Assinar Pro</Text>
-            </TouchableOpacity>
-          )}
+          {(() => {
+            const p = profile?.plan ?? 'free';
+            const isPremium = p === 'pro' || p === 'family' || p === 'education';
+            const planLabel   = p === 'pro' ? 'CN Pro' : p === 'family' ? 'Família' : p === 'education' ? 'Educação' : 'Gratuito';
+            const planColor   = p === 'pro' ? '#1877F2' : p === 'family' ? '#009C3B' : p === 'education' ? '#7F77DD' : colors.border;
+            const planBgColor = p === 'pro' ? '#1877F220' : p === 'family' ? '#009C3B20' : p === 'education' ? '#7F77DD20' : colors.background;
+            return (
+              <>
+                <View style={[styles.planBadge, { backgroundColor: planBgColor, borderColor: planColor }]}>
+                  <Text style={[styles.planText, { color: isPremium ? planColor : colors.textSecondary }]}>{planLabel}</Text>
+                </View>
+                {!isPremium && (
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Subscription')}
+                    style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
+                  >
+                    <Text style={styles.upgradeBtnText}>Assinar Pro</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            );
+          })()}
         </View>
       </View>
 
