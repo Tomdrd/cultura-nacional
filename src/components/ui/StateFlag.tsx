@@ -1,8 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
-import { Radius, FontWeight } from '../../constants/layout';
-
+import { Radius, FontWeight, FontSize } from '../../constants/layout';
 import AC from '../../../assets/flags/ac.svg';
 import AL from '../../../assets/flags/al.svg';
 import AM from '../../../assets/flags/am.svg';
@@ -36,45 +35,100 @@ const FLAGS: Record<string, React.FC<{ width?: number; height?: number }>> = {
   PA, PB, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, SP, TO,
 };
 
+const STATE_NAMES: Record<string, string> = {
+  AC: 'Acre', AL: 'Alagoas', AM: 'Amazonas', AP: 'Amapá',
+  BA: 'Bahia', CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo',
+  GO: 'Goiás', MA: 'Maranhão', MG: 'Minas Gerais', MS: 'Mato Grosso do Sul',
+  MT: 'Mato Grosso', PA: 'Pará', PB: 'Paraíba', PE: 'Pernambuco',
+  PI: 'Piauí', PR: 'Paraná', RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte',
+  RO: 'Rondônia', RR: 'Roraima', RS: 'Rio Grande do Sul', SC: 'Santa Catarina',
+  SE: 'Sergipe', SP: 'São Paulo', TO: 'Tocantins',
+};
+
 interface StateFlagProps {
   uf: string;
   size?: number;
 }
 
-/**
- * Renders a state flag from assets/flags/{uf}.svg (imported statically,
- * since Metro/react-native-svg-transformer can't resolve dynamic paths).
- * Falls back to a badge with the UF letters if the code isn't found.
- */
 export function StateFlag({ uf, size = 40 }: StateFlagProps) {
-  const { colors } = useTheme();
-  const Flag = FLAGS[uf.toUpperCase()];
+  const { colors, isDark } = useTheme();
+  const [visible, setVisible] = useState(false);
+  const Flag  = FLAGS[uf.toUpperCase()];
+  const label = STATE_NAMES[uf.toUpperCase()] ?? uf.toUpperCase();
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        { width: size, height: size, borderRadius: size / 4, backgroundColor: colors.card },
-      ]}
-    >
-      {Flag ? (
-        <Flag width={size} height={size} preserveAspectRatio="xMidYMid slice" />
-      ) : (
-        <Text style={[styles.fallbackText, { color: colors.textMuted, fontSize: size * 0.32 }]}>
-          {uf}
-        </Text>
-      )}
-    </View>
+    <>
+      <TouchableOpacity
+        onPress={() => setVisible(true)}
+        activeOpacity={0.75}
+        style={[styles.wrapper, { width: size, height: size, borderRadius: size / 4, backgroundColor: colors.card }]}
+      >
+        {Flag ? (
+          <Flag width={size} height={size} preserveAspectRatio="xMidYMid slice" />
+        ) : (
+          <Text style={[styles.fallbackText, { color: colors.textMuted, fontSize: size * 0.32 }]}>{uf}</Text>
+        )}
+      </TouchableOpacity>
+
+      <Modal transparent animationType="fade" visible={visible} onRequestClose={() => setVisible(false)}>
+        <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
+          <View style={[
+            styles.tooltip,
+            {
+              backgroundColor: isDark ? 'rgba(30,30,36,0.97)' : 'rgba(255,255,255,0.97)',
+              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+              shadowColor: isDark ? '#000' : '#999',
+            }
+          ]}>
+            <View style={[styles.flagLarge, { borderRadius: size * 0.3 }]}>
+              {Flag && <Flag width={48} height={48} preserveAspectRatio="xMidYMid slice" />}
+            </View>
+            <Text style={[styles.stateName, { color: colors.text }]}>{label}</Text>
+            <Text style={[styles.stateUf, { color: colors.textMuted }]}>{uf.toUpperCase()}</Text>
+          </View>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    alignItems:      'center',
+    justifyContent:  'center',
+    overflow:        'hidden',
   },
   fallbackText: {
     fontWeight: FontWeight.bold,
+  },
+  overlay: {
+    flex:            1,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  tooltip: {
+    alignItems:    'center',
+    gap:           8,
+    paddingVertical:   20,
+    paddingHorizontal: 28,
+    borderRadius:  16,
+    borderWidth:   0.5,
+    shadowOffset:  { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius:  20,
+    elevation:     12,
+  },
+  flagLarge: {
+    width:    48,
+    height:   48,
+    overflow: 'hidden',
+  },
+  stateName: {
+    fontSize:   FontSize.md,
+    fontWeight: FontWeight.bold,
+  },
+  stateUf: {
+    fontSize: FontSize.xs,
   },
 });

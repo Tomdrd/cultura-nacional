@@ -7,6 +7,7 @@ import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { getXpInCurrentLevel, getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
+import { StateFlag } from '../../components/ui/StateFlag';
 import { Plan } from '../../types';
 
 const LEVELS = [
@@ -55,12 +56,12 @@ export function ProfileScreen({ navigation }: any) {
     setLoading(true);
     const { data } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, created_at')
+      .select('id, username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, created_at, cities!city_natal_id(state_uf)')
       .eq('id', user.id)
       .single();
 
     if (data) {
-      setProfile(data);
+      setProfile({ ...data, state_uf: (data as any).cities?.state_uf ?? null } as Profile);
       if (data.city_natal_id) {
         const [{ data: cityData }, { data: rankData }] = await Promise.all([
           supabase.from('cities').select('name, state_uf').eq('id', data.city_natal_id).single(),
@@ -105,6 +106,7 @@ export function ProfileScreen({ navigation }: any) {
           {profile?.plan && <AvatarVerifiedBadge plan={profile.plan} avatarSize={80} />}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {profile?.state_uf && <StateFlag uf={profile.state_uf} size={22} />}
           <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
           {profile?.plan && <VerifiedBadge plan={profile.plan} size={20} />}
         </View>
