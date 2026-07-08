@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
@@ -11,7 +11,7 @@ import { CategoryColors, QuickActionColors, withOpacity } from '../../constants/
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
-interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; }
+interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; avatar_url: string | null; }
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
@@ -25,7 +25,7 @@ export function HomeScreen({ navigation }: any) {
 
   async function loadData() {
     setLoading(true);
-    const { data: profileData } = user ? await supabase.from('profiles').select('username, xp, level, streak, city_natal_id').eq('id', user.id).single() : { data: null };
+    const { data: profileData } = user ? await supabase.from('profiles').select('username, xp, level, streak, city_natal_id, avatar_url').eq('id', user.id).single() : { data: null };
     if (profileData) {
       setProfile(profileData);
       if (profileData.city_natal_id) {
@@ -53,11 +53,27 @@ export function HomeScreen({ navigation }: any) {
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-        <View>
-          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Olá,</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
-            {plan && <VerifiedBadge plan={plan} size={20} />}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
+            <View style={[styles.headerAvatar, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}>
+              {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
+                <Image
+                  source={{ uri: profile?.avatar_url ?? user?.user_metadata?.avatar_url }}
+                  style={{ width: 44, height: 44, borderRadius: 22 }}
+                />
+              ) : (
+                <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primary }}>
+                  {profile?.username?.[0]?.toUpperCase() ?? '?'}
+                </Text>
+              )}
+            </View>
+          </TouchableOpacity>
+          <View>
+            <Text style={[styles.greeting, { color: colors.textSecondary }]}>Olá,</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
+              {plan && <VerifiedBadge plan={plan} size={20} />}
+            </View>
           </View>
         </View>
         <View style={[styles.streakBadge, { backgroundColor: withOpacity(colors.primary, 20) }]}>
@@ -174,6 +190,7 @@ export function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   center:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  headerAvatar:  { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   greeting:      { fontSize: FontSize.xs },
   username:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   streakBadge:   { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.full },
