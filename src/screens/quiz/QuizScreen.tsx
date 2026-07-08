@@ -42,8 +42,12 @@ export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
   const { audioNarration } = useSettingsStore();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
-  const { user } = useAuthStore();
-  const { stateId, stateName, cityId, cityName, subcategory, mode } = route.params ?? {};
+  const { user, cityNatalId } = useAuthStore();
+  const { stateId, stateName, cityId: routeCityId, cityName, subcategory, mode } = route.params ?? {};
+  // Se a tela não especificou uma cidade explicitamente, usa a cidade natal
+  // do usuário — a função no banco cai automaticamente para as perguntas
+  // do estado caso essa cidade não tenha perguntas próprias.
+  const cityId = routeCityId ?? cityNatalId ?? undefined;
 
   const [questions,     setQuestions]     = useState<Question[]>([]);
   const [current,       setCurrent]       = useState(0);
