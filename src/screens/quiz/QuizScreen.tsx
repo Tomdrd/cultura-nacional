@@ -10,6 +10,7 @@ import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { CategoryColors, MedalColors, withOpacity } from '../../constants/colors';
 
 interface Question {
   id: string;
@@ -181,7 +182,7 @@ export function QuizScreen({ route, navigation }: any) {
     await supabase.rpc('update_streak_on_play', { p_user_id: user.id });
   }
 
-  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? '#BA7517' : colors.primary;
+  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? CategoryColors.gastronomia : colors.primary;
 
   if (loading) {
     return (
@@ -211,10 +212,10 @@ export function QuizScreen({ route, navigation }: any) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.resultCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Trophy size={56} color={pct >= 80 ? '#FFDF00' : pct >= 60 ? colors.primary : colors.textMuted} />
+          <Trophy size={56} color={pct >= 80 ? MedalColors.gold : pct >= 60 ? colors.primary : colors.textMuted} />
           <Text style={[styles.resultMsg,   { color: colors.text }]}>{msg}</Text>
           <Text style={[styles.resultScore, { color: colors.primary }]}>{score}/{questions.length} corretas</Text>
-          <View style={[styles.xpEarned, { backgroundColor: colors.primary+'15', borderColor: colors.primary+'30' }]}>
+          <View style={[styles.xpEarned, { backgroundColor: withOpacity(colors.primary, 8.2), borderColor: withOpacity(colors.primary, 18.8) }]}>
             <Zap size={16} color={colors.primary} />
             <Text style={[styles.xpEarnedText, { color: colors.primary }]}>+{xpEarned} XP ganhos</Text>
           </View>
@@ -263,7 +264,7 @@ export function QuizScreen({ route, navigation }: any) {
         </TouchableOpacity>
         <Text style={[styles.topTitle, { color: colors.text }]}>{stateName ?? subcategory ?? 'Quiz'}</Text>
         <View style={styles.topRight}>
-          <View style={[styles.timerBadge, { backgroundColor: timerColor+'20' }]}>
+          <View style={[styles.timerBadge, { backgroundColor: withOpacity(timerColor, 12.5) }]}>
             <Clock size={13} color={timerColor} />
             <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
           </View>
@@ -285,7 +286,7 @@ export function QuizScreen({ route, navigation }: any) {
       <View style={styles.counterRow}>
         {questions.map((_, i) => (
           <View key={i} style={[styles.counterDot, {
-            backgroundColor: i < current ? colors.primary : i === current ? colors.primary+'60' : colors.border
+            backgroundColor: i < current ? colors.primary : i === current ? withOpacity(colors.primary, 37.6) : colors.border
           }]} />
         ))}
       </View>
@@ -296,11 +297,11 @@ export function QuizScreen({ route, navigation }: any) {
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>{q.subcategory}</Text>
           </View>
           <View style={[styles.metaBadge, {
-            backgroundColor: q.difficulty==='easy' ? '#009C3B20' : q.difficulty==='medium' ? '#BA751720' : '#D85A3020',
-            borderColor:     q.difficulty==='easy' ? '#009C3B40' : q.difficulty==='medium' ? '#BA751740' : '#D85A3040',
+            backgroundColor: q.difficulty==='easy' ? withOpacity(CategoryColors.natureza, 12.5) : q.difficulty==='medium' ? withOpacity(CategoryColors.gastronomia, 12.5) : withOpacity(CategoryColors.historia, 12.5),
+            borderColor:     q.difficulty==='easy' ? withOpacity(CategoryColors.natureza, 25.1) : q.difficulty==='medium' ? withOpacity(CategoryColors.gastronomia, 25.1) : withOpacity(CategoryColors.historia, 25.1),
           }]}>
             <Text style={[styles.metaText, {
-              color: q.difficulty==='easy' ? '#009C3B' : q.difficulty==='medium' ? '#BA7517' : '#D85A30',
+              color: q.difficulty==='easy' ? CategoryColors.natureza : q.difficulty==='medium' ? CategoryColors.gastronomia : CategoryColors.historia,
             }]}>{q.difficulty==='easy'?'Fácil':q.difficulty==='medium'?'Médio':'Difícil'}</Text>
           </View>
         </View>
@@ -314,18 +315,18 @@ export function QuizScreen({ route, navigation }: any) {
             const isSelected = i === selected;
             let bg = colors.card, border = colors.border, textColor = colors.text;
             if (revealed) {
-              if (isCorrect)               { bg='#009C3B20'; border='#009C3B'; textColor='#009C3B'; }
-              else if (isSelected)         { bg=colors.danger+'20'; border=colors.danger; textColor=colors.danger; }
-            } else if (isSelected)         { bg=colors.primary+'15'; border=colors.primary; textColor=colors.primary; }
+              if (isCorrect)               { bg=withOpacity(colors.success, 12.5); border=colors.success; textColor=colors.success; }
+              else if (isSelected)         { bg=withOpacity(colors.danger, 12.5); border=colors.danger; textColor=colors.danger; }
+            } else if (isSelected)         { bg=withOpacity(colors.primary, 8.2); border=colors.primary; textColor=colors.primary; }
             return (
               <TouchableOpacity key={i} onPress={() => handleAnswer(i)} disabled={answered}
                 style={[styles.option, { backgroundColor: bg, borderColor: border }]}
               >
-                <View style={[styles.optionLetter, { backgroundColor: border+'30' }]}>
+                <View style={[styles.optionLetter, { backgroundColor: withOpacity(border, 18.8) }]}>
                   <Text style={[styles.optionLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                 </View>
                 <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
-                {revealed && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
+                {revealed && isCorrect               && <CheckCircle size={18} color={colors.success} />}
                 {revealed && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
               </TouchableOpacity>
             );
@@ -333,7 +334,7 @@ export function QuizScreen({ route, navigation }: any) {
         </View>
 
         {answered && answerResult?.explanation && (
-          <View style={[styles.explanation, { backgroundColor: colors.primary+'10', borderColor: colors.primary+'30' }]}>
+          <View style={[styles.explanation, { backgroundColor: withOpacity(colors.primary, 6.3), borderColor: withOpacity(colors.primary, 18.8) }]}>
             <Text style={[styles.explanationText, { color: colors.textSecondary }]}>{answerResult.explanation}</Text>
           </View>
         )}
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
   questionWrap:    { flex: 1, padding: Spacing.xl },
   metaRow:         { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
   metaBadge:       { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
-  metaText:        { fontSize: 11, fontWeight: FontWeight.medium },
+  metaText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   questionText:    { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
   options:         { gap: 10 },
   option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
