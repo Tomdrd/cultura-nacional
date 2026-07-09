@@ -5,13 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-<<<<<<< Updated upstream
-=======
 import { MedalColors, withOpacity } from '../../constants/colors';
-import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
-import { StateFlag } from '../../components/ui/StateFlag';
-import { Plan } from '../../types';
->>>>>>> Stashed changes
 
 type Scope = 'national' | 'state' | 'city';
 
@@ -180,82 +174,33 @@ export function RankingScreen() {
             <View style={[styles.podiumWrap, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
               {/* 2nd */}
               <View style={styles.podiumItem}>
-<<<<<<< Updated upstream
                 {podium[1]?.avatar_url
-                  ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#C0C0C0' }]} />
-                  : <View style={[styles.podiumAvatar, { backgroundColor: '#C0C0C020', borderColor: '#C0C0C0' }]}><User size={20} color="#C0C0C0" /></View>
+                  ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.silver }]} />
+                  : <View style={[styles.podiumAvatar, { backgroundColor: withOpacity(MedalColors.silver, 12.5), borderColor: MedalColors.silver }]}><User size={20} color={MedalColors.silver} /></View>
                 }
-                <Text style={[styles.podiumMedal, { color: '#C0C0C0' }]}>2º</Text>
-                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
-=======
-                <View style={{ position: 'relative' }}>
-                  {podium[1]?.avatar_url
-                    ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.silver }]} />
-                    : <View style={[styles.podiumAvatar, { backgroundColor: withOpacity(MedalColors.silver, 12.5), borderColor: MedalColors.silver }]}><User size={20} color={MedalColors.silver} /></View>
-                  }
-                  {podium[1]?.plan && <AvatarVerifiedBadge plan={podium[1].plan} avatarSize={48} />}
-                </View>
                 <Text style={[styles.podiumMedal, { color: MedalColors.silver }]}>2º</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[1]?.state_uf && <StateFlag uf={podium[1].state_uf} size={16} />}
-                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
-                  {podium[1]?.plan && <VerifiedBadge plan={podium[1].plan} size={13} />}
-                </View>
->>>>>>> Stashed changes
+                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[1]?.xp} XP</Text>
               </View>
               {/* 1st */}
               <View style={[styles.podiumItem, styles.podiumFirst]}>
-<<<<<<< Updated upstream
                 {podium[0]?.avatar_url
-                  ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: '#FFDF00' }]} />
-                  : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: '#FFDF0020', borderColor: '#FFDF00' }]}><User size={28} color="#FFDF00" /></View>
+                  ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: MedalColors.gold }]} />
+                  : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: withOpacity(MedalColors.gold, 12.5), borderColor: MedalColors.gold }]}><User size={28} color={MedalColors.gold} /></View>
                 }
-                <Trophy size={18} color="#FFDF00" />
-                <Text style={[styles.podiumMedal, { color: '#FFDF00' }]}>1º</Text>
-                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
-=======
-                <View style={{ position: 'relative' }}>
-                  {podium[0]?.avatar_url
-                    ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: MedalColors.gold }]} />
-                    : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: withOpacity(MedalColors.gold, 12.5), borderColor: MedalColors.gold }]}><User size={28} color={MedalColors.gold} /></View>
-                  }
-                  {podium[0]?.plan && <AvatarVerifiedBadge plan={podium[0].plan} avatarSize={64} />}
-                </View>
                 <Trophy size={18} color={MedalColors.gold} />
                 <Text style={[styles.podiumMedal, { color: MedalColors.gold }]}>1º</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[0]?.state_uf && <StateFlag uf={podium[0].state_uf} size={16} />}
-                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
-                  {podium[0]?.plan && <VerifiedBadge plan={podium[0].plan} size={13} />}
-                </View>
->>>>>>> Stashed changes
+                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[0]?.xp} XP</Text>
               </View>
               {/* 3rd */}
               <View style={styles.podiumItem}>
-<<<<<<< Updated upstream
                 {podium[2]?.avatar_url
-                  ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#CD7F32' }]} />
-                  : <View style={[styles.podiumAvatar, { backgroundColor: '#CD7F3220', borderColor: '#CD7F32' }]}><User size={20} color="#CD7F32" /></View>
+                  ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.bronze }]} />
+                  : <View style={[styles.podiumAvatar, { backgroundColor: withOpacity(MedalColors.bronze, 12.5), borderColor: MedalColors.bronze }]}><User size={20} color={MedalColors.bronze} /></View>
                 }
-                <Text style={[styles.podiumMedal, { color: '#CD7F32' }]}>3º</Text>
-                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
-=======
-                <View style={{ position: 'relative' }}>
-                  {podium[2]?.avatar_url
-                    ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.bronze }]} />
-                    : <View style={[styles.podiumAvatar, { backgroundColor: withOpacity(MedalColors.bronze, 12.5), borderColor: MedalColors.bronze }]}><User size={20} color={MedalColors.bronze} /></View>
-                  }
-                  {podium[2]?.plan && <AvatarVerifiedBadge plan={podium[2].plan} avatarSize={48} />}
-                </View>
                 <Text style={[styles.podiumMedal, { color: MedalColors.bronze }]}>3º</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[2]?.state_uf && <StateFlag uf={podium[2].state_uf} size={16} />}
-                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
-                  {podium[2]?.plan && <VerifiedBadge plan={podium[2].plan} size={13} />}
-                </View>
->>>>>>> Stashed changes
+                <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[2]?.xp} XP</Text>
               </View>
             </View>
