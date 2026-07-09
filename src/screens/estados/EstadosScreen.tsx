@@ -5,14 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { StateFlagIcon } from '../../components/ui/StateFlagIcon';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-
-const REGION_COLORS: Record<string, string> = {
-  Norte:          '#378ADD',
-  Nordeste:       '#D85A30',
-  'Centro-Oeste': '#BA7517',
-  Sudeste:        '#7F77DD',
-  Sul:            '#009C3B',
-};
+import { RegionColors } from '../../constants/colors';
 
 // Largura mínima confortável por item (ícone + nome), usada para calcular colunas
 const ITEM_MIN_WIDTH = 92;
@@ -63,7 +56,7 @@ export function EstadosScreen({ navigation }: any) {
               <Text style={[styles.regionText, { color: !region ? '#FFF' : colors.textSecondary }]}>Todos</Text>
             </TouchableOpacity>
             {regions.map(r => (
-              <TouchableOpacity key={r} onPress={() => setRegion(r === region ? null : r)} style={[styles.regionPill, { backgroundColor: region === r ? REGION_COLORS[r] : colors.card, borderColor: region === r ? REGION_COLORS[r] : colors.border }]}>
+              <TouchableOpacity key={r} onPress={() => setRegion(r === region ? null : r)} style={[styles.regionPill, { backgroundColor: region === r ? RegionColors[r as keyof typeof RegionColors] : colors.card, borderColor: region === r ? RegionColors[r as keyof typeof RegionColors] : colors.border }]}>
                 <Text style={[styles.regionText, { color: region === r ? '#FFF' : colors.textSecondary }]}>{r}</Text>
               </TouchableOpacity>
             ))}

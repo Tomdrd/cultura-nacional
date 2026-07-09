@@ -54,6 +54,14 @@ export const CategoryColors = {
   aleatorio:    '#E24B4A',
 } as const;
 
+export const RegionColors = {
+  Norte:          CategoryColors.turismo,
+  Nordeste:       CategoryColors.historia,
+  'Centro-Oeste': CategoryColors.gastronomia,
+  Sudeste:        CategoryColors.cultura,
+  Sul:            CategoryColors.natureza,
+} as const;
+
 export const MedalColors = {
   gold:   '#FFDF00',
   silver: '#C0C0C0',
