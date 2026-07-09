@@ -101,15 +101,17 @@ export function QuizScreen({ route, navigation }: any) {
   async function loadQuestions() {
     setLoading(true);
     const limit = mode === 'relampago' ? 5 : TOTAL_QUESTIONS;
+    const progressive = mode !== 'relampago';
     let { data } = await supabase.rpc('get_random_quiz_questions', {
       p_state_id:    stateId ?? null,
       p_city_id:     cityId ?? null,
       p_subcategory: subcategory ?? null,
       p_limit:       limit,
+      p_progressive: progressive,
     });
     if (!data || data.length === 0) {
       const fallback = await supabase.rpc('get_random_quiz_questions', {
-        p_state_id: null, p_city_id: null, p_subcategory: null, p_limit: limit,
+        p_state_id: null, p_city_id: null, p_subcategory: null, p_limit: limit, p_progressive: progressive,
       });
       data = fallback.data;
     }
