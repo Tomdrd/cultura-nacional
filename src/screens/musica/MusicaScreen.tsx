@@ -12,7 +12,11 @@ const GENEROS = [
 ];
 
 export function MusicaScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  // #1A1A2E (RAP) é quase invisível sobre fundo escuro (contraste ~1:1) - usa
+  // uma variante mais clara da mesma família de cor só no dark mode.
+  const rapColor = isDark ? '#6B6B9E' : CategoryColors.rap;
+  const generosThemed = GENEROS.map(g => g.name === 'RAP' ? { ...g, color: rapColor } : g);
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
@@ -29,7 +33,7 @@ export function MusicaScreen({ navigation }: any) {
           <Text style={[styles.heroSub, { color: colors.textMuted }]}>Teste seus conhecimentos sobre a música brasileira</Text>
         </View>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Escolha um gênero</Text>
-        {GENEROS.map(({ name, emoji, color, desc }) => (
+        {generosThemed.map(({ name, emoji, color, desc }) => (
           <TouchableOpacity
             key={name}
             onPress={() => navigation.navigate('Quiz', { subcategory: name })}
