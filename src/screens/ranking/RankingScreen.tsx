@@ -5,6 +5,13 @@ import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+<<<<<<< Updated upstream
+=======
+import { MedalColors, withOpacity } from '../../constants/colors';
+import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
+import { StateFlag } from '../../components/ui/StateFlag';
+import { Plan } from '../../types';
+>>>>>>> Stashed changes
 
 type Scope = 'national' | 'state' | 'city';
 
@@ -33,7 +40,6 @@ export function RankingScreen() {
   const [myLocation, setMyLocation] = useState<MyLocation | null>(null);
   const [scopeLabel, setScopeLabel] = useState('');
 
-  // Carrega localização do usuário uma vez
   useEffect(() => {
     async function loadMyLocation() {
       if (!user) return;
@@ -67,7 +73,6 @@ export function RankingScreen() {
       query = query.eq('city_natal_id', myLocation.city_natal_id);
       setScopeLabel('sua cidade');
     } else if (scope === 'state' && myLocation?.state_uf) {
-      // Filtra por state_uf via join com cities
       query = supabase
         .from('profiles')
         .select('id, username, xp, level, avatar_url, city_natal_id, cities!city_natal_id(name, state_uf)')
@@ -79,7 +84,6 @@ export function RankingScreen() {
       setScopeLabel('');
     }
 
-    // Se scope requer localização mas não tem, mostra vazio
     if ((scope === 'city' || scope === 'state') && !myLocation) {
       setEntries([]);
       setMyRank(null);
@@ -101,12 +105,10 @@ export function RankingScreen() {
       }));
       setEntries(mapped);
 
-      // Posição real do usuário no ranking filtrado
       const myIndex = mapped.findIndex(e => e.user_id === user?.id);
       if (myIndex >= 0) {
         setMyRank(myIndex + 1);
       } else {
-        // Busca posição real se fora do top 50
         const { count } = await supabase
           .from('profiles')
           .select('id', { count: 'exact', head: true })
@@ -120,7 +122,6 @@ export function RankingScreen() {
   const podium = entries.slice(0, 3);
   const rest   = entries.slice(3);
 
-  // Mensagem quando aba requer localização não configurada
   const needsLocation = (scope === 'city' || scope === 'state') && myLocation && !myLocation.city_natal_id;
 
   return (
@@ -128,10 +129,10 @@ export function RankingScreen() {
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-        <Trophy size={24} color="#FFDF00" />
+        <Trophy size={24} color={MedalColors.gold} />
         <Text style={[styles.title, { color: colors.text }]}>Ranking</Text>
         {myRank ? (
-          <View style={[styles.myRankBadge, { backgroundColor: colors.primary + '20' }]}>
+          <View style={[styles.myRankBadge, { backgroundColor: withOpacity(colors.primary, 12.5) }]}>
             <Text style={[styles.myRankText, { color: colors.primary }]}>
               Sua posição: #{myRank}{scopeLabel ? ` em ${scopeLabel}` : ''}
             </Text>
@@ -179,16 +180,33 @@ export function RankingScreen() {
             <View style={[styles.podiumWrap, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
               {/* 2nd */}
               <View style={styles.podiumItem}>
+<<<<<<< Updated upstream
                 {podium[1]?.avatar_url
                   ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#C0C0C0' }]} />
                   : <View style={[styles.podiumAvatar, { backgroundColor: '#C0C0C020', borderColor: '#C0C0C0' }]}><User size={20} color="#C0C0C0" /></View>
                 }
                 <Text style={[styles.podiumMedal, { color: '#C0C0C0' }]}>2º</Text>
                 <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
+=======
+                <View style={{ position: 'relative' }}>
+                  {podium[1]?.avatar_url
+                    ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.silver }]} />
+                    : <View style={[styles.podiumAvatar, { backgroundColor: withOpacity(MedalColors.silver, 12.5), borderColor: MedalColors.silver }]}><User size={20} color={MedalColors.silver} /></View>
+                  }
+                  {podium[1]?.plan && <AvatarVerifiedBadge plan={podium[1].plan} avatarSize={48} />}
+                </View>
+                <Text style={[styles.podiumMedal, { color: MedalColors.silver }]}>2º</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  {podium[1]?.state_uf && <StateFlag uf={podium[1].state_uf} size={16} />}
+                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
+                  {podium[1]?.plan && <VerifiedBadge plan={podium[1].plan} size={13} />}
+                </View>
+>>>>>>> Stashed changes
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[1]?.xp} XP</Text>
               </View>
               {/* 1st */}
               <View style={[styles.podiumItem, styles.podiumFirst]}>
+<<<<<<< Updated upstream
                 {podium[0]?.avatar_url
                   ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: '#FFDF00' }]} />
                   : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: '#FFDF0020', borderColor: '#FFDF00' }]}><User size={28} color="#FFDF00" /></View>
@@ -196,16 +214,48 @@ export function RankingScreen() {
                 <Trophy size={18} color="#FFDF00" />
                 <Text style={[styles.podiumMedal, { color: '#FFDF00' }]}>1º</Text>
                 <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
+=======
+                <View style={{ position: 'relative' }}>
+                  {podium[0]?.avatar_url
+                    ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: MedalColors.gold }]} />
+                    : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: withOpacity(MedalColors.gold, 12.5), borderColor: MedalColors.gold }]}><User size={28} color={MedalColors.gold} /></View>
+                  }
+                  {podium[0]?.plan && <AvatarVerifiedBadge plan={podium[0].plan} avatarSize={64} />}
+                </View>
+                <Trophy size={18} color={MedalColors.gold} />
+                <Text style={[styles.podiumMedal, { color: MedalColors.gold }]}>1º</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  {podium[0]?.state_uf && <StateFlag uf={podium[0].state_uf} size={16} />}
+                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
+                  {podium[0]?.plan && <VerifiedBadge plan={podium[0].plan} size={13} />}
+                </View>
+>>>>>>> Stashed changes
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[0]?.xp} XP</Text>
               </View>
               {/* 3rd */}
               <View style={styles.podiumItem}>
+<<<<<<< Updated upstream
                 {podium[2]?.avatar_url
                   ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#CD7F32' }]} />
                   : <View style={[styles.podiumAvatar, { backgroundColor: '#CD7F3220', borderColor: '#CD7F32' }]}><User size={20} color="#CD7F32" /></View>
                 }
                 <Text style={[styles.podiumMedal, { color: '#CD7F32' }]}>3º</Text>
                 <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
+=======
+                <View style={{ position: 'relative' }}>
+                  {podium[2]?.avatar_url
+                    ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.bronze }]} />
+                    : <View style={[styles.podiumAvatar, { backgroundColor: withOpacity(MedalColors.bronze, 12.5), borderColor: MedalColors.bronze }]}><User size={20} color={MedalColors.bronze} /></View>
+                  }
+                  {podium[2]?.plan && <AvatarVerifiedBadge plan={podium[2].plan} avatarSize={48} />}
+                </View>
+                <Text style={[styles.podiumMedal, { color: MedalColors.bronze }]}>3º</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  {podium[2]?.state_uf && <StateFlag uf={podium[2].state_uf} size={16} />}
+                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
+                  {podium[2]?.plan && <VerifiedBadge plan={podium[2].plan} size={13} />}
+                </View>
+>>>>>>> Stashed changes
                 <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[2]?.xp} XP</Text>
               </View>
             </View>
@@ -217,8 +267,8 @@ export function RankingScreen() {
               const isMe = entry.user_id === user?.id;
               return (
                 <View key={entry.user_id} style={[styles.row, {
-                  backgroundColor: isMe ? colors.primary + '10' : colors.card,
-                  borderColor:     isMe ? colors.primary + '40' : colors.border,
+                  backgroundColor: isMe ? withOpacity(colors.primary, 6.3) : colors.card,
+                  borderColor:     isMe ? withOpacity(colors.primary, 25.1) : colors.border,
                 }]}>
                   <Text style={[styles.rank, { color: colors.textMuted }]}>#{i + 4}</Text>
                   {entry.avatar_url
@@ -276,15 +326,15 @@ const styles = StyleSheet.create({
   podiumAvatarLg: { width: 60, height: 60, borderRadius: 30 },
   podiumMedal:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   podiumName:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textAlign: 'center' },
-  podiumXp:       { fontSize: 10 },
+  podiumXp:       { fontSize: FontSize.xs },
   list:           { padding: Spacing.xl, gap: 8 },
   row:            { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md, borderRadius: Radius.md, borderWidth: 0.5 },
   rank:           { fontSize: FontSize.sm, fontWeight: FontWeight.bold, width: 28 },
   rowAvatar:      { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   rowName:        { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  rowCity:        { fontSize: 11, marginTop: 2 },
+  rowCity:        { fontSize: FontSize.xs, marginTop: 2 },
   rowXp:          { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  rowLevel:       { fontSize: 10, marginTop: 2 },
+  rowLevel:       { fontSize: FontSize.xs, marginTop: 2 },
   empty:          { alignItems: 'center', gap: 12, paddingVertical: 40 },
   emptyText:      { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
 });
