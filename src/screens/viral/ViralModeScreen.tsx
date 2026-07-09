@@ -12,6 +12,7 @@ import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { APP_SHARE_URL } from '../../constants/app';
+import { CategoryColors, MedalColors, QuickActionColors, withOpacity } from '../../constants/colors';
 import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen, Smartphone } from 'lucide-react-native';
 
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -31,14 +32,14 @@ interface AnswerResult {
 }
 
 const VIRAL_CATEGORIES = [
-  { name: 'Aleatório',    color: '#E24B4A' },
-  { name: 'Cultura',      color: '#7F77DD' },
-  { name: 'História',     color: '#D85A30' },
-  { name: 'Gastronomia',  color: '#BA7517' },
-  { name: 'Natureza',     color: '#009C3B' },
-  { name: 'Turismo',      color: '#378ADD' },
-  { name: 'Curiosidades', color: '#D4537E' },
-  { name: 'Reggae',       color: '#2E8B57' },
+  { name: 'Aleatório',    color: CategoryColors.aleatorio },
+  { name: 'Cultura',      color: CategoryColors.cultura },
+  { name: 'História',     color: CategoryColors.historia },
+  { name: 'Gastronomia',  color: CategoryColors.gastronomia },
+  { name: 'Natureza',     color: CategoryColors.natureza },
+  { name: 'Turismo',      color: CategoryColors.turismo },
+  { name: 'Curiosidades', color: CategoryColors.curiosidades },
+  { name: 'Reggae',       color: CategoryColors.reggae },
 ];
 type Format = 'vertical' | 'horizontal';
 type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
@@ -257,7 +258,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     setQuestions([]);
   }
 
-  const timerColor = timeLeft <= 5 ? '#E24B4A' : timeLeft <= 10 ? '#BA7517' : colors.primary;
+  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? CategoryColors.gastronomia : colors.primary;
   const q = questions[current];
 
   // ══════════════════════════════════════════
@@ -271,9 +272,9 @@ export function ViralModeScreen({ navigation, route }: any) {
         </TouchableOpacity>
 
         <View style={styles.setupCenter}>
-          <View style={[styles.viralBadge, { backgroundColor: '#E24B4A20', borderColor: '#E24B4A40' }]}>
-            <Video size={18} color="#E24B4A" />
-            <Text style={[styles.viralBadgeText, { color: '#E24B4A' }]}>MODO VIRAL</Text>
+          <View style={[styles.viralBadge, { backgroundColor: withOpacity(colors.danger, 12.5), borderColor: withOpacity(colors.danger, 25.1) }]}>
+            <Video size={18} color={colors.danger} />
+            <Text style={[styles.viralBadgeText, { color: colors.danger }]}>MODO VIRAL</Text>
           </View>
 
           <Text style={[styles.setupTitle, { color: colors.text }]}>
@@ -300,7 +301,7 @@ export function ViralModeScreen({ navigation, route }: any) {
                   style={[
                     styles.categoryChip,
                     {
-                      backgroundColor: active ? color + '20' : colors.card,
+                      backgroundColor: active ? withOpacity(color, 12.5) : colors.card,
                       borderColor: active ? color : colors.border,
                     },
                   ]}
@@ -314,10 +315,10 @@ export function ViralModeScreen({ navigation, route }: any) {
           </ScrollView>
 
           {/* Aviso importante */}
-          <View style={[styles.warningCard, { backgroundColor: '#BA751715', borderColor: '#BA751740' }]}>
+          <View style={[styles.warningCard, { backgroundColor: withOpacity(CategoryColors.gastronomia, 8.2), borderColor: withOpacity(CategoryColors.gastronomia, 25.1) }]}>
             <View style={styles.warningHeader}>
-              <Smartphone size={20} color="#BA7517" />
-              <Text style={[styles.warningTitle, { color: '#BA7517' }]}>Antes de começar</Text>
+              <Smartphone size={20} color={CategoryColors.gastronomia} />
+              <Text style={[styles.warningTitle, { color: CategoryColors.gastronomia }]}>Antes de começar</Text>
             </View>
             <Text style={[styles.warningText, { color: colors.textSecondary }]}>
               Ative a gravação de tela do seu celular antes de iniciar. O app grava sua câmera, mas é a gravação de tela que captura tudo junto: pergunta, resposta e sua reação.
@@ -327,9 +328,9 @@ export function ViralModeScreen({ navigation, route }: any) {
           {/* Features */}
           <View style={[styles.featureList, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {([
-              { Icon: Mic,       label: 'Perguntas narradas automaticamente', color: '#D4537E' },
-              { Icon: Volume2,   label: 'Efeitos sonoros e vibração ao responder', color: '#BA7517' },
-              { Icon: Share2,    label: 'Compartilhe direto nas redes',        color: '#378ADD' },
+              { Icon: Mic,       label: 'Perguntas narradas automaticamente', color: CategoryColors.curiosidades },
+              { Icon: Volume2,   label: 'Efeitos sonoros e vibração ao responder', color: CategoryColors.gastronomia },
+              { Icon: Share2,    label: 'Compartilhe direto nas redes',        color: CategoryColors.turismo },
             ] as { Icon: any; label: string; color: string }[]).map(({ Icon, label, color }) => (
               <View key={label} style={styles.featureRow}>
                 <Icon size={18} color={color} />
@@ -341,11 +342,11 @@ export function ViralModeScreen({ navigation, route }: any) {
           <TouchableOpacity
             onPress={handleStart}
             disabled={loading}
-            style={[styles.startBtn, { backgroundColor: '#E24B4A' }]}
+            style={[styles.startBtn, { backgroundColor: QuickActionColors.viral.bg }]}
           >
             {loading
-              ? <ActivityIndicator color="#FFF" />
-              : <><Video size={20} color="#FFF" /><Text style={styles.startBtnText}>Começar gravação</Text></>
+              ? <ActivityIndicator color={QuickActionColors.viral.fg} />
+              : <><Video size={20} color={QuickActionColors.viral.fg} /><Text style={[styles.startBtnText, { color: QuickActionColors.viral.fg }]}>Começar gravação</Text></>
             }
           </TouchableOpacity>
         </View>
@@ -407,7 +408,7 @@ export function ViralModeScreen({ navigation, route }: any) {
             {questions.map((_, i) => (
               <View key={i} style={[
                 styles.dot,
-                { backgroundColor: i < current ? colors.primary : i === current ? colors.primary + '70' : colors.border }
+                { backgroundColor: i < current ? colors.primary : i === current ? withOpacity(colors.primary, 43.9) : colors.border }
               ]} />
             ))}
           </View>
@@ -443,9 +444,9 @@ export function ViralModeScreen({ navigation, route }: any) {
               let tc = colors.text;
 
               if (revealed) {
-                if (isCorrect) { bg = '#009C3B20'; border = '#009C3B'; tc = '#009C3B'; }
-                else if (isSelected) { bg = '#E24B4A20'; border = '#E24B4A'; tc = '#E24B4A'; }
-              } else if (isSelected) { bg = colors.primary + '15'; border = colors.primary; tc = colors.primary; }
+                if (isCorrect) { bg = withOpacity(colors.success, 12.5); border = colors.success; tc = colors.success; }
+                else if (isSelected) { bg = withOpacity(colors.danger, 12.5); border = colors.danger; tc = colors.danger; }
+              } else if (isSelected) { bg = withOpacity(colors.primary, 8.2); border = colors.primary; tc = colors.primary; }
 
               return (
                 <TouchableOpacity
@@ -454,12 +455,12 @@ export function ViralModeScreen({ navigation, route }: any) {
                   disabled={answered}
                   style={[styles.option, { backgroundColor: bg, borderColor: border }]}
                 >
-                  <View style={[styles.optLetter, { backgroundColor: border + '30' }]}>
+                  <View style={[styles.optLetter, { backgroundColor: withOpacity(border, 18.8) }]}>
                     <Text style={[styles.optLetterText, { color: tc }]}>{['A', 'B', 'C', 'D'][i]}</Text>
                   </View>
                   <Text style={[styles.optText, { color: tc }]} numberOfLines={2}>{opt}</Text>
-                  {revealed && isCorrect && <CheckCircle size={16} color="#009C3B" />}
-                  {revealed && isSelected && !isCorrect && <XCircle size={16} color="#E24B4A" />}
+                  {revealed && isCorrect && <CheckCircle size={16} color={colors.success} />}
+                  {revealed && isSelected && !isCorrect && <XCircle size={16} color={colors.danger} />}
                 </TouchableOpacity>
               );
             })}
@@ -498,17 +499,17 @@ export function ViralModeScreen({ navigation, route }: any) {
     const pct = Math.round((score / questions.length) * 100);
     const msg = pct >= 80 ? 'Arrasou!' : pct >= 60 ? 'Muito bem!' : 'Treina mais!';
     const ResultIcon = pct >= 80 ? Trophy : pct >= 60 ? Star : BookOpen;
-    const resultIconColor = pct >= 80 ? '#FFDF00' : pct >= 60 ? colors.primary : colors.textSecondary;
+    const resultIconColor = pct >= 80 ? MedalColors.gold : pct >= 60 ? colors.primary : colors.textSecondary;
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.resultCenter}>
           <ResultIcon size={56} color={resultIconColor} />
           <Text style={[styles.resultTitle, { color: colors.text }]}>{msg}</Text>
-          <Text style={[styles.resultScore, { color: '#E24B4A' }]}>{score}/{questions.length} acertos</Text>
+          <Text style={[styles.resultScore, { color: colors.text }]}>{score}/{questions.length} acertos</Text>
 
           <View style={styles.resultDots}>
             {results.map((r, i) => (
-              <View key={i} style={[styles.resultDot, { backgroundColor: r ? '#009C3B' : '#E24B4A' }]} />
+              <View key={i} style={[styles.resultDot, { backgroundColor: r ? colors.success : colors.danger }]} />
             ))}
           </View>
 
@@ -518,11 +519,11 @@ export function ViralModeScreen({ navigation, route }: any) {
               O vídeo será gerado com sua câmera e as perguntas respondidas
             </Text>
             <TouchableOpacity
-              style={[styles.shareBtn, { backgroundColor: '#E24B4A' }]}
+              style={[styles.shareBtn, { backgroundColor: QuickActionColors.viral.bg }]}
               onPress={handleShareResult}
             >
-              <Share2 size={18} color="#FFF" />
-              <Text style={styles.shareBtnText}>Compartilhar resultado</Text>
+              <Share2 size={18} color={QuickActionColors.viral.fg} />
+              <Text style={[styles.shareBtnText, { color: QuickActionColors.viral.fg }]}>Compartilhar resultado</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.retryBtn, { borderColor: colors.border }]}
@@ -547,10 +548,10 @@ const styles = StyleSheet.create({
   backText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   setupCenter: { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
   viralBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
-  viralBadgeText: { fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1 },
+  viralBadgeText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, letterSpacing: 1 },
   setupTitle: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 34 },
   setupSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
-  formatLabel: { fontSize: 11, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
+  formatLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
   formatRow: { flexDirection: 'row', gap: 12 },
   categoryScroll: { flexGrow: 0 },
   categoryRow: { flexDirection: 'row', gap: 8, paddingVertical: 4, alignItems: 'center' },
@@ -559,7 +560,7 @@ const styles = StyleSheet.create({
   formatBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: Radius.lg, borderWidth: 0.5, paddingVertical: Spacing.lg },
   formatIcon: { backgroundColor: 'transparent' },
   formatName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  formatSub: { fontSize: 11 },
+  formatSub: { fontSize: FontSize.xs },
   warningCard: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
   warningHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   warningTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
@@ -569,7 +570,7 @@ const styles = StyleSheet.create({
   featureIcon: { fontSize: 18 },
   featureText: { fontSize: FontSize.sm, flex: 1 },
   startBtn: { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  startBtnText: { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  startBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   countdownOverlay: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   countdownNum: { fontSize: 120, fontWeight: FontWeight.bold, color: '#FFF' },
   countdownText: { fontSize: FontSize.xl, color: '#FFF', fontWeight: FontWeight.medium },
@@ -585,7 +586,7 @@ const styles = StyleSheet.create({
   timerBarFill: { height: 4, borderRadius: 2 },
   timerNum: { fontSize: 12, fontWeight: FontWeight.bold, width: 28, textAlign: 'right' },
   questionBox: { borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, marginBottom: Spacing.sm },
-  subcatBadge: { fontSize: 10, marginBottom: 4, fontWeight: FontWeight.medium },
+  subcatBadge: { fontSize: FontSize.xs, marginBottom: 4, fontWeight: FontWeight.medium },
   questionText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 22 },
   options: { gap: 6 },
   option: { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, paddingHorizontal: Spacing.sm, paddingVertical: 8, gap: 8 },
@@ -602,7 +603,7 @@ const styles = StyleSheet.create({
   shareTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, textAlign: 'center' },
   shareSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
   shareBtn: { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  shareBtnText: { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  shareBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   retryBtn: { height: 44, borderRadius: Radius.md, borderWidth: 0.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   retryBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
 });
