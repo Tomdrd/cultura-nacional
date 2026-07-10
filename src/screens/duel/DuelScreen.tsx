@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated } from 'react-native';
-import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft } from 'lucide-react-native';
+import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft, X } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { CategoryColors, MedalColors, withOpacity } from '../../constants/colors';
 
 type DuelState = 'lobby' | 'waiting' | 'playing' | 'finished';
 
@@ -311,7 +312,7 @@ export function DuelScreen({ navigation }: any) {
     setShowJoin(false);
   }
 
-  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? '#BA7517' : colors.primary;
+  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? CategoryColors.gastronomia : colors.primary;
 
   // ══════════════════════════════════════════════════════════════
   // LOBBY
@@ -323,7 +324,7 @@ export function DuelScreen({ navigation }: any) {
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.center}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.primary + '20' }]}>
+          <View style={[styles.iconWrap, { backgroundColor: withOpacity(colors.primary, 12.5) }]}>
             <Swords size={48} color={colors.primary} />
           </View>
           <Text style={[styles.lobbyTitle, { color: colors.text }]}>Duelo 1v1</Text>
@@ -389,7 +390,7 @@ export function DuelScreen({ navigation }: any) {
           </View>
           <TouchableOpacity
             onPress={() => Share.share({ message: `Me desafie no Cultura Nacional!\nCódigo: ${matchId?.replace(/-/g, '').slice(0, 8).toUpperCase()}` })}
-            style={[styles.shareBtn, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '40' }]}
+            style={[styles.shareBtn, { backgroundColor: withOpacity(colors.primary, 8.2), borderColor: withOpacity(colors.primary, 25.1) }]}
           >
             <Copy size={16} color={colors.primary} />
             <Text style={[styles.shareBtnText, { color: colors.primary }]}>Compartilhar convite</Text>
@@ -414,7 +415,7 @@ export function DuelScreen({ navigation }: any) {
             <Text style={[styles.scoreName, { color: colors.primary }]}>Você</Text>
             <Text style={[styles.scoreVal, { color: colors.text }]}>{myScore}</Text>
           </View>
-          <View style={[styles.timerBadge, { backgroundColor: timerColor + '20' }]}>
+          <View style={[styles.timerBadge, { backgroundColor: withOpacity(timerColor, 12.5) }]}>
             <Clock size={13} color={timerColor} />
             <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
           </View>
@@ -434,7 +435,7 @@ export function DuelScreen({ navigation }: any) {
         <View style={styles.counterRow}>
           {questions.map((_, i) => (
             <View key={i} style={[styles.counterDot, {
-              backgroundColor: i < current ? colors.primary : i === current ? colors.primary+'60' : colors.border
+              backgroundColor: i < current ? colors.primary : i === current ? withOpacity(colors.primary, 37.6) : colors.border
             }]} />
           ))}
         </View>
@@ -447,18 +448,18 @@ export function DuelScreen({ navigation }: any) {
               const isSelected = i === selected;
               let bg = colors.card, border = colors.border, textColor = colors.text;
               if (answered) {
-                if (isCorrect)               { bg = '#009C3B20'; border = '#009C3B'; textColor = '#009C3B'; }
-                else if (isSelected)         { bg = colors.danger+'20'; border = colors.danger; textColor = colors.danger; }
-              } else if (isSelected)         { bg = colors.primary+'15'; border = colors.primary; textColor = colors.primary; }
+                if (isCorrect)               { bg = withOpacity(colors.success, 12.5); border = colors.success; textColor = colors.success; }
+                else if (isSelected)         { bg = withOpacity(colors.danger, 12.5); border = colors.danger; textColor = colors.danger; }
+              } else if (isSelected)         { bg = withOpacity(colors.primary, 8.2); border = colors.primary; textColor = colors.primary; }
               return (
                 <TouchableOpacity key={i} onPress={() => handleAnswer(i)} disabled={answered}
                   style={[styles.option, { backgroundColor: bg, borderColor: border }]}
                 >
-                  <View style={[styles.optLetter, { backgroundColor: border+'30' }]}>
+                  <View style={[styles.optLetter, { backgroundColor: withOpacity(border, 18.8) }]}>
                     <Text style={[styles.optLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                   </View>
                   <Text style={[styles.optText, { color: textColor }]}>{opt}</Text>
-                  {answered && isCorrect               && <CheckCircle size={18} color="#009C3B" />}
+                  {answered && isCorrect               && <CheckCircle size={18} color={colors.success} />}
                   {answered && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
                 </TouchableOpacity>
               );
@@ -479,9 +480,9 @@ export function DuelScreen({ navigation }: any) {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.center}>
           <View style={[styles.resultIcon, {
-            backgroundColor: iWon ? '#FFDF0020' : isDraw ? colors.primary+'20' : colors.danger+'20'
+            backgroundColor: iWon ? withOpacity(MedalColors.gold, 12.5) : isDraw ? withOpacity(colors.primary, 12.5) : withOpacity(colors.danger, 12.5)
           }]}>
-            <Trophy size={48} color={iWon ? '#FFDF00' : isDraw ? colors.primary : colors.danger} />
+            <Trophy size={48} color={iWon ? MedalColors.gold : isDraw ? colors.primary : colors.danger} />
           </View>
           <Text style={[styles.resultTitle, { color: colors.text }]}>
             {iWon ? 'Você venceu!' : isDraw ? 'Empate!' : 'Você perdeu!'}

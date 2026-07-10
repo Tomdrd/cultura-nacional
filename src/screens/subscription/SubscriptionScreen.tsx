@@ -1,192 +1,229 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Check, X, Zap, Shield, Star, Crown, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
+import { ArrowLeft, Shield, Zap, RefreshCw } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
-import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
-type PlanId = 'monthly' | 'family';
+type PlanId = 'monthly' | 'biannual' | 'annual';
 
 const PLANS = [
-  { id: 'monthly' as PlanId, label: 'CN Pro',   price: 'R$ 9,90',  period: '/mês', description: 'Para você explorar sem limites', highlight: true },
-  { id: 'family'  as PlanId, label: 'Família',  price: 'R$ 19,90', period: '/mês', description: 'Até 5 contas na assinatura',      highlight: false },
+  {
+    id:       'monthly'  as PlanId,
+    label:    '1 mês',
+    price:    'R$ 14,90',
+    priceNum: 14.90,
+    monthly:  'R$ 14,90/mês',
+    period:   'Renovação mensal',
+    economy:  null,
+    days:     30,
+  },
+  {
+    id:       'biannual' as PlanId,
+    label:    '6 meses',
+    price:    'R$ 69,90',
+    priceNum: 69.90,
+    monthly:  'R$ 11,65/mês',
+    period:   'Pagamento único',
+    economy:  'Economize 22%',
+    days:     180,
+    popular:  true,
+  },
+  {
+    id:       'annual'   as PlanId,
+    label:    '1 ano',
+    price:    'R$ 119,90',
+    priceNum: 119.90,
+    monthly:  'R$ 9,99/mês',
+    period:   'Pagamento único',
+    economy:  'Economize 33%',
+    days:     365,
+  },
 ];
 
-const FREE_FEATURES  = [
-  { label: 'Quiz solo com anúncios',   ok: true  },
-  { label: '5 duelos por dia',         ok: true  },
-  { label: 'Acesso a 5 estados',       ok: true  },
-  { label: 'Ranking nacional',         ok: true  },
-  { label: 'Sem anúncios',             ok: false },
-  { label: 'Duelos ilimitados',        ok: false },
-  { label: 'Todos os 27 estados',      ok: false },
-  { label: 'Modo offline',             ok: false },
-  { label: 'Badge exclusivo',          ok: false },
-];
-
-const PRO_FEATURES = [
-  'Quiz solo sem anúncios',
-  'Duelos ilimitados',
+const FEATURES = [
+  'Selo azul verificado',
+  'Perguntas exclusivas CN Pro',
+  'Ranking prioritário',
   'Todos os 27 estados',
-  'Ranking nacional + cidade',
-  'Modo offline',
-  'Badge exclusivo Pro',
-  'Conteúdo antecipado',
-  'Suporte prioritário',
+  'Duelos ilimitados',
+  'Cancele quando quiser',
 ];
+
+const CHECKOUT_BASE_URL = 'https://cultura-nacional-admin.vercel.app/checkout';
 
 export function SubscriptionScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { user } = useAuthStore();
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>('monthly');
-  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<PlanId>('biannual');
 
-  async function handleSubscribe() {
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 1500));
-    if (user) {
-      await supabase.from('profiles')
-        .update({ plan: selectedPlan === 'family' ? 'family' : 'pro' })
-        .eq('id', user.id);
-    }
-    setLoading(false);
-    Alert.alert('Bem-vindo ao CN Pro!', 'Assinatura ativada com sucesso!',
-      [{ text: 'Começar', onPress: () => navigation.goBack() }]);
+  function handleSubscribe() {
+    const plan = PLANS.find(p => p.id === selected)!;
+    const params = new URLSearchParams({
+      plan:   selected,
+      days:   String(plan.days),
+      price:  String(plan.priceNum),
+      userId: user?.id ?? '',
+      email:  user?.email ?? '',
+    });
+    const url = `${CHECKOUT_BASE_URL}?${params.toString()}`;
+    Linking.openURL(url);
   }
+
+  const selectedPlan = PLANS.find(p => p.id === selected)!;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+
+      {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>CN Pro</Text>
         <View style={{ width: 22 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.hero, { backgroundColor: colors.primary }]}>
-          <Crown size={40} color="#FFDF00" />
-          <Text style={styles.heroTitle}>Explore o Brasil{'\n'}sem limites</Text>
-          <Text style={styles.heroSub}>Cancele quando quiser</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
+
+        {/* Hero */}
+        <View style={[styles.hero, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          <View style={[styles.heroBadge, { backgroundColor: '#1877F215', borderColor: '#1877F240' }]}>
+            <Ionicons name="checkmark-circle" size={14} color="#1877F2" />
+            <Text style={styles.heroBadgeText}>Verificado</Text>
+          </View>
+          <Text style={[styles.heroTitle, { color: colors.text }]}>Leve o Cultura Nacional{'\n'}ao próximo nível</Text>
+          <Text style={[styles.heroSub, { color: colors.textSecondary }]}>Perguntas exclusivas, ranking prioritário e muito mais</Text>
         </View>
 
-        {/* Plan cards */}
-        <View style={styles.planRow}>
-          {PLANS.map(plan => (
-            <TouchableOpacity key={plan.id} onPress={() => setSelectedPlan(plan.id)}
-              style={[styles.planCard, {
-                backgroundColor: selectedPlan === plan.id ? colors.primary : colors.card,
-                borderColor: selectedPlan === plan.id ? colors.primary : colors.border,
-              }]}
-            >
-              {plan.highlight && (
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularText}>POPULAR</Text>
-                </View>
-              )}
-              <Text style={[styles.planLabel, { color: selectedPlan === plan.id ? '#FFF' : colors.text }]}>{plan.label}</Text>
-              <View style={styles.priceRow}>
-                <Text style={[styles.planPrice, { color: selectedPlan === plan.id ? '#FFDF00' : colors.primary }]}>{plan.price}</Text>
-                <Text style={[styles.planPeriod, { color: selectedPlan === plan.id ? 'rgba(255,255,255,0.7)' : colors.textMuted }]}>{plan.period}</Text>
-              </View>
-              <Text style={[styles.planDesc, { color: selectedPlan === plan.id ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>{plan.description}</Text>
-            </TouchableOpacity>
-          ))}
+        {/* Plans */}
+        <View style={styles.plansSection}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Escolha seu plano</Text>
+          <View style={styles.plansCol}>
+            {PLANS.map(plan => {
+              const isSelected = plan.id === selected;
+              return (
+                <TouchableOpacity
+                  key={plan.id}
+                  onPress={() => setSelected(plan.id)}
+                  activeOpacity={0.85}
+                  style={[
+                    styles.planCard,
+                    {
+                      backgroundColor: isSelected ? '#1877F210' : colors.card,
+                      borderColor:     isSelected ? '#1877F2'   : colors.border,
+                      borderWidth:     isSelected ? 1.5 : 0.5,
+                    },
+                  ]}
+                >
+                  {plan.popular && (
+                    <View style={styles.popularBadge}>
+                      <Text style={styles.popularText}>MAIS POPULAR</Text>
+                    </View>
+                  )}
+                  <View style={styles.planRow}>
+                    <View style={[styles.radio, { borderColor: isSelected ? '#1877F2' : colors.border }]}>
+                      {isSelected && <View style={styles.radioDot} />}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.planLabel, { color: colors.text }]}>{plan.label}</Text>
+                      <Text style={[styles.planPeriod, { color: colors.textMuted }]}>{plan.period}</Text>
+                      {plan.economy && (
+                        <Text style={styles.planEconomy}>{plan.economy}</Text>
+                      )}
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={[styles.planPrice, { color: isSelected ? '#1877F2' : colors.text }]}>{plan.price}</Text>
+                      <Text style={[styles.planMonthly, { color: colors.textMuted }]}>{plan.monthly}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
-        {/* Comparison */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>O que está incluído</Text>
-          <View style={[styles.compareCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.compareTitle, { color: colors.textSecondary }]}>Gratuito</Text>
-            {FREE_FEATURES.map(({ label, ok }) => (
-              <View key={label} style={styles.featureRow}>
-                {ok ? <Check size={16} color={colors.primary} /> : <X size={16} color={colors.textMuted} />}
-                <Text style={[styles.featureLabel, { color: ok ? colors.text : colors.textMuted }]}>{label}</Text>
+        {/* Features */}
+        <View style={styles.featuresSection}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>O que está incluído</Text>
+          <View style={[styles.featuresCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {FEATURES.map(f => (
+              <View key={f} style={styles.featureRow}>
+                <Ionicons name="checkmark-circle" size={18} color="#1877F2" />
+                <Text style={[styles.featureText, { color: colors.text }]}>{f}</Text>
               </View>
             ))}
           </View>
-          <View style={[styles.compareCard, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '40' }]}>
-            <View style={styles.compareTitleRow}>
-              <Crown size={14} color={colors.primary} />
-              <Text style={[styles.compareTitle, { color: colors.primary }]}>CN Pro</Text>
-            </View>
-            {PRO_FEATURES.map(label => (
-              <View key={label} style={styles.featureRow}>
-                <Check size={16} color={colors.primary} />
-                <Text style={[styles.featureLabel, { color: colors.text }]}>{label}</Text>
-              </View>
-            ))}
-          </View>
         </View>
 
-        {/* Trust badges */}
+        {/* Trust */}
         <View style={styles.trustRow}>
-          {[
-            { Icon: Shield, label: 'Pagamento\nseguro' },
-            { Icon: Zap,    label: 'Cancele\nquando quiser' },
-            { Icon: Star,   label: 'Sem\ncompromisso' },
-          ].map(({ Icon, label }) => (
-            <View key={label} style={styles.trustItem}>
-              <Icon size={20} color={colors.textSecondary} />
-              <Text style={[styles.trustLabel, { color: colors.textMuted }]}>{label}</Text>
-            </View>
-          ))}
+          <View style={styles.trustItem}>
+            <Shield size={18} color={colors.textMuted} />
+            <Text style={[styles.trustText, { color: colors.textMuted }]}>Pagamento{'\n'}seguro</Text>
+          </View>
+          <View style={[styles.trustDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.trustItem}>
+            <Zap size={18} color={colors.textMuted} />
+            <Text style={[styles.trustText, { color: colors.textMuted }]}>Ativação{'\n'}imediata</Text>
+          </View>
+          <View style={[styles.trustDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.trustItem}>
+            <RefreshCw size={18} color={colors.textMuted} />
+            <Text style={[styles.trustText, { color: colors.textMuted }]}>Cancele{'\n'}quando quiser</Text>
+          </View>
         </View>
-        <View style={{ height: 120 }} />
+
       </ScrollView>
 
+      {/* CTA fixo */}
       <View style={[styles.cta, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-        <TouchableOpacity onPress={handleSubscribe} disabled={loading}
-          style={[styles.ctaBtn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
-        >
-          {loading ? <ActivityIndicator color="#FFF" /> : (
-            <>
-              <Crown size={18} color="#FFDF00" />
-              <Text style={styles.ctaBtnText}>
-                Assinar por {selectedPlan === 'monthly' ? 'R$ 9,90/mês' : 'R$ 19,90/mês'}
-              </Text>
-            </>
-          )}
+        <TouchableOpacity onPress={handleSubscribe} activeOpacity={0.85} style={styles.ctaBtn}>
+          <Text style={styles.ctaBtnText}>Assinar por {selectedPlan.price}</Text>
         </TouchableOpacity>
         <Text style={[styles.ctaHint, { color: colors.textMuted }]}>
-          Cobrado mensalmente · Cancele a qualquer momento
+          Pague com Pix, cartão ou boleto · Processado pelo Mercado Pago
         </Text>
       </View>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1 },
-  header:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
-  headerTitle:     { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  hero:            { padding: Spacing.xxxl, alignItems: 'center', gap: 12 },
-  heroTitle:       { color: '#FFF', fontSize: FontSize.xxl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 34 },
-  heroSub:         { color: 'rgba(255,255,255,0.7)', fontSize: FontSize.sm },
-  planRow:         { flexDirection: 'row', gap: 12, padding: Spacing.xl },
-  planCard:        { flex: 1, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 6, overflow: 'hidden' },
-  popularBadge:    { position: 'absolute', top: 8, right: 8, backgroundColor: '#FFDF00', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  popularText:     { fontSize: 9, fontWeight: FontWeight.bold, color: '#002776' },
-  planLabel:       { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  priceRow:        { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
-  planPrice:       { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  planPeriod:      { fontSize: FontSize.xs, marginBottom: 3 },
-  planDesc:        { fontSize: 11, lineHeight: 16 },
-  section:         { padding: Spacing.xl, gap: 12 },
-  sectionTitle:    { fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: 4 },
-  compareCard:     { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 2 },
-  compareTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  compareTitle:    { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginBottom: 8 },
-  featureRow:      { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 5 },
-  featureLabel:    { fontSize: FontSize.sm, flex: 1 },
-  trustRow:        { flexDirection: 'row', justifyContent: 'center', gap: Spacing.xxl, padding: Spacing.xl },
-  trustItem:       { alignItems: 'center', gap: 6 },
-  trustLabel:      { fontSize: 11, textAlign: 'center', lineHeight: 16 },
-  cta:             { position: 'absolute', bottom: 0, left: 0, right: 0, padding: Spacing.xl, borderTopWidth: 0.5, gap: 8 },
-  ctaBtn:          { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  ctaBtnText:      { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  ctaHint:         { fontSize: 11, textAlign: 'center' },
+  container:      { flex: 1 },
+  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  headerTitle:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  hero:           { padding: Spacing.xl, paddingVertical: 28, alignItems: 'center', gap: 10, borderBottomWidth: 0.5 },
+  heroBadge:      { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 0.5, marginBottom: 4 },
+  heroBadgeText:  { fontSize: 12, fontWeight: FontWeight.medium, color: '#1877F2' },
+  heroTitle:      { fontSize: FontSize.xl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 30 },
+  heroSub:        { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
+  plansSection:   { padding: Spacing.xl, gap: 10 },
+  sectionLabel:   { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 2 },
+  plansCol:       { gap: 8 },
+  planCard:       { borderRadius: Radius.lg, padding: Spacing.lg, overflow: 'hidden' },
+  popularBadge:   { position: 'absolute', top: 0, right: 12, backgroundColor: '#1877F2', paddingHorizontal: 10, paddingVertical: 3, borderBottomLeftRadius: 6, borderBottomRightRadius: 6 },
+  popularText:    { fontSize: 9, fontWeight: FontWeight.bold, color: '#fff', letterSpacing: 0.5 },
+  planRow:        { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  radio:          { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  radioDot:       { width: 10, height: 10, borderRadius: 5, backgroundColor: '#1877F2' },
+  planLabel:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  planPeriod:     { fontSize: FontSize.xs, marginTop: 1 },
+  planEconomy:    { fontSize: FontSize.xs, color: '#22c55e', marginTop: 2, fontWeight: FontWeight.medium },
+  planPrice:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  planMonthly:    { fontSize: 11, marginTop: 1 },
+  featuresSection:{ paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xl, gap: 10 },
+  featuresCard:   { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 4 },
+  featureRow:     { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 5 },
+  featureText:    { fontSize: FontSize.sm, flex: 1 },
+  trustRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xl, gap: 0 },
+  trustItem:      { flex: 1, alignItems: 'center', gap: 6 },
+  trustDivider:   { width: 0.5, height: 36, marginHorizontal: 8 },
+  trustText:      { fontSize: 11, textAlign: 'center', lineHeight: 16 },
+  cta:            { position: 'absolute', bottom: 0, left: 0, right: 0, padding: Spacing.xl, borderTopWidth: 0.5, gap: 8 },
+  ctaBtn:         { height: 52, borderRadius: Radius.md, backgroundColor: '#1877F2', alignItems: 'center', justifyContent: 'center' },
+  ctaBtnText:     { color: '#fff', fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  ctaHint:        { fontSize: 11, textAlign: 'center' },
 });

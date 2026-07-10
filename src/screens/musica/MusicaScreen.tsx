@@ -3,16 +3,20 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { ArrowLeft, Music } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { CategoryColors, withOpacity } from '../../constants/colors';
 
 const GENEROS = [
-  { name: 'MPB',    emoji: '🎸', color: '#7F3FBF', desc: 'Música Popular Brasileira' },
-  { name: 'Reggae', emoji: '🌿', color: '#2E8B57', desc: 'Ritmo e cultura rastafári' },
-  { name: 'RAP',    emoji: '🎤', color: '#1A1A2E', desc: 'Rimas e batidas urbanas' },
+  { name: 'MPB',    emoji: '🎸', color: CategoryColors.musica, desc: 'Música Popular Brasileira' },
+  { name: 'Reggae', emoji: '🌿', color: CategoryColors.reggae, desc: 'Ritmo e cultura rastafári' },
+  { name: 'RAP',    emoji: '🎤', color: CategoryColors.rap,    desc: 'Rimas e batidas urbanas' },
 ];
 
 export function MusicaScreen({ navigation }: any) {
-  const { colors } = useTheme();
-
+  const { colors, isDark } = useTheme();
+  // #1A1A2E (RAP) é quase invisível sobre fundo escuro (contraste ~1:1) - usa
+  // uma variante mais clara da mesma família de cor só no dark mode.
+  const rapColor = isDark ? '#6B6B9E' : CategoryColors.rap;
+  const generosThemed = GENEROS.map(g => g.name === 'RAP' ? { ...g, color: rapColor } : g);
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
@@ -23,23 +27,23 @@ export function MusicaScreen({ navigation }: any) {
         <View style={{ width: 32 }} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <View style={[styles.heroBanner, { backgroundColor: '#7F3FBF' + '20', borderColor: '#7F3FBF' + '40' }]}>
-          <Music size={32} color="#7F3FBF" />
+        <View style={[styles.heroBanner, { backgroundColor: withOpacity(CategoryColors.musica, 12.5), borderColor: withOpacity(CategoryColors.musica, 25.1) }]}>
+          <Music size={32} color={CategoryColors.musica} />
           <Text style={[styles.heroTitle, { color: colors.text }]}>Quiz Musical</Text>
           <Text style={[styles.heroSub, { color: colors.textMuted }]}>Teste seus conhecimentos sobre a música brasileira</Text>
         </View>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Escolha um gênero</Text>
-        {GENEROS.map(({ name, emoji, color, desc }) => (
+        {generosThemed.map(({ name, emoji, color, desc }) => (
           <TouchableOpacity
             key={name}
             onPress={() => navigation.navigate('Quiz', { subcategory: name })}
-            style={[styles.card, { backgroundColor: color + '15', borderColor: color + '40' }]}
+            style={[styles.card, { backgroundColor: withOpacity(color, 8.2), borderColor: withOpacity(color, 25.1) }]}
           >
-            <View style={[styles.iconWrap, { backgroundColor: color + '25' }]}>
+            <View style={[styles.iconWrap, { backgroundColor: withOpacity(color, 14.5) }]}>
               <Text style={styles.emoji}>{emoji}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.cardName, { color }]}>{name}</Text>
+              <Text style={[styles.cardName, { color: colors.text }]}>{name}</Text>
               <Text style={[styles.cardDesc, { color: colors.textMuted }]}>{desc}</Text>
             </View>
           </TouchableOpacity>
