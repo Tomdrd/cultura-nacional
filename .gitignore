@@ -40,3 +40,6 @@ eas-cli-log*.txt
 supabase/config.toml
 supabase/.gitignore
 assets/flags-backup-*/
+fix_*.py
+v*.zip
+ao *
