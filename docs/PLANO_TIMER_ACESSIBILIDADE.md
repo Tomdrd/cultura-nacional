@@ -26,11 +26,16 @@ Timer por pergunta (hoje: 15s Quiz/Duelo, 30s Relâmpago, resetado a cada pergun
 - **Narração casual** (fora do modo de acessibilidade, só lê a pergunta): **NÃO pausa** o cronômetro. Resolve a assimetria de "ganhar tempo de graça" por ligar a narração sem necessidade.
 - **Se o tempo total zerar no meio do quiz:** encerra o quiz imediatamente; a pergunta atual (se não respondida) e todas as restantes contam como erradas. Vai direto pra tela de resultado.
 - Não existe mais timeout por pergunta individual — só o relógio geral importa.
+- **PAUSA OBRIGATÓRIA quando `answered === true`** (problema descoberto após o design inicial): sem isso, o tempo de ler a explicação da resposta ou de abrir o ReportModal consumiria o orçamento total do quiz, podendo até zerar o tempo enquanto o usuário só está revisando. Cobre dois casos com uma única condição:
+  - Tempo de leitura da explicação da resposta
+  - Report modal aberto DEPOIS de já ter respondido
+  - Report modal aberto ANTES de responder (durante a decisão) NÃO pausa o timer — evita abrir brecha de "congelar o relógio" sem intenção real de reportar
+- Retoma ao avançar para a próxima pergunta (`nextQuestion()`).
 
 ### Arquitetura
 - **Novo hook:** `src/hooks/useGlobalQuizTimer.ts`
   - Estado: `totalTimeLeft`
-  - Métodos: `pause()`, `resume()` (usado futuramente pela Fase 2; na Fase 1 quase não é chamado, já que narração casual não pausa)
+  - Métodos: `pause()`, `resume()` — necessários JÁ na Fase 1 (não só na Fase 2 como planejado originalmente), para cobrir o caso de `answered === true` (ver regra acima)
   - Callback: `onExpire` — dispara quando `totalTimeLeft` chega a 0
   - Barra de progresso: como não dá mais pra prever duração total antecipadamente (por causa de pausas futuras da Fase 2), a barra passa a animar em ticks de 1s (`Animated.timing` de 1s linear a cada segundo) em vez de uma única animação longa.
 
