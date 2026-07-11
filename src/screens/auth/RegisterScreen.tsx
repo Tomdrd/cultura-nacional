@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, KeyboardAvoidingView, Platform, Linking,
+  View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity,
+  KeyboardAvoidingView, Platform, Linking, ActivityIndicator,
 } from 'react-native';
-import { ArrowLeft, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle, MapPin, Search } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { CustomAlert } from '../../components/ui/CustomAlert';
 import { supabase } from '../../lib/supabase';
 import CnLogo from '../../../assets/images/cn-logo.svg';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
+interface City { id: string; name: string; state_uf: string; }
 type ScreenState = 'form' | 'success';
 
 export function RegisterScreen({ navigation }: any) {
@@ -23,6 +25,55 @@ export function RegisterScreen({ navigation }: any) {
   const [loading,     setLoading]     = useState(false);
   const [errors,      setErrors]      = useState<Record<string, string>>({});
 
+  const [cityQuery,    setCityQuery]    = useState('');
+  const [cityResults,  setCityResults]  = useState<City[]>([]);
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [cityLoading,  setCityLoading]  = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchTimeout = useRef<any>(null);
+
+  const [alert, setAlert] = useState<{ visible: boolean; title: string; message?: string }>({ visible: false, title: '' });
+
+  function showAlert(title: string, message?: string) {
+    setAlert({ visible: true, title, message });
+  }
+
+  useEffect(() => {
+    if (selectedCity) return;
+    if (cityQuery.trim().length < 2) {
+      setCityResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(async () => {
+      setCityLoading(true);
+      const { data } = await supabase
+        .from('cities')
+        .select('id, name, state_uf')
+        .ilike('name', `%${cityQuery.trim()}%`)
+        .order('name')
+        .limit(8);
+      setCityResults(data ?? []);
+      setShowDropdown(true);
+      setCityLoading(false);
+    }, 300);
+  }, [cityQuery, selectedCity]);
+
+  function handleSelectCity(city: City) {
+    setSelectedCity(city);
+    setCityQuery(`${city.name} - ${city.state_uf}`);
+    setShowDropdown(false);
+    setCityResults([]);
+    setErrors(e => ({ ...e, city: '' }));
+  }
+
+  function handleCityQueryChange(text: string) {
+    setCityQuery(text);
+    if (selectedCity) setSelectedCity(null);
+    setErrors(e => ({ ...e, city: '' }));
+  }
+
   function validate(): boolean {
     const e: Record<string, string> = {};
     if (!username.trim())          e.username = 'Informe um nome de usuário';
@@ -33,6 +84,7 @@ export function RegisterScreen({ navigation }: any) {
     else if (password.length < 6)  e.password = 'Mínimo 6 caracteres';
     if (!confirm)                  e.confirm  = 'Confirme sua senha';
     else if (confirm !== password) e.confirm  = 'As senhas não coincidem';
+    if (!selectedCity)             e.city     = 'Selecione sua cidade natal';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -42,9 +94,9 @@ export function RegisterScreen({ navigation }: any) {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email:    email.trim(),
+        email:   email.trim(),
         password,
-        options:  { data: { username: username.trim() } },
+        options: { data: { username: username.trim() } },
       });
 
       if (error) {
@@ -54,26 +106,30 @@ export function RegisterScreen({ navigation }: any) {
             : error.message.includes('invalid')
             ? 'E-mail inválido. Verifique e tente novamente.'
             : error.message;
-        Alert.alert('Erro ao criar conta', msg);
+        showAlert('Erro ao criar conta', msg);
         return;
       }
 
-      // Cadastro bem-sucedido
+      const userId = data.session?.user?.id ?? data.user?.id;
+      if (userId && selectedCity) {
+        await supabase.from('profiles').update({
+          city_natal_id:   selectedCity.id,
+          city_changed_at: new Date().toISOString(),
+        }).eq('id', userId);
+      }
+
       if (data.session) {
-        // Sessão já ativa (confirmação de e-mail desativada) — vai pro Onboarding
-        navigation.navigate('Onboarding');
+        navigation.reset({ index: 0, routes: [{ name: 'App' }] });
       } else {
-        // Confirmação de e-mail ativa — mostra tela de sucesso
         setScreenState('success');
       }
-    } catch (err: any) {
-      Alert.alert('Erro', 'Não foi possível criar a conta. Tente novamente.');
+    } catch {
+      showAlert('Erro', 'Não foi possível criar a conta. Tente novamente.');
     } finally {
       setLoading(false);
     }
   }
 
-  // ── Tela de sucesso (e-mail de confirmação) ────────────────────
   if (screenState === 'success') {
     return (
       <View style={[styles.successContainer, { backgroundColor: colors.background }]}>
@@ -87,11 +143,7 @@ export function RegisterScreen({ navigation }: any) {
             <Text style={{ color: colors.primary, fontWeight: FontWeight.bold }}>{email.trim()}</Text>
             {'\n\n'}Verifique sua caixa de entrada (e o spam) e clique no link para ativar sua conta.
           </Text>
-          <Button
-            label="Já confirmei, fazer login"
-            onPress={() => navigation.navigate('Login')}
-            style={styles.successBtn}
-          />
+          <Button label="Já confirmei, fazer login" onPress={() => navigation.navigate('Login')} style={styles.successBtn} />
           <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.laterBtn}>
             <Text style={[styles.laterText, { color: colors.textMuted }]}>Confirmar depois</Text>
           </TouchableOpacity>
@@ -100,7 +152,6 @@ export function RegisterScreen({ navigation }: any) {
     );
   }
 
-  // ── Formulário ─────────────────────────────────────────────────
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
@@ -108,7 +159,6 @@ export function RegisterScreen({ navigation }: any) {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
             <ArrowLeft size={18} color={colors.primary} />
@@ -121,7 +171,6 @@ export function RegisterScreen({ navigation }: any) {
           <Text style={[styles.sub, { color: colors.textSecondary }]}>Junte-se a milhares de brasileiros</Text>
         </View>
 
-        {/* Form */}
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Input
             label="Nome de usuário"
@@ -156,12 +205,53 @@ export function RegisterScreen({ navigation }: any) {
             error={errors.confirm}
           />
 
-          <Button
-            label="Criar conta"
-            onPress={handleRegister}
-            loading={loading}
-            style={styles.btn}
-          />
+          <View style={styles.cityWrap}>
+            <Text style={[styles.cityLabel, { color: colors.textSecondary }]}>CIDADE NATAL</Text>
+            <View style={[
+              styles.cityInputRow,
+              {
+                backgroundColor: colors.backgroundAlt ?? colors.card,
+                borderColor: errors.city ? colors.danger : selectedCity ? colors.primary : colors.border,
+              }
+            ]}>
+              {cityLoading
+                ? <ActivityIndicator size="small" color={colors.primary} />
+                : <Search size={16} color={selectedCity ? colors.primary : colors.textMuted} />
+              }
+              <TextInput
+                placeholder="Buscar cidade..."
+                placeholderTextColor={colors.textMuted}
+                value={cityQuery}
+                onChangeText={handleCityQueryChange}
+                style={[styles.cityInputField, { color: colors.text }]}
+              />
+              {selectedCity && <MapPin size={16} color={colors.primary} />}
+            </View>
+            {errors.city && (
+              <Text style={[styles.errorText, { color: colors.danger }]}>{errors.city}</Text>
+            )}
+            {showDropdown && cityResults.length > 0 && (
+              <View style={[styles.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                {cityResults.map((city, idx) => (
+                  <TouchableOpacity
+                    key={city.id}
+                    style={[
+                      styles.dropdownItem,
+                      { borderBottomColor: colors.border },
+                      idx === cityResults.length - 1 && { borderBottomWidth: 0 },
+                    ]}
+                    onPress={() => handleSelectCity(city)}
+                  >
+                    <MapPin size={14} color={colors.primary} />
+                    <Text style={[styles.dropdownCity, { color: colors.text }]}>{city.name}</Text>
+                    <Text style={[styles.dropdownUF, { color: colors.textMuted }]}>{city.state_uf}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          <Button label="Criar conta" onPress={handleRegister} loading={loading} style={styles.btn} />
 
           <Text style={[styles.terms, { color: colors.textMuted }]}>
             Ao continuar, você concorda com nossos{' '}
@@ -181,6 +271,13 @@ export function RegisterScreen({ navigation }: any) {
             <Text style={[styles.link, { color: colors.primary }]}>Entrar</Text>
           </TouchableOpacity>
         </View>
+
+        <CustomAlert
+          visible={alert.visible}
+          title={alert.title}
+          message={alert.message}
+          onDismiss={() => setAlert({ visible: false, title: '' })}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -208,4 +305,13 @@ const styles = StyleSheet.create({
   successBtn:       { width: '100%', marginTop: Spacing.md },
   laterBtn:         { paddingVertical: Spacing.sm },
   laterText:        { fontSize: FontSize.sm },
+  cityWrap:         { marginBottom: Spacing.md, position: 'relative' },
+  cityLabel:        { fontSize: FontSize.xs, fontWeight: '500', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  cityInputRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: Radius.md, borderWidth: 0.5, paddingHorizontal: Spacing.md },
+  cityInputField:   { flex: 1, marginBottom: 0 },
+  errorText:        { fontSize: FontSize.xs, marginTop: 4 },
+  dropdown:         { borderRadius: Radius.md, borderWidth: 0.5, marginTop: 4, overflow: 'hidden' },
+  dropdownItem:     { flexDirection: 'row', alignItems: 'center', gap: 8, padding: Spacing.md, borderBottomWidth: 0.5 },
+  dropdownCity:     { flex: 1, fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  dropdownUF:       { fontSize: FontSize.xs },
 });

@@ -1,13 +1,11 @@
 export type AuthStackParamList = {
   Login:         undefined;
   Register:      undefined;
-  Onboarding:    undefined;
   ResetPassword: undefined;
 };
 
 export type AppStackParamList = {
   HomeTabs:     undefined;
-  Onboarding:   { fromProfile?: boolean };
   Estados:      undefined;
   Categorias:   undefined;
   Musica:       undefined;

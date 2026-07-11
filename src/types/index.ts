@@ -104,7 +104,6 @@ export interface CityRanking {
 export type NavParamList = {
   Login:       undefined;
   Register:    undefined;
-  Onboarding:  undefined;
   Home:        undefined;
   Quiz:        { stateId: string; subcategory: Subcategory };
   QuizResult:  { correct: number; total: number; xp: number };

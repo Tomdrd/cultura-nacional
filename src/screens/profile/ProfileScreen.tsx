@@ -198,7 +198,7 @@ export function ProfileScreen({ navigation }: any) {
       <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>CONTA</Text>
         {[
-          { icon: MapPin,   label: 'Minha cidade natal',  onPress: () => navigation.navigate('Onboarding', { fromProfile: true }) },
+          { icon: MapPin,   label: 'Minha cidade natal',  onPress: () => navigation.navigate('CidadeSetup') },
           { icon: Trophy,   label: 'Minhas conquistas',   onPress: () => navigation.navigate('Achievements') },
           { icon: Zap,      label: 'Missões diárias',     onPress: () => navigation.navigate('Missions') },
         ].map(({ icon: Icon, label, onPress }, i) => (
