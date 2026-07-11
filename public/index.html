@@ -24,6 +24,15 @@
       }
     </style>
 
+    <style id="input-focus-fix">
+      input:focus,
+      textarea:focus {
+        outline: none !important;
+      }
+      input:-webkit-autofill:focus {
+        outline: none !important;
+      }
+    </style>
     <style id="autofill-fix">
       /* Override Chrome autofill background */
       input:-webkit-autofill,
