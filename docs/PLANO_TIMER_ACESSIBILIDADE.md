@@ -53,6 +53,23 @@ Timer por pergunta (hoje: 15s Quiz/Duelo, 30s Relâmpago, resetado a cada pergun
 - Usuário responde a última pergunta faltando poucos segundos → não deve sobrar tempo "vazando" pra uma pergunta que não existe
 - Duelo: os dois jogadores com timers locais independentes, sem travar o realtime da partida
 
+### Bugs de infraestrutura descobertos durante os testes da Fase 1 (não relacionados ao timer, corrigidos no processo)
+
+Ao testar o Duelo com 2 sessões reais pela primeira vez (nunca tinha sido testado ponta a ponta antes), três bugs pré-existentes de banco/infraestrutura foram descobertos e corrigidos:
+
+1. **RLS de `matches` bloqueava entrar por código.** A política `matches_select` só permitia `SELECT` para quem já era `player1_id`/`player2_id` da linha — mas o jogador que ainda não entrou não é nenhum dos dois. Resultado: a busca por código sempre vinha vazia, travando o botão "Entrar" no loading indefinidamente.
+   - **Corrigido via RPC** `join_duel_by_code(p_code text)` (`SECURITY DEFINER`), que faz a busca + validação + entrada no duelo inteira no servidor, sem nunca expor a lista de duelos abertos de outros usuários (evita um problema adicional: a query antiga buscava TODOS os duelos "waiting" e filtrava por código no cliente, ou seja, qualquer um bypassando o app conseguiria listar duelos alheios).
+   - Protegida contra condição de corrida (dois jogadores tentando entrar no mesmo código ao mesmo tempo) via `WHERE status = 'waiting' AND player2_id IS NULL` no `UPDATE` interno.
+   - `DuelScreen.tsx`: `joinMatch()` trocado de query direta + update manual para uma única chamada `supabase.rpc('join_duel_by_code', ...)`.
+
+2. **Realtime nunca esteve habilitado para nenhuma tabela do projeto.** A publicação `supabase_realtime` estava completamente vazia (`SELECT * FROM pg_publication_tables WHERE pubname = 'supabase_realtime'` retornava `[]`). Isso significa que o listener Realtime do Duelo (`subscribeToMatch`) nunca teria funcionado, em nenhuma versão do app, até este ponto.
+   - **Corrigido:** `alter publication supabase_realtime add table matches; alter publication supabase_realtime add table match_answers;`
+
+3. **RLS de `match_answers` impedia ver o placar do oponente em tempo real.** A política `match_answers_select` só permitia `auth.uid() = user_id` — cada jogador só via as próprias respostas, nunca as do oponente. Como o Realtime aplica RLS na entrega de eventos, o placar ao vivo (`oppScore`) nunca atualizava para nenhum dos dois lados.
+   - **Corrigido:** nova política permissiva `match_answers_select_duel_participants`, adicionada (não substituindo a existente — políticas de SELECT se combinam com OR no Postgres), permitindo ver a resposta se o usuário for participante (`player1_id` ou `player2_id`) do mesmo `match_id`.
+
+**Lição para o futuro:** ao adicionar uma nova tabela que dependa de Realtime, sempre confirmar (a) que a tabela está na publicação `supabase_realtime` e (b) que a política de RLS de `SELECT` permite que os destinatários pretendidos do evento (não só o autor da linha) consigam vê-la — Realtime silenciosamente não entrega nada se a RLS bloquear, sem erro visível no cliente.
+
 ---
 
 ## FASE 2 — Modo de Acessibilidade (depois da Fase 1)
