@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { CategoryColors, MedalColors, withOpacity } from '../../constants/colors';
+import { useGlobalQuizTimer } from '../../hooks/useGlobalQuizTimer';
 
 type DuelState = 'lobby' | 'waiting' | 'playing' | 'finished';
 
@@ -46,21 +47,37 @@ export function DuelScreen({ navigation }: any) {
   const [myScore,      setMyScore]      = useState(0);
   const [oppScore,     setOppScore]     = useState(0);
   const [opponent,     setOpponent]     = useState<Opponent | null>(null);
-  const [timeLeft,     setTimeLeft]     = useState(TIME_PER_QUESTION);
   const [myAnswers,    setMyAnswers]     = useState<boolean[]>([]);
   const [loading,      setLoading]      = useState(false);
   const [joinCode,     setJoinCode]     = useState('');
   const [showJoin,     setShowJoin]     = useState(false);
 
-  const timerRef      = useRef<any>(null);
   const channelRef    = useRef<any>(null);
-  const progressAnim  = useRef(new Animated.Value(1)).current;
   // useRef para evitar stale closure no listener Realtime
   const duelStateRef  = useRef<DuelState>('lobby');
   const matchIdRef    = useRef<string | null>(null);
   const currentRef    = useRef(0);
   const answeredRef   = useRef(false);
   const myFinishedRef = useRef(false);
+
+  const totalSeconds = TIME_PER_QUESTION * TOTAL_QUESTIONS;
+
+  function handleTimeExpired() {
+    // Tempo total do duelo zerou: marca localmente a pergunta atual (se não
+    // respondida) e as restantes como erradas. Não grava cada uma no banco
+    // (opção mais simples) - só sinaliza que este jogador terminou.
+    setMyAnswers(prev => {
+      const remaining = questions.length - prev.length;
+      if (remaining <= 0) return prev;
+      return [...prev, ...Array(remaining).fill(false)];
+    });
+    finishAsPlayer();
+  }
+
+  const {
+    timeLeft, progressAnim,
+    start: startTimer, stop: stopTimer,
+  } = useGlobalQuizTimer({ totalSeconds, onExpire: handleTimeExpired });
 
   // Sincroniza refs com state
   useEffect(() => { duelStateRef.current  = duelState;  }, [duelState]);
@@ -71,7 +88,7 @@ export function DuelScreen({ navigation }: any) {
   useEffect(() => { return () => cleanup(); }, []);
 
   function cleanup() {
-    clearInterval(timerRef.current);
+    stopTimer();
     if (channelRef.current) supabase.removeChannel(channelRef.current);
   }
 
@@ -201,27 +218,12 @@ export function DuelScreen({ navigation }: any) {
   }
 
   // ─── Timer ─────────────────────────────────────────────────────
-  function startTimer() {
-    clearInterval(timerRef.current);
-    setTimeLeft(TIME_PER_QUESTION);
-    Animated.timing(progressAnim, { toValue: 1, duration: 0, useNativeDriver: false }).start();
-    Animated.timing(progressAnim, { toValue: 0, duration: TIME_PER_QUESTION * 1000, useNativeDriver: false }).start();
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          if (!answeredRef.current) handleAnswer(-1);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }
+  // (useGlobalQuizTimer cuida disso agora - ver início do componente)
 
   // ─── Resposta ──────────────────────────────────────────────────
   async function handleAnswer(index: number) {
     if (answered || !matchId || !user) return;
-    clearInterval(timerRef.current);
+    progressAnim.stopAnimation();
     setSelected(index);
     setAnswered(true);
     answeredRef.current = true;
@@ -246,7 +248,7 @@ export function DuelScreen({ navigation }: any) {
       question_id:  q.id,
       answer_index: index,
       is_correct:   result.is_correct,
-      time_ms:      (TIME_PER_QUESTION - timeLeft) * 1000,
+      time_ms:      (totalSeconds - timeLeft) * 1000,
     });
 
     setTimeout(() => nextQuestion(), 1800);
@@ -254,31 +256,7 @@ export function DuelScreen({ navigation }: any) {
 
   async function nextQuestion() {
     if (currentRef.current + 1 >= questions.length) {
-      // Marca que este jogador terminou
-      myFinishedRef.current = true;
-      const finishField = matchId
-        ? (await supabase.from('matches').select('player1_id').eq('id', matchId).single())
-          .data?.player1_id === user?.id
-          ? 'player1_finished_at'
-          : 'player2_finished_at'
-        : null;
-
-      if (finishField) {
-        await supabase.from('matches').update({
-          [finishField]: new Date().toISOString(),
-        }).eq('id', matchId);
-      }
-
-      // Verifica se oponente já terminou também
-      const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single();
-      const bothFinished = match?.player1_finished_at && match?.player2_finished_at;
-      if (bothFinished) {
-        await supabase.from('matches').update({ status: 'finished' }).eq('id', matchId);
-      }
-
-      setDuelState('finished');
-      duelStateRef.current = 'finished';
-      cleanup();
+      await finishAsPlayer();
     } else {
       setCurrent(prev => {
         currentRef.current = prev + 1;
@@ -288,8 +266,36 @@ export function DuelScreen({ navigation }: any) {
       setAnswered(false);
       setAnswerResult(null);
       answeredRef.current = false;
-      startTimer();
     }
+  }
+
+  async function finishAsPlayer() {
+    // Marca que este jogador terminou - chamado tanto ao concluir todas as
+    // perguntas normalmente quanto no timeout do tempo total (handleTimeExpired)
+    myFinishedRef.current = true;
+    const finishField = matchId
+      ? (await supabase.from('matches').select('player1_id').eq('id', matchId).single())
+        .data?.player1_id === user?.id
+        ? 'player1_finished_at'
+        : 'player2_finished_at'
+      : null;
+
+    if (finishField) {
+      await supabase.from('matches').update({
+        [finishField]: new Date().toISOString(),
+      }).eq('id', matchId);
+    }
+
+    // Verifica se oponente já terminou também
+    const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single();
+    const bothFinished = match?.player1_finished_at && match?.player2_finished_at;
+    if (bothFinished) {
+      await supabase.from('matches').update({ status: 'finished' }).eq('id', matchId);
+    }
+
+    setDuelState('finished');
+    duelStateRef.current = 'finished';
+    cleanup();
   }
 
   function resetDuel() {
