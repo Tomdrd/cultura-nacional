@@ -132,17 +132,14 @@ export function DuelScreen({ navigation }: any) {
     if (!user || !joinCode.trim()) return;
     setLoading(true);
 
-    const { data: matches } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('status', 'waiting')
-      .neq('player1_id', user.id);
+    // A busca + validação + entrada no duelo acontece toda no servidor via RPC,
+    // evitando expor a lista de duelos abertos de outros usuários (RLS não
+    // permitiria o SELECT direto antes de já ser player1/player2 do duelo).
+    const { data: match, error } = await supabase.rpc('join_duel_by_code', {
+      p_code: joinCode.trim().toUpperCase(),
+    });
 
-    const match = matches?.find((m: any) =>
-      m.id.replace(/-/g, '').slice(0, 8).toUpperCase() === joinCode.trim().toUpperCase()
-    );
-
-    if (!match) {
+    if (error || !match) {
       Alert.alert('Duelo não encontrado', 'Verifique o código e tente novamente.');
       setLoading(false);
       return;
@@ -165,11 +162,6 @@ export function DuelScreen({ navigation }: any) {
         : qs;
       setQuestions(ordered);
     }
-
-    await supabase.from('matches').update({
-      player2_id: user.id,
-      status:     'active',
-    }).eq('id', match.id);
 
     setMatchId(match.id);
     matchIdRef.current = match.id;
