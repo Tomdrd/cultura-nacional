@@ -23,6 +23,28 @@
         flex: 1;
       }
     </style>
+
+    <style id="autofill-fix">
+      /* Override Chrome autofill background */
+      input:-webkit-autofill,
+      input:-webkit-autofill:hover,
+      input:-webkit-autofill:focus,
+      input:-webkit-autofill:active {
+        -webkit-text-fill-color: #F5F5F5;
+        box-shadow: 0 0 0 1000px #141414 inset !important;
+        transition: background-color 5000s ease-in-out 0s;
+      }
+
+      @media (prefers-color-scheme: light) {
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-text-fill-color: #0A0A0A;
+          box-shadow: 0 0 0 1000px #F5F5F5 inset !important;
+        }
+      }
+    </style>
   </head>
 
   <body>

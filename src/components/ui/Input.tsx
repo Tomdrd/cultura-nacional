@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, ViewStyle, Platform } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Radius, FontSize, Spacing } from '../../constants/layout';
@@ -20,7 +20,7 @@ interface InputProps {
 }
 
 export function Input({ label, placeholder, value, onChangeText, secureTextEntry, autoCapitalize = 'none', keyboardType = 'default', returnKeyType, onSubmitEditing, inputRef, error, style }: InputProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [show, setShow] = useState(false);
   const [focused, setFocused] = useState(false);
 
@@ -29,7 +29,7 @@ export function Input({ label, placeholder, value, onChangeText, secureTextEntry
       {label && <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>}
       <View style={[
         styles.row,
-        { backgroundColor: colors.backgroundAlt ?? colors.card, borderColor: focused ? colors.primary : (error ? colors.danger : colors.border) }
+        { backgroundColor: colors.backgroundAlt ?? colors.card, borderColor: focused ? colors.primary : (error ? colors.danger : colors.border), ...(Platform.OS === 'web' ? { colorScheme: isDark ? 'dark' : 'light' } : {}) }
       ]}>
         <TextInput
           ref={inputRef}
@@ -44,7 +44,7 @@ export function Input({ label, placeholder, value, onChangeText, secureTextEntry
           onSubmitEditing={onSubmitEditing}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={[styles.input, { color: colors.text }]}
+          style={[styles.input, { color: colors.text, backgroundColor: 'transparent' }]}
         />
         {secureTextEntry && (
           <TouchableOpacity onPress={() => setShow(!show)} style={styles.eye}>
