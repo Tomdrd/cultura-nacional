@@ -153,7 +153,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   async function startQuiz() {
     setCameraReady(false);
     setPhase('quiz');
-    await narrateQuestion(questions[0]);
+    narrateQuestion(questions[0]);
   }
   useEffect(() => {
     if (phase === 'quiz' && cameraReady && Platform.OS !== 'web' && cameraRef.current && !isRecording) {
@@ -165,18 +165,14 @@ export function ViralModeScreen({ navigation, route }: any) {
     }
   }, [phase, cameraReady]);
 
-  async function narrateQuestion(q: Question) {
-    setTimerActive(false);
+  function narrateQuestion(q: Question) {
+    // Timer e respostas liberam na hora — a narração toca em paralelo e
+    // nunca deve bloquear a interação (em iOS o onDone/onError do TTS pode
+    // simplesmente não disparar, travando o quiz se dependermos dele).
     setTimeLeft(TIME_PER_Q);
-    return new Promise<void>(resolve => {
-      Speech.speak(q.text, {
-        language: 'pt-BR',
-        rate: 0.9,
-        pitch: 1.0,
-        onDone: () => { setTimerActive(true); resolve(); },
-        onError: () => { setTimerActive(true); resolve(); },
-      });
-    });
+    setTimerActive(true);
+    Speech.stop();
+    Speech.speak(q.text, { language: 'pt-BR', rate: 1.3, pitch: 0.85 });
   }
 
 
@@ -222,7 +218,7 @@ export function ViralModeScreen({ navigation, route }: any) {
       setSelected(null);
       setAnswered(false);
       setAnswerResult(null);
-      await narrateQuestion(questions[nextIdx]);
+      narrateQuestion(questions[nextIdx]);
     }
   }
 
