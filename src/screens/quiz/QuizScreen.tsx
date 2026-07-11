@@ -67,6 +67,7 @@ export function QuizScreen({ route, navigation }: any) {
   const fadeAnim     = useRef(new Animated.Value(1)).current;
   const xpRef        = useRef(0);
   const scoreRef     = useRef(0);
+  const scrollRef    = useRef<any>(null);
 
   const totalSeconds = mode === 'relampago' ? 30 * TOTAL_QUESTIONS : TIME_PER_QUESTION * TOTAL_QUESTIONS;
 
@@ -101,6 +102,18 @@ export function QuizScreen({ route, navigation }: any) {
   // Timer pausa durante a revisão da explicação / report modal pós-resposta
   useEffect(() => {
     if (answered) pauseTimer(); else resumeTimer();
+  }, [answered]);
+
+  // Volta pro topo ao trocar de pergunta; desce até a explicação/botão "Próxima" ao responder
+  useEffect(() => {
+    scrollRef.current?.scrollTo?.({ y: 0, animated: false });
+  }, [current]);
+
+  useEffect(() => {
+    if (answered) {
+      const t = setTimeout(() => scrollRef.current?.scrollToEnd?.({ animated: true }), 150);
+      return () => clearTimeout(t);
+    }
   }, [answered]);
 
   async function loadQuestions() {
@@ -292,7 +305,13 @@ export function QuizScreen({ route, navigation }: any) {
         ))}
       </View>
 
-      <Animated.View style={[styles.questionWrap, { opacity: fadeAnim }]}>
+      <Animated.ScrollView
+        ref={scrollRef}
+        style={[styles.questionWrap, { opacity: fadeAnim }]}
+        contentContainerStyle={styles.questionContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.metaRow}>
           <View style={[styles.metaBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>{q.subcategory}</Text>
@@ -350,7 +369,7 @@ export function QuizScreen({ route, navigation }: any) {
             </Text>
           </TouchableOpacity>
         )}
-      </Animated.View>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -373,7 +392,8 @@ const styles = StyleSheet.create({
   progressFill:    { height: 3 },
   counterRow:      { flexDirection: 'row', gap: 6, paddingHorizontal: Spacing.xl, marginVertical: Spacing.md },
   counterDot:      { flex: 1, height: 4, borderRadius: 2 },
-  questionWrap:    { flex: 1, padding: Spacing.xl },
+  questionWrap:    { flex: 1 },
+  questionContent: { padding: Spacing.xl, paddingBottom: Spacing.xl * 3, flexGrow: 1 },
   metaRow:         { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
   metaBadge:       { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
   metaText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
