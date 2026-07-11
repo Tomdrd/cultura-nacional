@@ -32,7 +32,7 @@ export function StateFlagIcon({ uf, name, size = 64 }: StateFlagIconProps) {
           },
         ]}
       >
-        <StateFlag uf={uf} size={size} />
+        <StateFlag uf={uf} size={size} interactive={false} />
       </View>
       <Text
         style={[styles.label, { color: colors.textSecondary, maxWidth: size + 24 }]}

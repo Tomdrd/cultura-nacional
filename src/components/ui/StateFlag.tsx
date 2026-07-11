@@ -48,13 +48,33 @@ const STATE_NAMES: Record<string, string> = {
 interface StateFlagProps {
   uf: string;
   size?: number;
+  /** Quando false, renderiza só a bandeira sem TouchableOpacity/Modal -
+   * usado quando já existe um toque pai (ex: StateFlagIcon dentro de um
+   * card clicável, evitando toques aninhados disputando o mesmo clique) */
+  interactive?: boolean;
 }
 
-export function StateFlag({ uf, size = 40 }: StateFlagProps) {
+export function StateFlag({ uf, size = 40, interactive = true }: StateFlagProps) {
   const { colors, isDark } = useTheme();
   const [visible, setVisible] = useState(false);
   const Flag  = FLAGS[uf.toUpperCase()];
   const label = STATE_NAMES[uf.toUpperCase()] ?? uf.toUpperCase();
+
+  const flagContent = Flag ? (
+    <Flag width={size} height={size} preserveAspectRatio="xMidYMid slice" />
+  ) : (
+    <Text style={[styles.fallbackText, { color: colors.textMuted, fontSize: size * 0.32 }]}>{uf}</Text>
+  );
+
+  // Sem interatividade: evita toque aninhado disputando com um TouchableOpacity
+  // pai (ex: dentro do StateFlagIcon, que já navega ao tocar no card do estado)
+  if (!interactive) {
+    return (
+      <View style={[styles.wrapper, { width: size, height: size, borderRadius: size / 4, backgroundColor: colors.card }]}>
+        {flagContent}
+      </View>
+    );
+  }
 
   return (
     <>
@@ -63,11 +83,7 @@ export function StateFlag({ uf, size = 40 }: StateFlagProps) {
         activeOpacity={0.75}
         style={[styles.wrapper, { width: size, height: size, borderRadius: size / 4, backgroundColor: colors.card }]}
       >
-        {Flag ? (
-          <Flag width={size} height={size} preserveAspectRatio="xMidYMid slice" />
-        ) : (
-          <Text style={[styles.fallbackText, { color: colors.textMuted, fontSize: size * 0.32 }]}>{uf}</Text>
-        )}
+        {flagContent}
       </TouchableOpacity>
 
       <Modal transparent animationType="fade" visible={visible} onRequestClose={() => setVisible(false)}>
