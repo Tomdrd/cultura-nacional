@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { CategoryColors, MedalColors, withOpacity } from '../../constants/colors';
+import { useGlobalQuizTimer } from '../../hooks/useGlobalQuizTimer';
 
 interface Question {
   id: string;
@@ -57,47 +58,50 @@ export function QuizScreen({ route, navigation }: any) {
   const [answerResult,  setAnswerResult]  = useState<AnswerResult | null>(null);
   const [score,         setScore]         = useState(0);
   const [xpEarned,      setXpEarned]      = useState(0);
-  const [timeLeft,      setTimeLeft]      = useState(mode === 'relampago' ? 30 : TIME_PER_QUESTION);
   const [loading,       setLoading]       = useState(true);
   const [finished,      setFinished]      = useState(false);
   const [results,       setResults]       = useState<boolean[]>([]);
   const [reportOpen,    setReportOpen]    = useState(false);
   const [narrating,     setNarrating]     = useState(false);
-  const [timerActive,   setTimerActive]   = useState(false);
 
-  const timerRef     = useRef<any>(null);
-  const progressAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim     = useRef(new Animated.Value(1)).current;
   const xpRef        = useRef(0);
   const scoreRef     = useRef(0);
 
+  const totalSeconds = mode === 'relampago' ? 30 * TOTAL_QUESTIONS : TIME_PER_QUESTION * TOTAL_QUESTIONS;
+
+  function handleTimeExpired() {
+    // Tempo total do quiz zerou: marca a pergunta atual (se não respondida) e
+    // todas as restantes como erradas, encerra direto na tela de resultado.
+    setResults(prev => {
+      const remaining = questions.length - prev.length;
+      if (remaining <= 0) return prev;
+      return [...prev, ...Array(remaining).fill(false)];
+    });
+    finishQuiz();
+  }
+
+  const {
+    timeLeft, progressAnim,
+    start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer,
+  } = useGlobalQuizTimer({ totalSeconds, onExpire: handleTimeExpired });
+
   useEffect(() => { loadQuestions(); }, []);
-  // Narração ao mudar de pergunta
+
+  // Narração ao mudar de pergunta (não pausa mais o timer - ver docs/PLANO_TIMER_ACESSIBILIDADE.md)
   useEffect(() => {
     if (loading || finished) return;
-    clearInterval(timerRef.current);
-    setTimerActive(false);
     Speech.stop();
     if (audioNarration && questions[current]) {
-      Speech.speak(questions[current].text, {
-        language: 'pt-BR',
-        rate: 1.3,
-        pitch: 0.85,
-        onDone:  () => setTimerActive(true),
-        onError: () => setTimerActive(true),
-      });
-    } else {
-      setTimerActive(true);
+      Speech.speak(questions[current].text, { language: 'pt-BR', rate: 1.3, pitch: 0.85 });
     }
-    return () => { clearInterval(timerRef.current); Speech.stop(); };
+    return () => { Speech.stop(); };
   }, [current, loading, finished]);
 
-  // Timer só corre quando timerActive === true
+  // Timer pausa durante a revisão da explicação / report modal pós-resposta
   useEffect(() => {
-    if (!timerActive) return;
-    startTimer();
-    return () => clearInterval(timerRef.current);
-  }, [timerActive]);
+    if (answered) pauseTimer(); else resumeTimer();
+  }, [answered]);
 
   async function loadQuestions() {
     setLoading(true);
@@ -116,28 +120,17 @@ export function QuizScreen({ route, navigation }: any) {
       });
       data = fallback.data;
     }
-    if (data && data.length > 0) setQuestions(data);
+    if (data && data.length > 0) {
+      setQuestions(data);
+      startTimer();
+    }
     setLoading(false);
-  }
-
-  function startTimer() {
-    clearInterval(timerRef.current);
-    const duration = mode === 'relampago' ? 30 : TIME_PER_QUESTION;
-    setTimeLeft(duration);
-    Animated.timing(progressAnim, { toValue: 1, duration: 0, useNativeDriver: false }).start();
-    Animated.timing(progressAnim, { toValue: 0, duration: duration * 1000, useNativeDriver: false }).start();
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) { clearInterval(timerRef.current); if (!answered) handleAnswer(-1); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
   }
 
   async function handleAnswer(index: number) {
     if (answered) return;
     vibrateSelect();
-    clearInterval(timerRef.current);
+    progressAnim.stopAnimation();
     setSelected(index);
     setAnswered(true);
 
@@ -174,6 +167,7 @@ export function QuizScreen({ route, navigation }: any) {
   }
 
   async function finishQuiz() {
+    stopTimer();
     setFinished(true);
     const pct = scoreRef.current / questions.length;
     setTimeout(() => { playResult(pct >= 0.6); }, 600);
@@ -245,6 +239,7 @@ export function QuizScreen({ route, navigation }: any) {
               setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
               setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
               setAnswerResult(null); xpRef.current = 0; scoreRef.current = 0;
+              stopTimer();
               loadQuestions();
             }}
           >
