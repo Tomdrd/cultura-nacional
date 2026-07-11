@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated } from 'react-native';
 import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft, X } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -170,6 +171,19 @@ export function DuelScreen({ navigation }: any) {
     subscribeToMatch(match.id);
     startTimer();
     setLoading(false);
+  }
+
+  // ─── Compartilhar convite ──────────────────────────────────────
+  async function shareInvite() {
+    const message = `Me desafie no Cultura Nacional!\nCódigo: ${matchId?.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+    try {
+      await Share.share({ message });
+    } catch (err) {
+      // Share.share não é suportado em alguns ambientes (ex: navegador web) -
+      // nesse caso copia o convite para a área de transferência como alternativa
+      await Clipboard.setStringAsync(message);
+      Alert.alert('Convite copiado!', 'Cole em uma conversa para enviar ao seu amigo.');
+    }
   }
 
   // ─── Realtime ──────────────────────────────────────────────────
@@ -387,7 +401,7 @@ export function DuelScreen({ navigation }: any) {
             </Text>
           </View>
           <TouchableOpacity
-            onPress={() => Share.share({ message: `Me desafie no Cultura Nacional!\nCódigo: ${matchId?.replace(/-/g, '').slice(0, 8).toUpperCase()}` })}
+            onPress={shareInvite}
             style={[styles.shareBtn, { backgroundColor: withOpacity(colors.primary, 8.2), borderColor: withOpacity(colors.primary, 25.1) }]}
           >
             <Copy size={16} color={colors.primary} />
