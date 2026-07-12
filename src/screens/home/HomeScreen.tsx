@@ -31,8 +31,9 @@ export function HomeScreen({ navigation }: any) {
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
+  const [randomCategory, setRandomCategory] = useState(pickRandomSubcategory());
 
-  useFocusEffect(React.useCallback(() => { loadData(); }, []));
+  useFocusEffect(React.useCallback(() => { loadData(); setRandomCategory(pickRandomSubcategory()); }, []));
 
   async function loadData() {
     setLoading(true);
@@ -148,14 +149,15 @@ export function HomeScreen({ navigation }: any) {
         <View style={styles.sectionGrid}>
           <TouchableOpacity
             style={[styles.sectionCard, styles.sectionCardFull, { backgroundColor: withOpacity(CategoryColors.aleatorio, 15), borderColor: CategoryColors.aleatorio, borderWidth: 1.5 }]}
-            onPress={() => navigation.navigate('Quiz', { subcategory: pickRandomSubcategory(), random: true })}
+            onPress={() => navigation.navigate('Quiz', { subcategory: randomCategory, random: true })}
           >
             <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.aleatorio, 25) }]}>
               <Shuffle size={26} color={CategoryColors.aleatorio} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.sectionCardName, { color: colors.text }]}>Aleatório</Text>
-              <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Perguntas de qualquer lugar do Brasil</Text>
+              <Text style={[styles.randomEyebrow, { color: CategoryColors.aleatorio }]}>ALEATÓRIO</Text>
+              <Text style={[styles.sectionCardName, styles.randomTitle, { color: colors.text }]}>{randomCategory}</Text>
+              <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Qualquer lugar do Brasil</Text>
             </View>
           </TouchableOpacity>
           {cityNatal && (
@@ -238,5 +240,7 @@ const styles = StyleSheet.create({
   sectionCardFull: { flexBasis: '100%', width: '100%', flexDirection: 'row', alignItems: 'center', gap: 14 },
   sectionIconWrap: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   sectionCardName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  randomEyebrow:   { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5, marginBottom: 2 },
+  randomTitle:     { fontSize: FontSize.lg },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 18 },
 });
