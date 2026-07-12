@@ -29,6 +29,7 @@ interface AnswerResult {
 }
 
 const TOTAL_QUESTIONS = 5;
+const PROGRESS_GOAL   = 20;
 
 const SFX_CORRECT = ['Acertô, mizeravi!', 'Isso aí!', 'Boa demais!', 'Acertou na mosca!'];
 const SFX_WRONG   = ['Errou, abestado!', 'Que vacilo!', 'Nem de perto!', 'Vai estudar mais!'];
@@ -46,9 +47,6 @@ export function QuizScreen({ route, navigation }: any) {
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { user, cityNatalId } = useAuthStore();
   const { stateId, stateName, cityId: routeCityId, cityName, subcategory, mode } = route.params ?? {};
-  // Se a tela não especificou uma cidade explicitamente, usa a cidade natal
-  // do usuário — a função no banco cai automaticamente para as perguntas
-  // do estado caso essa cidade não tenha perguntas próprias.
   const cityId = routeCityId ?? cityNatalId ?? undefined;
 
   const [questions,     setQuestions]     = useState<Question[]>([]);
@@ -62,17 +60,14 @@ export function QuizScreen({ route, navigation }: any) {
   const [finished,      setFinished]      = useState(false);
   const [results,       setResults]       = useState<boolean[]>([]);
   const [reportOpen,    setReportOpen]    = useState(false);
-  const [narrating,     setNarrating]     = useState(false);
 
-  const fadeAnim     = useRef(new Animated.Value(1)).current;
-  const xpRef        = useRef(0);
-  const scoreRef     = useRef(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const xpRef    = useRef(0);
+  const scoreRef = useRef(0);
 
   const totalSeconds = mode === 'relampago' ? 30 * TOTAL_QUESTIONS : TIME_PER_QUESTION * TOTAL_QUESTIONS;
 
   function handleTimeExpired() {
-    // Tempo total do quiz zerou: marca a pergunta atual (se não respondida) e
-    // todas as restantes como erradas, encerra direto na tela de resultado.
     setResults(prev => {
       const remaining = questions.length - prev.length;
       if (remaining <= 0) return prev;
@@ -88,7 +83,6 @@ export function QuizScreen({ route, navigation }: any) {
 
   useEffect(() => { loadQuestions(); }, []);
 
-  // Narração ao mudar de pergunta (não pausa mais o timer - ver docs/PLANO_TIMER_ACESSIBILIDADE.md)
   useEffect(() => {
     if (loading || finished) return;
     Speech.stop();
@@ -98,7 +92,6 @@ export function QuizScreen({ route, navigation }: any) {
     return () => { Speech.stop(); };
   }, [current, loading, finished]);
 
-  // Timer pausa durante a revisão da explicação / report modal pós-resposta
   useEffect(() => {
     if (answered) pauseTimer(); else resumeTimer();
   }, [answered]);
@@ -149,7 +142,6 @@ export function QuizScreen({ route, navigation }: any) {
       setScore(prev => { scoreRef.current = prev + 1; return prev + 1; });
       setXpEarned(prev => { xpRef.current = prev + result.xp; return prev + result.xp; });
     }
-
   }
 
   function nextQuestion() {
@@ -166,20 +158,56 @@ export function QuizScreen({ route, navigation }: any) {
     });
   }
 
+  async function saveStateProgress(correctsThisRound: number) {
+    if (!user || !stateId || correctsThisRound === 0) return;
+
+    // Busca progresso atual
+    const { data: existing } = await supabase
+      .from('user_state_progress')
+      .select('id, questions_answered, correct_answers, completed')
+      .eq('user_id', user.id)
+      .eq('state_id', stateId)
+      .single();
+
+    const prevAnswered = existing?.questions_answered ?? 0;
+    const prevCorrect  = existing?.correct_answers    ?? 0;
+    const alreadyDone  = existing?.completed          ?? false;
+
+    // Não ultrapassa o limite e não regride se já concluído
+    if (alreadyDone) return;
+
+    const newAnswered = Math.min(prevAnswered + correctsThisRound, PROGRESS_GOAL);
+    const newCorrect  = Math.min(prevCorrect  + correctsThisRound, PROGRESS_GOAL);
+    const completed   = newAnswered >= PROGRESS_GOAL;
+
+    await supabase.from('user_state_progress').upsert({
+      ...(existing?.id ? { id: existing.id } : {}),
+      user_id:            user.id,
+      state_id:           stateId,
+      questions_answered: newAnswered,
+      correct_answers:    newCorrect,
+      completed,
+      ...(completed ? { stamped_at: new Date().toISOString() } : {}),
+    }, { onConflict: 'user_id,state_id' });
+  }
+
   async function finishQuiz() {
     stopTimer();
     setFinished(true);
     const pct = scoreRef.current / questions.length;
     setTimeout(() => { playResult(pct >= 0.6); }, 600);
     if (!user) return;
-    if (xpRef.current > 0) {
-      // Atualiza XP atomicamente no servidor (evita race condition)
-      await Promise.all([
-        supabase.rpc('update_xp_and_level',  { p_user_id: user.id, p_xp_gained: xpRef.current }),
-        supabase.rpc('update_city_ranking',   { p_user_id: user.id, p_xp_gained: xpRef.current }),
-      ]);
-    }
-    await supabase.rpc('update_streak_on_play', { p_user_id: user.id });
+
+    await Promise.all([
+      xpRef.current > 0
+        ? Promise.all([
+            supabase.rpc('update_xp_and_level',  { p_user_id: user.id, p_xp_gained: xpRef.current }),
+            supabase.rpc('update_city_ranking',   { p_user_id: user.id, p_xp_gained: xpRef.current }),
+          ])
+        : Promise.resolve(),
+      supabase.rpc('update_streak_on_play', { p_user_id: user.id }),
+      saveStateProgress(scoreRef.current),
+    ]);
   }
 
   const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? CategoryColors.gastronomia : colors.primary;
@@ -341,10 +369,7 @@ export function QuizScreen({ route, navigation }: any) {
         )}
 
         {answered && (
-          <TouchableOpacity
-            onPress={nextQuestion}
-            style={[styles.nextBtn, { backgroundColor: colors.primary }]}
-          >
+          <TouchableOpacity onPress={nextQuestion} style={[styles.nextBtn, { backgroundColor: colors.primary }]}>
             <Text style={styles.nextBtnText}>
               {current + 1 >= questions.length ? 'Ver resultado' : 'Próxima pergunta'}
             </Text>
@@ -356,50 +381,50 @@ export function QuizScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1 },
-  center:          { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: Spacing.xl },
-  loadingText:     { fontSize: FontSize.sm, marginTop: 8 },
-  emptyTitle:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  emptyText:       { fontSize: FontSize.sm, textAlign: 'center' },
-  backBtn:         { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
-  backBtnText:     { color: '#FFF', fontWeight: FontWeight.medium },
-  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
-  topTitle:        { fontSize: FontSize.md, fontWeight: FontWeight.medium },
-  topRight:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  flagBtn:         { padding: 4 },
-  timerBadge:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
-  timerText:       { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
-  progressBg:      { height: 3 },
-  progressFill:    { height: 3 },
-  counterRow:      { flexDirection: 'row', gap: 6, paddingHorizontal: Spacing.xl, marginVertical: Spacing.md },
-  counterDot:      { flex: 1, height: 4, borderRadius: 2 },
-  questionWrap:    { flex: 1, padding: Spacing.xl },
-  metaRow:         { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
-  metaBadge:       { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
-  metaText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  questionText:    { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
-  options:         { gap: 10 },
-  option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
-  optionLetter:    { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  optionLetterText:{ fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  optionText:      { flex: 1, fontSize: FontSize.sm, lineHeight: 20 },
-  explanation:     { marginTop: Spacing.lg, borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md },
-  explanationText: { fontSize: FontSize.sm, lineHeight: 20 },
-  resultCard:      { margin: Spacing.xl, marginTop: 80, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, alignItems: 'center', gap: 8 },
-  resultMsg:       { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  resultScore:     { fontSize: FontSize.lg, fontWeight: FontWeight.medium },
-  xpEarned:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 0.5 },
-  xpEarnedText:   { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  resultDots:      { flexDirection: 'row', gap: 8 },
-  dot:             { width: 10, height: 10, borderRadius: 5 },
-  statsRow:        { flexDirection: 'row', width: '100%', paddingTop: Spacing.lg, borderTopWidth: 0.5, marginTop: Spacing.sm },
-  stat:            { flex: 1, alignItems: 'center' },
-  statVal:         { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  statLbl:         { fontSize: FontSize.xs, marginTop: 2 },
-  statDivider:     { width: 0.5, height: 40 },
-  resultActions:   { paddingHorizontal: Spacing.xl, gap: 10 },
-  nextBtn:         { marginTop: Spacing.lg, height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  nextBtnText:     { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  resultBtn:       { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  resultBtnText:   { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.medium },
+  container:        { flex: 1 },
+  center:           { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: Spacing.xl },
+  loadingText:      { fontSize: FontSize.sm, marginTop: 8 },
+  emptyTitle:       { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  emptyText:        { fontSize: FontSize.sm, textAlign: 'center' },
+  backBtn:          { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
+  backBtnText:      { color: '#FFF', fontWeight: FontWeight.medium },
+  topBar:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  topTitle:         { fontSize: FontSize.md, fontWeight: FontWeight.medium },
+  topRight:         { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  flagBtn:          { padding: 4 },
+  timerBadge:       { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
+  timerText:        { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  progressBg:       { height: 3 },
+  progressFill:     { height: 3 },
+  counterRow:       { flexDirection: 'row', gap: 6, paddingHorizontal: Spacing.xl, marginVertical: Spacing.md },
+  counterDot:       { flex: 1, height: 4, borderRadius: 2 },
+  questionWrap:     { flex: 1, padding: Spacing.xl },
+  metaRow:          { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
+  metaBadge:        { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
+  metaText:         { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  questionText:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
+  options:          { gap: 10 },
+  option:           { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
+  optionLetter:     { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  optionLetterText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  optionText:       { flex: 1, fontSize: FontSize.sm, lineHeight: 20 },
+  explanation:      { marginTop: Spacing.lg, borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md },
+  explanationText:  { fontSize: FontSize.sm, lineHeight: 20 },
+  resultCard:       { margin: Spacing.xl, marginTop: 80, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, alignItems: 'center', gap: 8 },
+  resultMsg:        { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+  resultScore:      { fontSize: FontSize.lg, fontWeight: FontWeight.medium },
+  xpEarned:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 0.5 },
+  xpEarnedText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  resultDots:       { flexDirection: 'row', gap: 8 },
+  dot:              { width: 10, height: 10, borderRadius: 5 },
+  statsRow:         { flexDirection: 'row', width: '100%', paddingTop: Spacing.lg, borderTopWidth: 0.5, marginTop: Spacing.sm },
+  stat:             { flex: 1, alignItems: 'center' },
+  statVal:          { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+  statLbl:          { fontSize: FontSize.xs, marginTop: 2 },
+  statDivider:      { width: 0.5, height: 40 },
+  resultActions:    { paddingHorizontal: Spacing.xl, gap: 10 },
+  nextBtn:          { marginTop: Spacing.lg, height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  nextBtnText:      { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  resultBtn:        { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  resultBtnText:    { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.medium },
 });
