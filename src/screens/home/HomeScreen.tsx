@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video } from 'lucide-react-native';
+import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video, Shuffle } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -13,6 +13,15 @@ import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; avatar_url: string | null; }
+
+// Mesmas 9 subcategorias usadas em Categorias + Música (fonte: distinct
+// subcategory da tabela questions). O card "Aleatório" sorteia uma delas
+// e usa a mesma categoria pras 5 perguntas da sessão, só que puxando de
+// qualquer estado/cidade do Brasil.
+const RANDOM_SUBCATEGORIES = ['Cultura', 'História', 'Gastronomia', 'Natureza', 'Turismo', 'Curiosidades', 'MPB', 'Reggae', 'RAP'];
+function pickRandomSubcategory() {
+  return RANDOM_SUBCATEGORIES[Math.floor(Math.random() * RANDOM_SUBCATEGORIES.length)];
+}
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
@@ -137,6 +146,18 @@ export function HomeScreen({ navigation }: any) {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Explorar</Text>
         <View style={styles.sectionGrid}>
+          <TouchableOpacity
+            style={[styles.sectionCard, styles.sectionCardFull, { backgroundColor: withOpacity(CategoryColors.aleatorio, 15), borderColor: CategoryColors.aleatorio, borderWidth: 1.5 }]}
+            onPress={() => navigation.navigate('Quiz', { subcategory: pickRandomSubcategory(), random: true })}
+          >
+            <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.aleatorio, 25) }]}>
+              <Shuffle size={26} color={CategoryColors.aleatorio} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.sectionCardName, { color: colors.text }]}>Aleatório</Text>
+              <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Perguntas de qualquer lugar do Brasil</Text>
+            </View>
+          </TouchableOpacity>
           {cityNatal && (
             <TouchableOpacity
               style={[styles.sectionCard, { backgroundColor: withOpacity(CategoryColors.natureza, 15), borderColor: withOpacity(CategoryColors.natureza, 65) }]}
@@ -214,6 +235,7 @@ const styles = StyleSheet.create({
   sectionTitle:  { fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: Spacing.md },
   sectionGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
   sectionCard:     { flexGrow: 1, flexBasis: 150, minWidth: 150, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
+  sectionCardFull: { flexBasis: '100%', width: '100%', flexDirection: 'row', alignItems: 'center', gap: 14 },
   sectionIconWrap: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   sectionCardName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 18 },
