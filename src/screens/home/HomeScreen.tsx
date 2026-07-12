@@ -13,6 +13,7 @@ import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; avatar_url: string | null; }
+interface PreviewQuestion { text: string; subcategory: string; }
 
 // Mesmas 9 subcategorias usadas em Categorias + Música (fonte: distinct
 // subcategory da tabela questions). O card "Aleatório" sorteia uma delas
@@ -31,9 +32,17 @@ export function HomeScreen({ navigation }: any) {
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
-  const [randomCategory, setRandomCategory] = useState(pickRandomSubcategory());
+  const [previewQuestion, setPreviewQuestion] = useState<PreviewQuestion | null>(null);
 
-  useFocusEffect(React.useCallback(() => { loadData(); setRandomCategory(pickRandomSubcategory()); }, []));
+  useFocusEffect(React.useCallback(() => { loadData(); loadPreviewQuestion(); }, []));
+
+  async function loadPreviewQuestion() {
+    setPreviewQuestion(null);
+    const { data } = await supabase.rpc('get_random_quiz_questions', {
+      p_state_id: null, p_city_id: null, p_subcategory: pickRandomSubcategory(), p_limit: 1, p_progressive: false,
+    });
+    if (data && data.length > 0) setPreviewQuestion({ text: data[0].text, subcategory: data[0].subcategory });
+  }
 
   async function loadData() {
     setLoading(true);
@@ -149,16 +158,16 @@ export function HomeScreen({ navigation }: any) {
         <View style={styles.sectionGrid}>
           <TouchableOpacity
             style={[styles.sectionCard, styles.sectionCardFull, { backgroundColor: withOpacity(CategoryColors.aleatorio, 15), borderColor: CategoryColors.aleatorio, borderWidth: 1.5 }]}
-            onPress={() => navigation.navigate('Quiz', { subcategory: randomCategory, random: true })}
+            onPress={() => navigation.navigate('Quiz', { subcategory: previewQuestion?.subcategory ?? pickRandomSubcategory(), random: true })}
+            disabled={!previewQuestion}
           >
             <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.aleatorio, 25) }]}>
               <Shuffle size={26} color={CategoryColors.aleatorio} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.randomEyebrow, { color: CategoryColors.aleatorio }]}>ALEATÓRIO</Text>
-              <Text style={[styles.sectionCardName, styles.randomTitle, { color: colors.text }]}>{randomCategory}</Text>
-              <Text style={[styles.sectionCardDesc, { color: colors.textMuted }]}>Qualquer lugar do Brasil</Text>
-            </View>
+            <Text style={[styles.randomTitle, { color: colors.text, flex: 1 }]} numberOfLines={2}>
+              {previewQuestion?.text ?? 'Carregando pergunta...'}
+            </Text>
+            <ChevronRight size={20} color={colors.textMuted} />
           </TouchableOpacity>
           {cityNatal && (
             <TouchableOpacity
@@ -240,7 +249,6 @@ const styles = StyleSheet.create({
   sectionCardFull: { flexBasis: '100%', width: '100%', flexDirection: 'row', alignItems: 'center', gap: 14 },
   sectionIconWrap: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   sectionCardName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  randomEyebrow:   { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5, marginBottom: 2 },
-  randomTitle:     { fontSize: FontSize.lg },
+  randomTitle:     { fontSize: FontSize.sm, fontWeight: FontWeight.medium, lineHeight: 19 },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 18 },
 });
