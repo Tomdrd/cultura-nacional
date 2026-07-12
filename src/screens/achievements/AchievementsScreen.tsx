@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Award, Star, Zap, BookOpen, Trophy, MapPin, Globe, Flag, TrendingUp, CheckCircle, Swords, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -26,6 +27,7 @@ interface Achievement {
 
 export function AchievementsScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading,      setLoading]      = useState(true);
@@ -64,7 +66,7 @@ export function AchievementsScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
@@ -138,7 +140,7 @@ export function AchievementsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   center:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   title:       { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   statsRow:    { flexDirection: 'row', gap: 10, padding: Spacing.xl, paddingBottom: 0 },
   statCard:    { flex: 1, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.md, alignItems: 'center', gap: 4 },

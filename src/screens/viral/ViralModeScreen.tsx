@@ -8,6 +8,7 @@ import { requestRecordingPermissionsAsync } from 'expo-audio';
 import * as Sharing from 'expo-sharing';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -47,6 +48,7 @@ type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
 
 export function ViralModeScreen({ navigation, route }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { stateId, stateName, subcategory } = route.params ?? {};
 
@@ -263,7 +265,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   if (phase === 'setup') {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { paddingTop: headerPaddingTop }]}>
           <ArrowLeft size={18} color={colors.primary} /><Text style={[styles.backText, { color: colors.primary }]}>Voltar</Text>
         </TouchableOpacity>
 
@@ -540,7 +542,7 @@ export function ViralModeScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   fullscreen: { flex: 1 },
-  backBtn: { padding: Spacing.xl, paddingTop: 56 },
+  backBtn: { padding: Spacing.xl },
   backText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   setupCenter: { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
   viralBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },

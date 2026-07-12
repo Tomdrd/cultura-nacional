@@ -6,6 +6,7 @@ import * as Speech from 'expo-speech';
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -42,6 +43,7 @@ const TIME_PER_QUESTION = 15;
 
 export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { audioNarration } = useSettingsStore();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { user, cityNatalId } = useAuthStore();
@@ -272,7 +274,7 @@ export function QuizScreen({ route, navigation }: any) {
   const q = questions[current];
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.topBar, { borderBottomColor: colors.border }]}>
+      <View style={[styles.topBar, { borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
@@ -382,7 +384,7 @@ const styles = StyleSheet.create({
   emptyText:       { fontSize: FontSize.sm, textAlign: 'center' },
   backBtn:         { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
   backBtnText:     { color: '#FFF', fontWeight: FontWeight.medium },
-  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   topTitle:        { fontSize: FontSize.md, fontWeight: FontWeight.medium },
   topRight:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flagBtn:         { padding: 4 },

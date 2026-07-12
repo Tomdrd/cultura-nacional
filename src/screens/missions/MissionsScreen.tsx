@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Target, CheckCircle, Clock, Zap, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -19,6 +20,7 @@ interface Mission {
 
 export function MissionsScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading,  setLoading]  = useState(true);
@@ -71,7 +73,7 @@ export function MissionsScreen({ navigation }: any) {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
@@ -158,7 +160,7 @@ export function MissionsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   center:          { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  header:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   title:           { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   progressCard:    { margin: Spacing.xl, borderRadius: Radius.lg, padding: Spacing.xl },
   progressRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },

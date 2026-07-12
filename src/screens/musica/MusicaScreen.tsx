@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Music } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { CategoryColors, withOpacity } from '../../constants/colors';
 
@@ -13,13 +14,14 @@ const GENEROS = [
 
 export function MusicaScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   // #1A1A2E (RAP) é quase invisível sobre fundo escuro (contraste ~1:1) - usa
   // uma variante mais clara da mesma família de cor só no dark mode.
   const rapColor = isDark ? '#6B6B9E' : CategoryColors.rap;
   const generosThemed = GENEROS.map(g => g.name === 'RAP' ? { ...g, color: rapColor } : g);
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <ArrowLeft size={20} color={colors.primary} />
         </TouchableOpacity>
@@ -55,7 +57,7 @@ export function MusicaScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container:   { flex: 1 },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   backBtn:     { width: 32, alignItems: 'flex-start' },
   title:       { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   content:     { padding: Spacing.xl, gap: 12 },

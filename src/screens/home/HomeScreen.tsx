@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useUserPlan } from '../../hooks';
@@ -15,6 +16,7 @@ interface Profile { username: string; xp: number; level: number; streak: number;
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const { plan } = useUserPlan();
   const [profile,  setProfile]  = useState<Profile | null>(null);
@@ -52,7 +54,7 @@ export function HomeScreen({ navigation }: any) {
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
             <View style={[styles.headerAvatar, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}>
@@ -189,7 +191,7 @@ export function HomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   center:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.xl, paddingTop: Platform.OS === 'web' ? Spacing.xl : 56, borderBottomWidth: 0.5 },
+  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.xl, borderBottomWidth: 0.5 },
   headerAvatar:  { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   greeting:      { fontSize: FontSize.xs },
   username:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },

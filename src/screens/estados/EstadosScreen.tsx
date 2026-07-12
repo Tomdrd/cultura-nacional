@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { StateFlagIcon } from '../../components/ui/StateFlagIcon';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -17,6 +18,7 @@ interface State { id: string; name: string; uf: string; region: string; }
 
 export function EstadosScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { width } = useWindowDimensions();
   const [states,  setStates]  = useState<State[]>([]);
   const [region,  setRegion]  = useState<string | null>(null);
@@ -40,7 +42,7 @@ export function EstadosScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <ArrowLeft size={20} color={colors.primary} />
         </TouchableOpacity>
@@ -84,7 +86,7 @@ export function EstadosScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:   { flex: 1 },
   center:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   backBtn:     { width: 32, alignItems: 'flex-start' },
   title:       { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   regionRow:   { gap: 8, padding: Spacing.xl, paddingBottom: Spacing.md },
