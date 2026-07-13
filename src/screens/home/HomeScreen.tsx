@@ -249,6 +249,6 @@ const styles = StyleSheet.create({
   sectionCardFull: { flexBasis: '100%', width: '100%', flexDirection: 'row', alignItems: 'center', gap: 14 },
   sectionIconWrap: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   sectionCardName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  randomTitle:     { fontSize: FontSize.sm, fontWeight: FontWeight.medium, lineHeight: 19 },
+  randomTitle:     { fontSize: FontSize.xl, fontWeight: FontWeight.bold, lineHeight: 26 },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 18 },
 });
