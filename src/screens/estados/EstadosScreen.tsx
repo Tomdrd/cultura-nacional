@@ -4,8 +4,8 @@ import {
   ActivityIndicator, useWindowDimensions, StatusBar,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Check } from 'lucide-react-native';
-import { useTheme } from '../../hooks/useTheme';
+import { Check, ArrowLeft } from 'lucide-react-native';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
@@ -36,6 +36,7 @@ const COLORS = {
 };
 
 export function EstadosScreen({ navigation }: any) {
+  const headerPaddingTop = useHeaderTopPadding();
   const { width } = useWindowDimensions();
   const [states, setStates]   = useState<StateItem[]>([]);
   const [region, setRegion]   = useState<string | null>(null);
@@ -79,11 +80,16 @@ export function EstadosScreen({ navigation }: any) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
 
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          Explorar <Text style={{ color: COLORS.green }}>Estados</Text>
-        </Text>
-        <Text style={styles.headerSub}>{completed}/{states.length} concluídos</Text>
+      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <ArrowLeft size={20} color={COLORS.text} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>
+            Explorar <Text style={{ color: COLORS.green }}>Estados</Text>
+          </Text>
+          <Text style={styles.headerSub}>{completed}/{states.length} concluídos</Text>
+        </View>
       </View>
 
       {loading ? (
@@ -186,7 +192,8 @@ export function EstadosScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: COLORS.bg },
   center:         { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:         { paddingHorizontal: Spacing.xl, paddingTop: 60, paddingBottom: 16 },
+  header:         { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.xl, paddingBottom: 16 },
+  backBtn:        { marginRight: 12 },
   headerTitle:    { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: COLORS.text, letterSpacing: -0.5 },
   headerSub:      { fontSize: FontSize.sm, color: COLORS.muted, marginTop: 2 },
   filterRow:      { gap: 8, paddingHorizontal: Spacing.xl, paddingBottom: 16 },

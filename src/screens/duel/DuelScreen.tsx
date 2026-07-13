@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, Tex
 import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft, X } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -36,6 +37,7 @@ const TIME_PER_QUESTION = 15;
 
 export function DuelScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
 
   const [duelState,    setDuelState]    = useState<DuelState>('lobby');
@@ -332,7 +334,7 @@ export function DuelScreen({ navigation }: any) {
   if (duelState === 'lobby') {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topBack}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.topBack, { paddingTop: headerPaddingTop }]}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.center}>
@@ -422,7 +424,7 @@ export function DuelScreen({ navigation }: any) {
     const q = questions[current];
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.scoreBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <View style={[styles.scoreBar, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
           <View style={styles.scoreItem}>
             <Text style={[styles.scoreName, { color: colors.primary }]}>Você</Text>
             <Text style={[styles.scoreVal, { color: colors.text }]}>{myScore}</Text>
@@ -536,7 +538,7 @@ export function DuelScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:       { flex: 1 },
   center:          { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
-  topBack:         { padding: Spacing.xl, paddingTop: 56 },
+  topBack:         { padding: Spacing.xl },
   iconWrap:        { width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.lg },
   lobbyTitle:      { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, marginBottom: 8 },
   lobbySub:        { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22, marginBottom: Spacing.xxl },
@@ -562,7 +564,7 @@ const styles = StyleSheet.create({
   shareBtnText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   cancelBtn:       { padding: Spacing.md },
   cancelText:      { fontSize: FontSize.sm },
-  scoreBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  scoreBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   scoreItem:       { alignItems: 'center', gap: 2 },
   scoreName:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   scoreVal:        { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },

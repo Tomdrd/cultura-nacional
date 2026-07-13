@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { ArrowLeft, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { CategoryColors, withOpacity } from '../../constants/colors';
 
@@ -16,6 +17,7 @@ const CATEGORIAS = [
 
 export function CategoriasScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { width } = Dimensions.get('window');
   const padding = Spacing.xl;
   const gap = 12;
@@ -23,7 +25,7 @@ export function CategoriasScreen({ navigation }: any) {
   const isSmall = width < 360;
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <ArrowLeft size={20} color={colors.primary} />
         </TouchableOpacity>
@@ -69,7 +71,7 @@ export function CategoriasScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   backBtn:   { width: 32, alignItems: 'flex-start' },
   title:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   grid:      { flexDirection: 'row', flexWrap: 'wrap' },

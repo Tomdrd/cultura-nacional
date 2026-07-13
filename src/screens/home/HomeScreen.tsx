@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video } from 'lucide-react-native';
+import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video, Shuffle } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useUserPlan } from '../../hooks';
@@ -12,16 +13,36 @@ import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; avatar_url: string | null; }
+interface PreviewQuestion { text: string; subcategory: string; }
+
+// Mesmas 9 subcategorias usadas em Categorias + Música (fonte: distinct
+// subcategory da tabela questions). O card "Aleatório" sorteia uma delas
+// e usa a mesma categoria pras 5 perguntas da sessão, só que puxando de
+// qualquer estado/cidade do Brasil.
+const RANDOM_SUBCATEGORIES = ['Cultura', 'História', 'Gastronomia', 'Natureza', 'Turismo', 'Curiosidades', 'MPB', 'Reggae', 'RAP'];
+function pickRandomSubcategory() {
+  return RANDOM_SUBCATEGORIES[Math.floor(Math.random() * RANDOM_SUBCATEGORIES.length)];
+}
 
 export function HomeScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const { plan } = useUserPlan();
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
+  const [previewQuestion, setPreviewQuestion] = useState<PreviewQuestion | null>(null);
 
-  useFocusEffect(React.useCallback(() => { loadData(); }, []));
+  useFocusEffect(React.useCallback(() => { loadData(); loadPreviewQuestion(); }, []));
+
+  async function loadPreviewQuestion() {
+    setPreviewQuestion(null);
+    const { data } = await supabase.rpc('get_random_quiz_questions', {
+      p_state_id: null, p_city_id: null, p_subcategory: pickRandomSubcategory(), p_limit: 1, p_progressive: false,
+    });
+    if (data && data.length > 0) setPreviewQuestion({ text: data[0].text, subcategory: data[0].subcategory });
+  }
 
   async function loadData() {
     setLoading(true);
@@ -52,7 +73,7 @@ export function HomeScreen({ navigation }: any) {
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
             <View style={[styles.headerAvatar, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}>
@@ -135,6 +156,19 @@ export function HomeScreen({ navigation }: any) {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Explorar</Text>
         <View style={styles.sectionGrid}>
+          <TouchableOpacity
+            style={[styles.sectionCard, styles.sectionCardFull, { backgroundColor: withOpacity(CategoryColors.aleatorio, 15), borderColor: CategoryColors.aleatorio, borderWidth: 1.5 }]}
+            onPress={() => navigation.navigate('Quiz', { subcategory: previewQuestion?.subcategory ?? pickRandomSubcategory(), random: true })}
+            disabled={!previewQuestion}
+          >
+            <View style={[styles.sectionIconWrap, { backgroundColor: withOpacity(CategoryColors.aleatorio, 25) }]}>
+              <Shuffle size={26} color={CategoryColors.aleatorio} />
+            </View>
+            <Text style={[styles.randomTitle, { color: colors.text, flex: 1 }]} numberOfLines={2}>
+              {previewQuestion?.text ?? 'Carregando pergunta...'}
+            </Text>
+            <ChevronRight size={20} color={colors.textMuted} />
+          </TouchableOpacity>
           {cityNatal && (
             <TouchableOpacity
               style={[styles.sectionCard, { backgroundColor: withOpacity(CategoryColors.natureza, 15), borderColor: withOpacity(CategoryColors.natureza, 65) }]}
@@ -189,7 +223,7 @@ export function HomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   center:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.xl, borderBottomWidth: 0.5 },
   headerAvatar:  { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   greeting:      { fontSize: FontSize.xs },
   username:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
@@ -212,7 +246,9 @@ const styles = StyleSheet.create({
   sectionTitle:  { fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: Spacing.md },
   sectionGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
   sectionCard:     { flexGrow: 1, flexBasis: 150, minWidth: 150, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
+  sectionCardFull: { flexBasis: '100%', width: '100%', flexDirection: 'row', alignItems: 'center', gap: 14 },
   sectionIconWrap: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   sectionCardName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  randomTitle:     { fontSize: FontSize.sm, fontWeight: FontWeight.medium, lineHeight: 19 },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 18 },
 });

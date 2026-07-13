@@ -6,6 +6,7 @@ import * as Speech from 'expo-speech';
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -43,11 +44,17 @@ const TIME_PER_QUESTION = 15;
 
 export function QuizScreen({ route, navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { audioNarration } = useSettingsStore();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { user, cityNatalId } = useAuthStore();
-  const { stateId, stateName, cityId: routeCityId, cityName, subcategory, mode } = route.params ?? {};
-  const cityId = routeCityId ?? cityNatalId ?? undefined;
+  const { stateId, stateName, cityId: routeCityId, cityName, subcategory, mode, random } = route.params ?? {};
+  // Se a tela não especificou uma cidade explicitamente, usa a cidade natal
+  // do usuário — a função no banco cai automaticamente para as perguntas
+  // do estado caso essa cidade não tenha perguntas próprias.
+  // Exceção: card "Aleatório" da Home (random=true) não deve puxar a
+  // cidade natal do usuário, senão "aleatório" na prática vira "minha cidade".
+  const cityId = random ? undefined : (routeCityId ?? cityNatalId ?? undefined);
 
   const [questions,     setQuestions]     = useState<Question[]>([]);
   const [current,       setCurrent]       = useState(0);
@@ -61,9 +68,10 @@ export function QuizScreen({ route, navigation }: any) {
   const [results,       setResults]       = useState<boolean[]>([]);
   const [reportOpen,    setReportOpen]    = useState(false);
 
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const xpRef    = useRef(0);
-  const scoreRef = useRef(0);
+  const fadeAnim     = useRef(new Animated.Value(1)).current;
+  const xpRef        = useRef(0);
+  const scoreRef     = useRef(0);
+  const scrollRef    = useRef<any>(null);
 
   const totalSeconds = mode === 'relampago' ? 30 * TOTAL_QUESTIONS : TIME_PER_QUESTION * TOTAL_QUESTIONS;
 
@@ -94,6 +102,18 @@ export function QuizScreen({ route, navigation }: any) {
 
   useEffect(() => {
     if (answered) pauseTimer(); else resumeTimer();
+  }, [answered]);
+
+  // Volta pro topo ao trocar de pergunta; desce até a explicação/botão "Próxima" ao responder
+  useEffect(() => {
+    scrollRef.current?.scrollTo?.({ y: 0, animated: false });
+  }, [current]);
+
+  useEffect(() => {
+    if (answered) {
+      const t = setTimeout(() => scrollRef.current?.scrollToEnd?.({ animated: true }), 150);
+      return () => clearTimeout(t);
+    }
   }, [answered]);
 
   async function loadQuestions() {
@@ -287,7 +307,7 @@ export function QuizScreen({ route, navigation }: any) {
   const q = questions[current];
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.topBar, { borderBottomColor: colors.border }]}>
+      <View style={[styles.topBar, { borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
@@ -320,7 +340,13 @@ export function QuizScreen({ route, navigation }: any) {
         ))}
       </View>
 
-      <Animated.View style={[styles.questionWrap, { opacity: fadeAnim }]}>
+      <Animated.ScrollView
+        ref={scrollRef}
+        style={[styles.questionWrap, { opacity: fadeAnim }]}
+        contentContainerStyle={styles.questionContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.metaRow}>
           <View style={[styles.metaBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>{q.subcategory}</Text>
@@ -375,56 +401,57 @@ export function QuizScreen({ route, navigation }: any) {
             </Text>
           </TouchableOpacity>
         )}
-      </Animated.View>
+      </Animated.ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:        { flex: 1 },
-  center:           { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: Spacing.xl },
-  loadingText:      { fontSize: FontSize.sm, marginTop: 8 },
-  emptyTitle:       { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  emptyText:        { fontSize: FontSize.sm, textAlign: 'center' },
-  backBtn:          { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
-  backBtnText:      { color: '#FFF', fontWeight: FontWeight.medium },
-  topBar:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
-  topTitle:         { fontSize: FontSize.md, fontWeight: FontWeight.medium },
-  topRight:         { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  flagBtn:          { padding: 4 },
-  timerBadge:       { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
-  timerText:        { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
-  progressBg:       { height: 3 },
-  progressFill:     { height: 3 },
-  counterRow:       { flexDirection: 'row', gap: 6, paddingHorizontal: Spacing.xl, marginVertical: Spacing.md },
-  counterDot:       { flex: 1, height: 4, borderRadius: 2 },
-  questionWrap:     { flex: 1, padding: Spacing.xl },
-  metaRow:          { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
-  metaBadge:        { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
-  metaText:         { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  questionText:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
-  options:          { gap: 10 },
-  option:           { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
-  optionLetter:     { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  optionLetterText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  optionText:       { flex: 1, fontSize: FontSize.sm, lineHeight: 20 },
-  explanation:      { marginTop: Spacing.lg, borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md },
-  explanationText:  { fontSize: FontSize.sm, lineHeight: 20 },
-  resultCard:       { margin: Spacing.xl, marginTop: 80, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, alignItems: 'center', gap: 8 },
-  resultMsg:        { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  resultScore:      { fontSize: FontSize.lg, fontWeight: FontWeight.medium },
-  xpEarned:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 0.5 },
-  xpEarnedText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  resultDots:       { flexDirection: 'row', gap: 8 },
-  dot:              { width: 10, height: 10, borderRadius: 5 },
-  statsRow:         { flexDirection: 'row', width: '100%', paddingTop: Spacing.lg, borderTopWidth: 0.5, marginTop: Spacing.sm },
-  stat:             { flex: 1, alignItems: 'center' },
-  statVal:          { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  statLbl:          { fontSize: FontSize.xs, marginTop: 2 },
-  statDivider:      { width: 0.5, height: 40 },
-  resultActions:    { paddingHorizontal: Spacing.xl, gap: 10 },
-  nextBtn:          { marginTop: Spacing.lg, height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  nextBtnText:      { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  resultBtn:        { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  resultBtnText:    { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.medium },
+  container:       { flex: 1 },
+  center:          { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: Spacing.xl },
+  loadingText:     { fontSize: FontSize.sm, marginTop: 8 },
+  emptyTitle:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  emptyText:       { fontSize: FontSize.sm, textAlign: 'center' },
+  backBtn:         { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
+  backBtnText:     { color: '#FFF', fontWeight: FontWeight.medium },
+  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
+  topTitle:        { fontSize: FontSize.md, fontWeight: FontWeight.medium },
+  topRight:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  flagBtn:         { padding: 4 },
+  timerBadge:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
+  timerText:       { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  progressBg:      { height: 3 },
+  progressFill:    { height: 3 },
+  counterRow:      { flexDirection: 'row', gap: 6, paddingHorizontal: Spacing.xl, marginVertical: Spacing.md },
+  counterDot:      { flex: 1, height: 4, borderRadius: 2 },
+  questionWrap:    { flex: 1 },
+  questionContent: { padding: Spacing.xl, paddingBottom: Spacing.xl * 3, flexGrow: 1 },
+  metaRow:         { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
+  metaBadge:       { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
+  metaText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  questionText:    { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
+  options:         { gap: 10 },
+  option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
+  optionLetter:    { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  optionLetterText:{ fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  optionText:      { flex: 1, fontSize: FontSize.sm, lineHeight: 20 },
+  explanation:     { marginTop: Spacing.lg, borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md },
+  explanationText: { fontSize: FontSize.sm, lineHeight: 20 },
+  resultCard:      { margin: Spacing.xl, marginTop: 80, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, alignItems: 'center', gap: 8 },
+  resultMsg:       { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+  resultScore:     { fontSize: FontSize.lg, fontWeight: FontWeight.medium },
+  xpEarned:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 0.5 },
+  xpEarnedText:   { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  resultDots:      { flexDirection: 'row', gap: 8 },
+  dot:             { width: 10, height: 10, borderRadius: 5 },
+  statsRow:        { flexDirection: 'row', width: '100%', paddingTop: Spacing.lg, borderTopWidth: 0.5, marginTop: Spacing.sm },
+  stat:            { flex: 1, alignItems: 'center' },
+  statVal:         { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+  statLbl:         { fontSize: FontSize.xs, marginTop: 2 },
+  statDivider:     { width: 0.5, height: 40 },
+  resultActions:   { paddingHorizontal: Spacing.xl, gap: 10 },
+  nextBtn:         { marginTop: Spacing.lg, height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  nextBtnText:     { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  resultBtn:       { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  resultBtnText:   { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.medium },
 });

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { MapPin, Search, ChevronRight, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -14,6 +15,7 @@ interface City   { id: string; name: string; state_uf: string; }
 
 export function CidadeSetupScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { user, setCityNatalId } = useAuthStore();
 
   const [step,     setStep]     = useState<'state' | 'city'>('state');
@@ -80,7 +82,7 @@ export function CidadeSetupScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         {step === 'city' && (
           <TouchableOpacity onPress={() => { setStep('state'); setSearch(''); }} style={styles.backBtn}>
             <ArrowLeft size={20} color={colors.primary} />
@@ -166,7 +168,7 @@ export function CidadeSetupScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container:   { flex: 1 },
-  header:      { flexDirection: 'row', alignItems: 'center', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5, gap: 12 },
+  header:      { flexDirection: 'row', alignItems: 'center', padding: Spacing.xl, borderBottomWidth: 0.5, gap: 12 },
   backBtn:     { width: 32 },
   headerCenter:{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerTitle: { fontSize: FontSize.lg, fontWeight: FontWeight.bold },

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform
 import { ArrowLeft, Shield, Zap, RefreshCw } from 'lucide-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 
@@ -55,6 +56,7 @@ const CHECKOUT_BASE_URL = 'https://cultura-nacional-admin.vercel.app/checkout';
 
 export function SubscriptionScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const [selected, setSelected] = useState<PlanId>('biannual');
 
@@ -77,7 +79,7 @@ export function SubscriptionScreen({ navigation }: any) {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
 
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <ArrowLeft size={22} color={colors.text} />
         </TouchableOpacity>
@@ -193,7 +195,7 @@ export function SubscriptionScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container:      { flex: 1 },
-  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, paddingTop: 56, borderBottomWidth: 0.5 },
+  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
   headerTitle:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   hero:           { padding: Spacing.xl, paddingVertical: 28, alignItems: 'center', gap: 10, borderBottomWidth: 0.5 },
   heroBadge:      { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 0.5, marginBottom: 4 },

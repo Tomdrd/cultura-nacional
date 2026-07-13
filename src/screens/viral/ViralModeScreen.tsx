@@ -8,6 +8,7 @@ import { requestRecordingPermissionsAsync } from 'expo-audio';
 import * as Sharing from 'expo-sharing';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -47,6 +48,7 @@ type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
 
 export function ViralModeScreen({ navigation, route }: any) {
   const { colors } = useTheme();
+  const headerPaddingTop = useHeaderTopPadding();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { stateId, stateName, subcategory } = route.params ?? {};
 
@@ -153,7 +155,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   async function startQuiz() {
     setCameraReady(false);
     setPhase('quiz');
-    await narrateQuestion(questions[0]);
+    narrateQuestion(questions[0]);
   }
   useEffect(() => {
     if (phase === 'quiz' && cameraReady && Platform.OS !== 'web' && cameraRef.current && !isRecording) {
@@ -165,18 +167,14 @@ export function ViralModeScreen({ navigation, route }: any) {
     }
   }, [phase, cameraReady]);
 
-  async function narrateQuestion(q: Question) {
-    setTimerActive(false);
+  function narrateQuestion(q: Question) {
+    // Timer e respostas liberam na hora — a narração toca em paralelo e
+    // nunca deve bloquear a interação (em iOS o onDone/onError do TTS pode
+    // simplesmente não disparar, travando o quiz se dependermos dele).
     setTimeLeft(TIME_PER_Q);
-    return new Promise<void>(resolve => {
-      Speech.speak(q.text, {
-        language: 'pt-BR',
-        rate: 0.9,
-        pitch: 1.0,
-        onDone: () => { setTimerActive(true); resolve(); },
-        onError: () => { setTimerActive(true); resolve(); },
-      });
-    });
+    setTimerActive(true);
+    Speech.stop();
+    Speech.speak(q.text, { language: 'pt-BR', rate: 1.3, pitch: 0.85 });
   }
 
 
@@ -222,7 +220,7 @@ export function ViralModeScreen({ navigation, route }: any) {
       setSelected(null);
       setAnswered(false);
       setAnswerResult(null);
-      await narrateQuestion(questions[nextIdx]);
+      narrateQuestion(questions[nextIdx]);
     }
   }
 
@@ -267,7 +265,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   if (phase === 'setup') {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { paddingTop: headerPaddingTop }]}>
           <ArrowLeft size={18} color={colors.primary} /><Text style={[styles.backText, { color: colors.primary }]}>Voltar</Text>
         </TouchableOpacity>
 
@@ -544,7 +542,7 @@ export function ViralModeScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   fullscreen: { flex: 1 },
-  backBtn: { padding: Spacing.xl, paddingTop: 56 },
+  backBtn: { padding: Spacing.xl },
   backText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   setupCenter: { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
   viralBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
