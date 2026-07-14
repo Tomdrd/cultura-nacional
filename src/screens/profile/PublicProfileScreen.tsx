@@ -212,14 +212,20 @@ export function PublicProfileScreen({ route, navigation }: any) {
 
             {/* Seguidores / Seguindo */}
             <View style={styles.followStatsRow}>
-              <View style={styles.followStat}>
+              <TouchableOpacity
+                style={styles.followStat}
+                onPress={() => navigation.navigate('FollowList', { userId, type: 'followers' })}
+              >
                 <Text style={[styles.followStatVal, { color: C.text }]}>{followersCount}</Text>
                 <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguidores</Text>
-              </View>
-              <View style={styles.followStat}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.followStat}
+                onPress={() => navigation.navigate('FollowList', { userId, type: 'following' })}
+              >
                 <Text style={[styles.followStatVal, { color: C.text }]}>{followingCount}</Text>
                 <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguindo</Text>
-              </View>
+              </TouchableOpacity>
             </View>
 
             {!isMe && (

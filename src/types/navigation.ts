@@ -31,6 +31,7 @@ export type AppStackParamList = {
     subcategory?: string;
   };
   PublicProfile: { userId: string };
+  FollowList: { userId: string; type: 'followers' | 'following' };
 };
 
 export type HomeTabsParamList = {

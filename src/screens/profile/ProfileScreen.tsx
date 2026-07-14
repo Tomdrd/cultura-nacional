@@ -55,8 +55,20 @@ export function ProfileScreen({ navigation }: any) {
   const [loading,  setLoading]  = useState(true);
   const [cityRank, setCityRank] = useState<number | null>(null);
   const [copied,   setCopied]   = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
-  useEffect(() => { loadProfile(); }, []);
+  useEffect(() => { loadProfile(); loadFollowInfo(); }, []);
+
+  async function loadFollowInfo() {
+    if (!user) return;
+    const [{ count: followers }, { count: following }] = await Promise.all([
+      supabase.from('follows').select('follower_id', { count: 'exact', head: true }).eq('following_id', user.id),
+      supabase.from('follows').select('following_id', { count: 'exact', head: true }).eq('follower_id', user.id),
+    ]);
+    setFollowersCount(followers ?? 0);
+    setFollowingCount(following ?? 0);
+  }
 
   async function loadProfile() {
     if (!user) return;
@@ -161,6 +173,24 @@ export function ProfileScreen({ navigation }: any) {
             <Text style={[styles.cityText, { color: C.muted }]}>{city.name}, {city.state_uf}</Text>
           </View>
         )}
+
+        {/* Seguidores / Seguindo */}
+        <View style={styles.followStatsRow}>
+          <TouchableOpacity
+            style={styles.followStat}
+            onPress={() => navigation.navigate('FollowList', { userId: user.id, type: 'followers' })}
+          >
+            <Text style={[styles.followStatVal, { color: C.text }]}>{followersCount}</Text>
+            <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguidores</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.followStat}
+            onPress={() => navigation.navigate('FollowList', { userId: user.id, type: 'following' })}
+          >
+            <Text style={[styles.followStatVal, { color: C.text }]}>{followingCount}</Text>
+            <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguindo</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* XP Progress */}
@@ -187,18 +217,19 @@ export function ProfileScreen({ navigation }: any) {
           <Text style={[styles.statVal, { color: C.text }]}>{profile?.streak ?? 0}</Text>
           <Text style={[styles.statLbl, { color: C.muted }]}>Streak</Text>
         </View>
+        </TouchableOpacity>
         <View style={[styles.statDivider, { backgroundColor: C.border }]} />
-        <View style={styles.statItem}>
+        <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('CityRanking')}>
           <Trophy size={18} color={C.text} />
           <Text style={[styles.statVal, { color: C.text }]}>{cityRank ? `#${cityRank}` : '-'}</Text>
           <Text style={[styles.statLbl, { color: C.muted }]}>Ranking cidade</Text>
-        </View>
+        </TouchableOpacity>
         <View style={[styles.statDivider, { backgroundColor: C.border }]} />
-        <View style={styles.statItem}>
+        <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('Achievements')}>
           <Star size={18} color={C.text} />
           <Text style={[styles.statVal, { color: C.text }]}>{profile?.level ?? 1}</Text>
           <Text style={[styles.statLbl, { color: C.muted }]}>Nível</Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Plan */}
@@ -275,8 +306,12 @@ const styles = StyleSheet.create({
   urlLockedText:{ fontSize: FontSize.xs, flexShrink: 1 },
   pill:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1 },
   pillText:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  cityRow:      { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cityRow:      { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   cityText:     { fontSize: FontSize.xs },
+  followStatsRow: { flexDirection: 'row', gap: 24, marginTop: 12 },
+  followStat:     { alignItems: 'center' },
+  followStatVal:  { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  followStatLbl:  { fontSize: 10, marginTop: 1 },
   xpCard:       { margin: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   xpRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
   xpLabel:      { fontSize: FontSize.xs, marginBottom: 2 },
