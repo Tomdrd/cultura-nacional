@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award } from 'lucide-react-native';
+import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award, Copy, Check, Lock } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
@@ -53,6 +54,7 @@ export function ProfileScreen({ navigation }: any) {
   const [city,     setCity]     = useState<CityInfo | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityRank, setCityRank] = useState<number | null>(null);
+  const [copied,   setCopied]   = useState(false);
 
   useEffect(() => { loadProfile(); }, []);
 
@@ -91,6 +93,14 @@ export function ProfileScreen({ navigation }: any) {
   const xpCurrent   = getXpInCurrentLevel(profile?.xp ?? 0);
   const xpPct       = getXpProgress(profile?.xp ?? 0);
   const levelInfo   = getLevelInfo(profile?.level ?? 1);
+  const isPro       = profile?.plan === 'pro';
+  const profileUrl  = `cultura-nacional.vercel.app/${profile?.username ?? ''}`;
+
+  async function handleCopyUrl() {
+    await Clipboard.setStringAsync(`https://${profileUrl}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
@@ -115,7 +125,28 @@ export function ProfileScreen({ navigation }: any) {
           <Text style={[styles.username, { color: C.text }]}>{profile?.username ?? 'Explorador'}</Text>
           {profile?.plan && <VerifiedBadge plan={profile.plan} size={20} />}
         </View>
-        <Text style={[styles.email, { color: C.muted }]}>{user?.email}</Text>
+        {isPro ? (
+          <TouchableOpacity
+            onPress={handleCopyUrl}
+            style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
+          >
+            <Text style={[styles.urlText, { color: C.subtle }]} numberOfLines={1}>{profileUrl}</Text>
+            {copied
+              ? <Check size={14} color={C.green} />
+              : <Copy size={14} color={C.muted} />
+            }
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Subscription')}
+            style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
+          >
+            <Lock size={12} color={C.muted} />
+            <Text style={[styles.urlLockedText, { color: C.muted }]}>
+              Assine o Pro pra ter sua URL personalizada
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Level badge */}
         <View style={[styles.pill, { backgroundColor: C.iconBg, borderColor: C.border }]}>
@@ -238,6 +269,9 @@ const styles = StyleSheet.create({
   avatar:       { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1, marginBottom: 4 },
   username:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   email:        { fontSize: FontSize.xs },
+  urlPill:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 1, maxWidth: '90%' },
+  urlText:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium, flexShrink: 1 },
+  urlLockedText:{ fontSize: FontSize.xs, flexShrink: 1 },
   pill:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1 },
   pillText:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   cityRow:      { flexDirection: 'row', alignItems: 'center', gap: 4 },

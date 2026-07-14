@@ -26,6 +26,7 @@ export type AppStackParamList = {
     stateName?:   string;
     subcategory?: string;
   };
+  PublicProfile: { userId: string };
 };
 
 export type HomeTabsParamList = {

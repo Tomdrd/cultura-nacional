@@ -29,7 +29,7 @@ interface MyLocation {
   state_uf: string | null;
 }
 
-export function RankingScreen() {
+export function RankingScreen({ navigation }: any) {
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
@@ -129,6 +129,14 @@ export function RankingScreen() {
   const podium = entries.slice(0, 3);
   const rest   = entries.slice(3);
 
+  function goToProfile(entryUserId: string) {
+    if (entryUserId === user?.id) {
+      navigation.navigate('HomeTabs', { screen: 'Profile' });
+    } else {
+      navigation.navigate('PublicProfile', { userId: entryUserId });
+    }
+  }
+
   // Mensagem quando aba requer localização não configurada
   const needsLocation = (scope === 'city' || scope === 'state') && myLocation && !myLocation.city_natal_id;
 
@@ -187,7 +195,7 @@ export function RankingScreen() {
           {podium.length >= 1 && (
             <View style={[styles.card, styles.podiumWrap, { backgroundColor: C.card, borderColor: C.border }]}>
               {/* 2nd */}
-              <View style={styles.podiumItem}>
+              <TouchableOpacity style={styles.podiumItem} onPress={() => podium[1] && goToProfile(podium[1].user_id)} disabled={!podium[1]}>
                 <View style={{ position: 'relative' }}>
                   {podium[1]?.avatar_url
                     ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.silver }]} />
@@ -202,9 +210,9 @@ export function RankingScreen() {
                   {podium[1]?.plan && <VerifiedBadge plan={podium[1].plan} size={12} />}
                 </View>
                 <Text style={[styles.podiumXp, { color: C.muted }]}>{podium[1]?.xp} XP</Text>
-              </View>
+              </TouchableOpacity>
               {/* 1st */}
-              <View style={[styles.podiumItem, styles.podiumFirst]}>
+              <TouchableOpacity style={[styles.podiumItem, styles.podiumFirst]} onPress={() => podium[0] && goToProfile(podium[0].user_id)} disabled={!podium[0]}>
                 <View style={{ position: 'relative' }}>
                   {podium[0]?.avatar_url
                     ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: MedalColors.gold }]} />
@@ -220,9 +228,9 @@ export function RankingScreen() {
                   {podium[0]?.plan && <VerifiedBadge plan={podium[0].plan} size={12} />}
                 </View>
                 <Text style={[styles.podiumXp, { color: C.muted }]}>{podium[0]?.xp} XP</Text>
-              </View>
+              </TouchableOpacity>
               {/* 3rd */}
-              <View style={styles.podiumItem}>
+              <TouchableOpacity style={styles.podiumItem} onPress={() => podium[2] && goToProfile(podium[2].user_id)} disabled={!podium[2]}>
                 <View style={{ position: 'relative' }}>
                   {podium[2]?.avatar_url
                     ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.bronze }]} />
@@ -237,7 +245,7 @@ export function RankingScreen() {
                   {podium[2]?.plan && <VerifiedBadge plan={podium[2].plan} size={12} />}
                 </View>
                 <Text style={[styles.podiumXp, { color: C.muted }]}>{podium[2]?.xp} XP</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -246,7 +254,7 @@ export function RankingScreen() {
             {rest.map((entry, i) => {
               const isMe = entry.user_id === user?.id;
               return (
-                <View key={entry.user_id} style={[styles.card, styles.row, {
+                <TouchableOpacity key={entry.user_id} onPress={() => goToProfile(entry.user_id)} style={[styles.card, styles.row, {
                   backgroundColor: isMe ? `${C.green}0f` : C.card,
                   borderColor:     isMe ? `${C.green}44` : C.border,
                 }]}>
@@ -276,7 +284,7 @@ export function RankingScreen() {
                     <Text style={[styles.rowXp, { color: C.text }]}>{entry.xp} XP</Text>
                     <Text style={[styles.rowLevel, { color: C.muted }]}>Nível {entry.level}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
 

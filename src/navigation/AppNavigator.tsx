@@ -6,6 +6,7 @@ import { Home, Trophy, User, Settings } from 'lucide-react-native';
 import { HomeScreen }            from '../screens/home/HomeScreen';
 import { RankingScreen }         from '../screens/ranking/RankingScreen';
 import { ProfileScreen }         from '../screens/profile/ProfileScreen';
+import { PublicProfileScreen }   from '../screens/profile/PublicProfileScreen';
 import { SettingsScreen }        from '../screens/settings/SettingsScreen';
 import { QuizScreen }            from '../screens/quiz/QuizScreen';
 import { DuelScreen }            from '../screens/duel/DuelScreen';
@@ -77,6 +78,7 @@ export function AppNavigator() {
       <Stack.Screen name="Musica"       component={MusicaScreen} />
       <Stack.Screen name="ViralMode"    component={ViralModeScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="CidadeSetup"  component={CidadeSetupScreen} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
     </Stack.Navigator>
   );
 }
