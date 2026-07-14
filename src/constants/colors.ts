@@ -79,5 +79,20 @@ export function withOpacity(hexColor: string, level: number): string {
   return `${hexColor}${hex}`;
 }
 
+// Paleta do redesign inspirado na EstadosScreen (Home + tab bar inferior,
+// que fica colada nela). Própria/independente do Colors light/dark padrão
+// pra manter fidelidade exata ao mockup aprovado - cor só onde tem
+// significado (XP/progresso), resto em tons neutros.
+export const HomeTheme = {
+  dark: {
+    bg: '#0e1015', card: '#1c2029', iconBg: '#16191f', border: '#252b38',
+    text: '#f0f2f5', muted: '#5a6070', subtle: '#8a92a0', green: '#009C3B', yellow: '#FEDD00',
+  },
+  light: {
+    bg: '#FFFFFF', card: '#FFFFFF', iconBg: '#F0F0F0', border: '#D6D6D6',
+    text: '#0A0A0A', muted: '#6B6B6B', subtle: '#4A4A4A', green: '#00792E', yellow: '#8A6D00',
+  },
+} as const;
+
 export type ColorScheme = 'light' | 'dark';
 export type ThemeColors = typeof Colors.light;

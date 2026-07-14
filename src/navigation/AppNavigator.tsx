@@ -18,26 +18,28 @@ import { CategoriasScreen }      from '../screens/categorias/CategoriasScreen';
 import { MusicaScreen }          from '../screens/musica/MusicaScreen';
 import { CidadeSetupScreen }     from '../screens/onboarding/CidadeSetupScreen';
 import { useTheme }              from '../hooks/useTheme';
+import { HomeTheme }             from '../constants/colors';
 import { useAuthStore }          from '../store/authStore';
 
 const Tab   = createBottomTabNavigator<HomeTabsParamList>();
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
 function HomeTabs() {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.card,
-          borderTopColor:  colors.border,
+          backgroundColor: C.card,
+          borderTopColor:  C.border,
           borderTopWidth:  0.5,
           height: 60,
           paddingBottom: 8,
         },
-        tabBarActiveTintColor:   colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor:   C.green,
+        tabBarInactiveTintColor: C.muted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
         tabBarIcon: ({ color, size }) => {
           if (route.name === 'Home')     return <Home     size={size} color={color} />;

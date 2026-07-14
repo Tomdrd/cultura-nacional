@@ -9,24 +9,11 @@ import { useAuthStore } from '../../store/authStore';
 import { useUserPlan } from '../../hooks';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
+import { HomeTheme } from '../../constants/colors';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; avatar_url: string | null; }
 interface PreviewQuestion { text: string; subcategory: string; }
-
-// Mesma linguagem visual da EstadosScreen: paleta própria (não usa o tema
-// genérico do resto do app) com cor só onde tem significado (XP/progresso),
-// resto em tons neutros. Contraste checado manualmente no modo claro:
-// muted (#6B6B6B sobre branco) ~5.3:1, border (#D6D6D6) visivelmente
-// separada do fundo branco.
-const DARK = {
-  bg: '#0e1015', card: '#1c2029', iconBg: '#16191f', border: '#252b38',
-  text: '#f0f2f5', muted: '#5a6070', subtle: '#8a92a0', green: '#009C3B', yellow: '#FEDD00',
-};
-const LIGHT = {
-  bg: '#FFFFFF', card: '#FFFFFF', iconBg: '#F0F0F0', border: '#D6D6D6',
-  text: '#0A0A0A', muted: '#6B6B6B', subtle: '#4A4A4A', green: '#00792E', yellow: '#8A6D00',
-};
 
 // Mesmas 9 subcategorias usadas em Categorias + Música (fonte: distinct
 // subcategory da tabela questions). O card "Aleatório" sorteia uma delas
@@ -39,7 +26,7 @@ function pickRandomSubcategory() {
 
 export function HomeScreen({ navigation }: any) {
   const { isDark } = useTheme();
-  const C = isDark ? DARK : LIGHT;
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const { plan } = useUserPlan();
