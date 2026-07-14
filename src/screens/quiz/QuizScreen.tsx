@@ -11,8 +11,11 @@ import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-import { CategoryColors, MedalColors, withOpacity } from '../../constants/colors';
+import { HomeTheme, MedalColors } from '../../constants/colors';
 import { useGlobalQuizTimer } from '../../hooks/useGlobalQuizTimer';
+
+const DANGER = '#E24B4A';
+const DANGER_TEXT = '#F09595';
 
 interface Question {
   id: string;
@@ -34,16 +37,12 @@ const PROGRESS_GOAL   = 20;
 
 const SFX_CORRECT = ['Acertô, mizeravi!', 'Isso aí!', 'Boa demais!', 'Acertou na mosca!'];
 const SFX_WRONG   = ['Errou, abestado!', 'Que vacilo!', 'Nem de perto!', 'Vai estudar mais!'];
-const SFX_WIN     = 'Cê é o bichão, mesmo hein!';
-const SFX_LOSE    = 'Na próxima você faz melhor!';
 
-function speak(text: string, rate = 1.3) {
-  Speech.speak(text, { language: 'pt-BR', rate, pitch: 0.85 });
-}
 const TIME_PER_QUESTION = 15;
 
 export function QuizScreen({ route, navigation }: any) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { audioNarration } = useSettingsStore();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
@@ -61,6 +60,7 @@ export function QuizScreen({ route, navigation }: any) {
   const [selected,      setSelected]      = useState<number | null>(null);
   const [answered,      setAnswered]      = useState(false);
   const [answerResult,  setAnswerResult]  = useState<AnswerResult | null>(null);
+  const [feedbackMsg,   setFeedbackMsg]   = useState('');
   const [score,         setScore]         = useState(0);
   const [xpEarned,      setXpEarned]      = useState(0);
   const [loading,       setLoading]       = useState(true);
@@ -69,6 +69,7 @@ export function QuizScreen({ route, navigation }: any) {
   const [reportOpen,    setReportOpen]    = useState(false);
 
   const fadeAnim     = useRef(new Animated.Value(1)).current;
+  const feedbackAnim = useRef(new Animated.Value(0)).current;
   const xpRef        = useRef(0);
   const scoreRef     = useRef(0);
   const scrollRef    = useRef<any>(null);
@@ -104,15 +105,18 @@ export function QuizScreen({ route, navigation }: any) {
     if (answered) pauseTimer(); else resumeTimer();
   }, [answered]);
 
-  // Volta pro topo ao trocar de pergunta; desce até a explicação/botão "Próxima" ao responder
+  // Volta pro topo ao trocar de pergunta
   useEffect(() => {
     scrollRef.current?.scrollTo?.({ y: 0, animated: false });
   }, [current]);
 
+  // Painel de feedback desliza de baixo pra cima ao responder (estilo
+  // Duolingo); ao avançar de pergunta, some na hora (sem animação de saída)
   useEffect(() => {
     if (answered) {
-      const t = setTimeout(() => scrollRef.current?.scrollToEnd?.({ animated: true }), 150);
-      return () => clearTimeout(t);
+      Animated.spring(feedbackAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 6 }).start();
+    } else {
+      feedbackAnim.setValue(0);
     }
   }, [answered]);
 
@@ -156,6 +160,9 @@ export function QuizScreen({ route, navigation }: any) {
     const result: AnswerResult = data ?? { is_correct: false, correct_index: -1, explanation: null, xp: 0 };
     setAnswerResult(result);
     setResults(prev => [...prev, result.is_correct]);
+    setFeedbackMsg(result.is_correct
+      ? SFX_CORRECT[Math.floor(Math.random() * SFX_CORRECT.length)]
+      : SFX_WRONG[Math.floor(Math.random() * SFX_WRONG.length)]);
     if (result.is_correct) { playCorrect(); } else { playWrong(); }
 
     if (result.is_correct) {
@@ -230,24 +237,24 @@ export function QuizScreen({ route, navigation }: any) {
     ]);
   }
 
-  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? CategoryColors.gastronomia : colors.primary;
+  const timerColor = timeLeft <= 5 ? DANGER : timeLeft <= 10 ? C.yellow : C.green;
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Carregando perguntas...</Text>
+      <View style={[styles.center, { backgroundColor: C.bg }]}>
+        <ActivityIndicator color={C.green} size="large" />
+        <Text style={[styles.loadingText, { color: C.muted }]}>Carregando perguntas...</Text>
       </View>
     );
   }
 
   if (!loading && questions.length === 0) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <Zap size={48} color={colors.textMuted} />
-        <Text style={[styles.emptyTitle, { color: colors.text }]}>Sem perguntas</Text>
-        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Ainda não há perguntas para este filtro.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.primary }]}>
+      <View style={[styles.center, { backgroundColor: C.bg }]}>
+        <Zap size={48} color={C.muted} />
+        <Text style={[styles.emptyTitle, { color: C.text }]}>Sem perguntas</Text>
+        <Text style={[styles.emptyText, { color: C.muted }]}>Ainda não há perguntas para este filtro.</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: C.green }]}>
           <Text style={styles.backBtnText}>Voltar</Text>
         </TouchableOpacity>
       </View>
@@ -258,31 +265,31 @@ export function QuizScreen({ route, navigation }: any) {
     const pct = Math.round((score / questions.length) * 100);
     const msg = pct >= 80 ? 'Excelente!' : pct >= 60 ? 'Muito bem!' : 'Continue estudando!';
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.resultCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Trophy size={56} color={pct >= 80 ? MedalColors.gold : pct >= 60 ? colors.primary : colors.textMuted} />
-          <Text style={[styles.resultMsg,   { color: colors.text }]}>{msg}</Text>
-          <Text style={[styles.resultScore, { color: colors.primary }]}>{score}/{questions.length} corretas</Text>
-          <View style={[styles.xpEarned, { backgroundColor: withOpacity(colors.primary, 8.2), borderColor: withOpacity(colors.primary, 18.8) }]}>
-            <Zap size={16} color={colors.primary} />
-            <Text style={[styles.xpEarnedText, { color: colors.primary }]}>+{xpEarned} XP ganhos</Text>
+      <View style={[styles.container, { backgroundColor: C.bg }]}>
+        <View style={[styles.resultCard, { backgroundColor: C.card, borderColor: C.border }]}>
+          <Trophy size={56} color={pct >= 80 ? MedalColors.gold : pct >= 60 ? C.green : C.muted} />
+          <Text style={[styles.resultMsg,   { color: C.text }]}>{msg}</Text>
+          <Text style={[styles.resultScore, { color: C.green }]}>{score}/{questions.length} corretas</Text>
+          <View style={[styles.xpEarned, { backgroundColor: `${C.green}18`, borderColor: `${C.green}44` }]}>
+            <Zap size={16} color={C.green} />
+            <Text style={[styles.xpEarnedText, { color: C.green }]}>+{xpEarned} XP ganhos</Text>
           </View>
           <View style={styles.resultDots}>
             {results.map((r, i) => (
-              <View key={i} style={[styles.dot, { backgroundColor: r ? colors.primary : colors.danger }]} />
+              <View key={i} style={[styles.dot, { backgroundColor: r ? C.green : DANGER }]} />
             ))}
           </View>
-          <View style={[styles.statsRow, { borderTopColor: colors.border }]}>
-            <View style={styles.stat}><Text style={[styles.statVal,{color:colors.text}]}>{score}</Text><Text style={[styles.statLbl,{color:colors.textMuted}]}>Acertos</Text></View>
-            <View style={[styles.statDivider,{backgroundColor:colors.border}]}/>
-            <View style={styles.stat}><Text style={[styles.statVal,{color:colors.text}]}>{questions.length-score}</Text><Text style={[styles.statLbl,{color:colors.textMuted}]}>Erros</Text></View>
-            <View style={[styles.statDivider,{backgroundColor:colors.border}]}/>
-            <View style={styles.stat}><Text style={[styles.statVal,{color:colors.text}]}>{pct}%</Text><Text style={[styles.statLbl,{color:colors.textMuted}]}>Taxa</Text></View>
+          <View style={[styles.statsRow, { borderTopColor: C.border }]}>
+            <View style={styles.stat}><Text style={[styles.statVal,{color:C.text}]}>{score}</Text><Text style={[styles.statLbl,{color:C.muted}]}>Acertos</Text></View>
+            <View style={[styles.statDivider,{backgroundColor:C.border}]}/>
+            <View style={styles.stat}><Text style={[styles.statVal,{color:C.text}]}>{questions.length-score}</Text><Text style={[styles.statLbl,{color:C.muted}]}>Erros</Text></View>
+            <View style={[styles.statDivider,{backgroundColor:C.border}]}/>
+            <View style={styles.stat}><Text style={[styles.statVal,{color:C.text}]}>{pct}%</Text><Text style={[styles.statLbl,{color:C.muted}]}>Taxa</Text></View>
           </View>
         </View>
         <View style={styles.resultActions}>
           <TouchableOpacity
-            style={[styles.resultBtn, { backgroundColor: colors.primary }]}
+            style={[styles.resultBtn, { backgroundColor: C.green }]}
             onPress={() => {
               setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
               setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
@@ -294,10 +301,10 @@ export function QuizScreen({ route, navigation }: any) {
             <Text style={styles.resultBtnText}>Jogar novamente</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.resultBtn, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 0.5 }]}
+            style={[styles.resultBtn, { backgroundColor: C.card, borderColor: C.border, borderWidth: 1 }]}
             onPress={() => navigation.goBack()}
           >
-            <Text style={[styles.resultBtnText, { color: colors.text }]}>Voltar</Text>
+            <Text style={[styles.resultBtnText, { color: C.text }]}>Voltar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -305,29 +312,25 @@ export function QuizScreen({ route, navigation }: any) {
   }
 
   const q = questions[current];
+  const isCorrectAnswer = answerResult?.is_correct ?? false;
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.topBar, { borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
+    <View style={[styles.container, { backgroundColor: C.bg }]}>
+      <View style={[styles.topBar, { borderBottomColor: C.border, paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <ArrowLeft size={22} color={colors.text} />
+          <ArrowLeft size={22} color={C.text} />
         </TouchableOpacity>
-        <Text style={[styles.topTitle, { color: colors.text }]}>{stateName ?? subcategory ?? 'Quiz'}</Text>
-        <View style={styles.topRight}>
-          <View style={[styles.timerBadge, { backgroundColor: withOpacity(timerColor, 12.5) }]}>
-            <Clock size={13} color={timerColor} />
-            <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
-          </View>
-          <TouchableOpacity onPress={() => setReportOpen(true)} style={styles.flagBtn}>
-            <Flag size={16} color={colors.textMuted} />
-          </TouchableOpacity>
+        <Text style={[styles.topTitle, { color: C.text }]}>{stateName ?? subcategory ?? 'Quiz'}</Text>
+        <View style={[styles.timerBadge, { backgroundColor: `${timerColor}20` }]}>
+          <Clock size={13} color={timerColor} />
+          <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
         </View>
       </View>
 
       <ReportModal visible={reportOpen} questionId={q.id} questionText={q.text} onClose={() => setReportOpen(false)} />
 
-      <View style={[styles.progressBg, { backgroundColor: colors.border }]}>
+      <View style={[styles.progressBg, { backgroundColor: C.border }]}>
         <Animated.View style={[styles.progressFill, {
-          backgroundColor: colors.primary,
+          backgroundColor: C.green,
           width: progressAnim.interpolate({ inputRange:[0,1], outputRange:['0%','100%'] }),
         }]} />
       </View>
@@ -335,7 +338,7 @@ export function QuizScreen({ route, navigation }: any) {
       <View style={styles.counterRow}>
         {questions.map((_, i) => (
           <View key={i} style={[styles.counterDot, {
-            backgroundColor: i < current ? colors.primary : i === current ? withOpacity(colors.primary, 37.6) : colors.border
+            backgroundColor: i < current ? C.green : i === current ? `${C.green}60` : C.border
           }]} />
         ))}
       </View>
@@ -348,60 +351,81 @@ export function QuizScreen({ route, navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.metaRow}>
-          <View style={[styles.metaBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.metaText, { color: colors.textSecondary }]}>{q.subcategory}</Text>
+          <View style={[styles.metaBadge, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+            <Text style={[styles.metaText, { color: C.muted }]}>{q.subcategory}</Text>
           </View>
           <View style={[styles.metaBadge, {
-            backgroundColor: q.difficulty==='easy' ? withOpacity(CategoryColors.natureza, 12.5) : q.difficulty==='medium' ? withOpacity(CategoryColors.gastronomia, 12.5) : withOpacity(CategoryColors.historia, 12.5),
-            borderColor:     q.difficulty==='easy' ? withOpacity(CategoryColors.natureza, 25.1) : q.difficulty==='medium' ? withOpacity(CategoryColors.gastronomia, 25.1) : withOpacity(CategoryColors.historia, 25.1),
+            backgroundColor: q.difficulty==='easy' ? `${C.green}18` : q.difficulty==='medium' ? `${C.yellow}18` : `${DANGER}18`,
+            borderColor:     q.difficulty==='easy' ? `${C.green}44` : q.difficulty==='medium' ? `${C.yellow}44` : `${DANGER}44`,
           }]}>
             <Text style={[styles.metaText, {
-              color: q.difficulty==='easy' ? CategoryColors.natureza : q.difficulty==='medium' ? CategoryColors.gastronomia : CategoryColors.historia,
+              color: q.difficulty==='easy' ? C.green : q.difficulty==='medium' ? C.yellow : DANGER_TEXT,
             }]}>{q.difficulty==='easy'?'Fácil':q.difficulty==='medium'?'Médio':'Difícil'}</Text>
           </View>
         </View>
 
-        <Text style={[styles.questionText, { color: colors.text }]}>{q.text}</Text>
+        <Text style={[styles.questionText, { color: C.text }]}>{q.text}</Text>
 
         <View style={styles.options}>
           {q.options.map((opt: string, i: number) => {
             const revealed   = answerResult !== null;
             const isCorrect  = revealed && i === answerResult?.correct_index;
             const isSelected = i === selected;
-            let bg = colors.card, border = colors.border, textColor = colors.text;
+            let bg: string = C.card, border: string = C.border, textColor: string = C.text;
             if (revealed) {
-              if (isCorrect)               { bg=withOpacity(colors.success, 12.5); border=colors.success; textColor=colors.success; }
-              else if (isSelected)         { bg=withOpacity(colors.danger, 12.5); border=colors.danger; textColor=colors.danger; }
-            } else if (isSelected)         { bg=withOpacity(colors.primary, 8.2); border=colors.primary; textColor=colors.primary; }
+              if (isCorrect)               { bg=`${C.green}18`; border=C.green; textColor=C.green; }
+              else if (isSelected)         { bg=`${DANGER}18`; border=DANGER; textColor=DANGER_TEXT; }
+            } else if (isSelected)         { bg=`${C.green}14`; border=C.green; textColor=C.green; }
             return (
               <TouchableOpacity key={i} onPress={() => handleAnswer(i)} disabled={answered}
                 style={[styles.option, { backgroundColor: bg, borderColor: border }]}
               >
-                <View style={[styles.optionLetter, { backgroundColor: withOpacity(border, 18.8) }]}>
+                <View style={[styles.optionLetter, { backgroundColor: C.iconBg }]}>
                   <Text style={[styles.optionLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                 </View>
                 <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
-                {revealed && isCorrect               && <CheckCircle size={18} color={colors.success} />}
-                {revealed && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
+                {revealed && isCorrect               && <CheckCircle size={18} color={C.green} />}
+                {revealed && isSelected && !isCorrect && <XCircle size={18} color={DANGER_TEXT} />}
               </TouchableOpacity>
             );
           })}
         </View>
-
-        {answered && answerResult?.explanation && (
-          <View style={[styles.explanation, { backgroundColor: withOpacity(colors.primary, 6.3), borderColor: withOpacity(colors.primary, 18.8) }]}>
-            <Text style={[styles.explanationText, { color: colors.textSecondary }]}>{answerResult.explanation}</Text>
-          </View>
-        )}
-
-        {answered && (
-          <TouchableOpacity onPress={nextQuestion} style={[styles.nextBtn, { backgroundColor: colors.primary }]}>
-            <Text style={styles.nextBtnText}>
-              {current + 1 >= questions.length ? 'Ver resultado' : 'Próxima pergunta'}
-            </Text>
-          </TouchableOpacity>
-        )}
       </Animated.ScrollView>
+
+      {/* Painel de feedback - desliza de baixo pra cima ao responder */}
+      <Animated.View
+        pointerEvents={answered ? 'auto' : 'none'}
+        style={[
+          styles.feedbackPanel,
+          {
+            backgroundColor: isCorrectAnswer ? `${C.green}22` : `${DANGER}22`,
+            borderTopColor:  isCorrectAnswer ? `${C.green}55` : `${DANGER}55`,
+            transform: [{ translateY: feedbackAnim.interpolate({ inputRange: [0, 1], outputRange: [420, 0] }) }],
+          },
+        ]}
+      >
+        <View style={styles.feedbackHeader}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+            {isCorrectAnswer ? <CheckCircle size={20} color={C.green} /> : <XCircle size={20} color={DANGER_TEXT} />}
+            <Text style={[styles.feedbackMsg, { color: isCorrectAnswer ? C.green : DANGER_TEXT }]} numberOfLines={1}>
+              {feedbackMsg}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => setReportOpen(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Flag size={16} color={C.muted} />
+          </TouchableOpacity>
+        </View>
+
+        {answerResult?.explanation && (
+          <Text style={[styles.feedbackExplanation, { color: C.muted }]}>{answerResult.explanation}</Text>
+        )}
+
+        <TouchableOpacity onPress={nextQuestion} style={[styles.nextBtn, { backgroundColor: isCorrectAnswer ? C.green : DANGER }]}>
+          <Text style={styles.nextBtnText}>
+            {current + 1 >= questions.length ? 'Ver resultado' : 'Próxima pergunta'}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
@@ -414,10 +438,8 @@ const styles = StyleSheet.create({
   emptyText:       { fontSize: FontSize.sm, textAlign: 'center' },
   backBtn:         { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
   backBtnText:     { color: '#FFF', fontWeight: FontWeight.medium },
-  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
+  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 1 },
   topTitle:        { fontSize: FontSize.md, fontWeight: FontWeight.medium },
-  topRight:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  flagBtn:         { padding: 4 },
   timerBadge:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
   timerText:       { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
   progressBg:      { height: 3 },
@@ -427,30 +449,32 @@ const styles = StyleSheet.create({
   questionWrap:    { flex: 1 },
   questionContent: { padding: Spacing.xl, paddingBottom: Spacing.xl * 3, flexGrow: 1 },
   metaRow:         { flexDirection: 'row', gap: 8, marginBottom: Spacing.lg },
-  metaBadge:       { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
+  metaBadge:       { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 1 },
   metaText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   questionText:    { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
   options:         { gap: 10 },
-  option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
+  option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 1, padding: Spacing.md, gap: 12 },
   optionLetter:    { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   optionLetterText:{ fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   optionText:      { flex: 1, fontSize: FontSize.sm, lineHeight: 20 },
-  explanation:     { marginTop: Spacing.lg, borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md },
-  explanationText: { fontSize: FontSize.sm, lineHeight: 20 },
-  resultCard:      { margin: Spacing.xl, marginTop: 80, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, alignItems: 'center', gap: 8 },
+  feedbackPanel:   { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopWidth: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.xl, paddingBottom: Spacing.xl * 1.5 },
+  feedbackHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  feedbackMsg:     { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  feedbackExplanation: { fontSize: FontSize.sm, lineHeight: 20, marginBottom: Spacing.lg },
+  resultCard:      { margin: Spacing.xl, marginTop: 80, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, alignItems: 'center', gap: 8 },
   resultMsg:       { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
   resultScore:     { fontSize: FontSize.lg, fontWeight: FontWeight.medium },
-  xpEarned:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 0.5 },
-  xpEarnedText:   { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  xpEarned:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 1 },
+  xpEarnedText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   resultDots:      { flexDirection: 'row', gap: 8 },
   dot:             { width: 10, height: 10, borderRadius: 5 },
-  statsRow:        { flexDirection: 'row', width: '100%', paddingTop: Spacing.lg, borderTopWidth: 0.5, marginTop: Spacing.sm },
+  statsRow:        { flexDirection: 'row', width: '100%', paddingTop: Spacing.lg, borderTopWidth: 1, marginTop: Spacing.sm },
   stat:            { flex: 1, alignItems: 'center' },
   statVal:         { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
   statLbl:         { fontSize: FontSize.xs, marginTop: 2 },
-  statDivider:     { width: 0.5, height: 40 },
+  statDivider:     { width: 1, height: 40 },
   resultActions:   { paddingHorizontal: Spacing.xl, gap: 10 },
-  nextBtn:         { marginTop: Spacing.lg, height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  nextBtn:         { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   nextBtnText:     { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
   resultBtn:       { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   resultBtnText:   { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.medium },
