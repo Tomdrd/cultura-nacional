@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../store/authStore';
@@ -33,14 +33,15 @@ export function RootNavigator() {
   const { session, loading, profileLoading, init, isPasswordRecovery } = useAuthStore();
   const { colors } = useTheme();
   const navigationRef = React.useRef<any>(null);
+  const [navReady, setNavReady] = useState(false);
 
   useEffect(() => { init(); }, []);
 
   useEffect(() => {
-    if (isPasswordRecovery) {
+    if (navReady && isPasswordRecovery) {
       navigationRef.current?.navigate('Auth', { screen: 'ResetPassword' });
     }
-  }, [isPasswordRecovery]);
+  }, [isPasswordRecovery, navReady]);
 
   useEffect(() => {
     async function handleDeepLink(url: string) {
@@ -87,7 +88,7 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef} linking={linking}>
+    <NavigationContainer ref={navigationRef} linking={linking} onReady={() => setNavReady(true)}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {session && !isPasswordRecovery ? (
           <Stack.Screen name="App" component={AppNavigator} />
