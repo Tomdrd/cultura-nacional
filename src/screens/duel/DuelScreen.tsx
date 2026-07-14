@@ -158,13 +158,13 @@ export function DuelScreen({ route, navigation }: any) {
       if (targetUserId) {
         console.log('[DuelScreen] Inserting notification for', targetUserId);
         const code = match.id.replace(/-/g, '').slice(0, 8).toUpperCase();
-        const { data: myProfile } = await supabase.from('profiles').select('username').eq('id', user.id).single();
+        const { data: myProfile } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single();
         const { error } = await supabase.from('notifications').insert({
           user_id: targetUserId,
           type:    'duel_invite',
           title:   'Você foi desafiado! ⚔️',
           body:    `${myProfile?.username ?? 'Alguém'} quer duelar com você.`,
-          data:    { code },
+          data:    { code, senderAvatar: myProfile?.avatar_url },
         });
         if (error) console.error('[DuelScreen] Error inserting notif:', error);
         else console.log('[DuelScreen] Notification inserted successfully!');
@@ -347,8 +347,8 @@ export function DuelScreen({ route, navigation }: any) {
       // Envia notificações de resultado para ambos os jogadores
       if (match.player1_id && match.player2_id) {
         const [{ data: p1 }, { data: p2 }] = await Promise.all([
-          supabase.from('profiles').select('username').eq('id', match.player1_id).single(),
-          supabase.from('profiles').select('username').eq('id', match.player2_id).single(),
+          supabase.from('profiles').select('username, avatar_url').eq('id', match.player1_id).single(),
+          supabase.from('profiles').select('username, avatar_url').eq('id', match.player2_id).single(),
         ]);
 
         // Conta acertos de cada jogador
@@ -365,7 +365,7 @@ export function DuelScreen({ route, navigation }: any) {
 
         const winner = s1 > s2 ? match.player1_id : s2 > s1 ? match.player2_id : null;
 
-        function buildNotif(recipientId: string, opponentUsername: string, myS: number, oppS: number) {
+        function buildNotif(recipientId: string, opponentUsername: string, opponentAvatar: string | null, myS: number, oppS: number) {
           const won  = winner === recipientId;
           const draw = winner === null;
           return {
@@ -373,13 +373,13 @@ export function DuelScreen({ route, navigation }: any) {
             type:    'duel_result',
             title:   won ? 'Você venceu o duelo! 🏆' : draw ? 'Duelo empatado!' : 'Você perdeu o duelo',
             body:    `Resultado contra ${opponentUsername}: ${myS}×${oppS}`,
-            data:    { matchId, myScore: myS, oppScore: oppS, winnerId: winner },
+            data:    { matchId, myScore: myS, oppScore: oppS, winnerId: winner, opponentAvatar },
           };
         }
 
         await supabase.from('notifications').insert([
-          buildNotif(match.player1_id, p2?.username ?? 'Oponente', s1, s2),
-          buildNotif(match.player2_id, p1?.username ?? 'Oponente', s2, s1),
+          buildNotif(match.player1_id, p2?.username ?? 'Oponente', p2?.avatar_url ?? null, s1, s2),
+          buildNotif(match.player2_id, p1?.username ?? 'Oponente', p1?.avatar_url ?? null, s2, s1),
         ]);
       }
     }

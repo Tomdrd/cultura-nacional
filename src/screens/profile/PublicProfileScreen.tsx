@@ -93,13 +93,15 @@ export function PublicProfileScreen({ route, navigation }: any) {
       setFollowersCount(c => c + 1);
 
       // Notifica o seguido
-      const myUsername = (await supabase.from('profiles').select('username').eq('id', user.id).single()).data?.username ?? 'Alguém';
+      const { data: myProfile } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single();
+      const myUsername = myProfile?.username ?? 'Alguém';
+      
       await supabase.from('notifications').insert({
         user_id: userId,
         type:    'new_follower',
         title:   'Novo seguidor',
         body:    `${myUsername} começou a seguir você.`,
-        data:    { followerId: user.id, followerUsername: myUsername },
+        data:    { followerId: user.id, followerUsername: myUsername, followerAvatar: myProfile?.avatar_url },
       });
     }
     setFollowLoading(false);

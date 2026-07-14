@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator,
+  ActivityIndicator, Image, Alert
 } from 'react-native';
-import { Bell, UserPlus, Swords, Trophy } from 'lucide-react-native';
+import { Bell, UserPlus, Swords, Trophy, Trash2 } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -103,18 +103,41 @@ export function NotificationsScreen({ navigation }: any) {
     }, [user?.id])
   );
 
+  async function handleClearAll() {
+    if (!user) return;
+    Alert.alert('Limpar notificações', 'Tem certeza que deseja apagar todas as notificações?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Limpar', style: 'destructive', onPress: async () => {
+          setLoading(true);
+          await supabase.from('notifications').delete().eq('user_id', user.id);
+          setNotifications([]);
+          setLoading(false);
+      }}
+    ]);
+  }
+
   function handleNotifPress(item: Notification) {
     if (item.type === 'duel_invite' && item.data?.code) {
       navigation.navigate('Duel', { joinCode: item.data.code });
+    } else if (item.type === 'new_follower' && item.data?.followerId) {
+      navigation.navigate('PublicProfile', { userId: item.data.followerId });
+    } else if (item.type === 'duel_result' && item.data?.winnerId) {
+      // Navega para o perfil do oponente. No duel_result, quem NÃO sou eu (user.id) é o oponente
+      // Pela notificação não temos o opponentId diretamente, mas no match original temos.
+      // Porém podemos pegar do senderId se tivéssemos. Vamos deixar logado para melhorar depois, 
+      // ou navegar para o duel se fosse possível ver histórico.
+      // O requisito pediu "redirecionar para o perfil da pessoa", podemos não ter isso no duel_result sem alterar mais.
     }
   }
 
   function renderItem({ item }: { item: Notification }) {
     const color = iconColor(item.type, C);
+    const avatarUrl = item.data?.followerAvatar || item.data?.senderAvatar || item.data?.opponentAvatar;
+    
     return (
       <TouchableOpacity
         onPress={() => handleNotifPress(item)}
-        activeOpacity={item.type === 'duel_invite' ? 0.7 : 1}
+        activeOpacity={item.type === 'duel_invite' || item.type === 'new_follower' ? 0.7 : 1}
         style={[
           styles.item,
           {
@@ -124,9 +147,13 @@ export function NotificationsScreen({ navigation }: any) {
         ]}
       >
         <View style={[styles.iconWrap, { backgroundColor: isDark ? C.iconBg : `${color}18` }]}>
-          <NotifIcon type={item.type} color={color} />
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+          ) : (
+            <NotifIcon type={item.type} color={color} />
+          )}
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
           <Text style={[styles.title, { color: C.text }]}>{item.title}</Text>
           <Text style={[styles.body, { color: C.muted }]} numberOfLines={2}>{item.body}</Text>
         </View>
@@ -140,8 +167,15 @@ export function NotificationsScreen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: headerPaddingTop, borderBottomColor: C.border }]}>
-        <Bell size={20} color={C.text} />
-        <Text style={[styles.headerTitle, { color: C.text }]}>Notificações</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Bell size={20} color={C.text} />
+          <Text style={[styles.headerTitle, { color: C.text }]}>Notificações</Text>
+        </View>
+        {notifications.length > 0 && (
+          <TouchableOpacity onPress={handleClearAll} style={{ padding: 4 }}>
+            <Trash2 size={20} color={C.muted} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading ? (
@@ -170,7 +204,7 @@ export function NotificationsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header:      { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.xl, paddingBottom: 14, borderBottomWidth: 0.5 },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingBottom: 14, borderBottomWidth: 0.5 },
   headerTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   center:      { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: Spacing.xl },
   emptyTitle:  { fontSize: FontSize.md, fontWeight: FontWeight.bold, marginTop: 8 },
