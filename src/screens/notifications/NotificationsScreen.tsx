@@ -47,7 +47,7 @@ function iconColor(type: Notification['type'], C: any): string {
   return C.text;
 }
 
-export function NotificationsScreen() {
+export function NotificationsScreen({ navigation }: any) {
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
@@ -103,10 +103,18 @@ export function NotificationsScreen() {
     }, [user?.id])
   );
 
+  function handleNotifPress(item: Notification) {
+    if (item.type === 'duel_invite' && item.data?.code) {
+      navigation.navigate('Duel', { joinCode: item.data.code });
+    }
+  }
+
   function renderItem({ item }: { item: Notification }) {
     const color = iconColor(item.type, C);
     return (
-      <View
+      <TouchableOpacity
+        onPress={() => handleNotifPress(item)}
+        activeOpacity={item.type === 'duel_invite' ? 0.7 : 1}
         style={[
           styles.item,
           {
@@ -124,7 +132,7 @@ export function NotificationsScreen() {
         </View>
         <Text style={[styles.time, { color: C.muted }]}>{timeAgo(item.created_at)}</Text>
         {!item.read && <View style={[styles.dot, { backgroundColor: C.green }]} />}
-      </View>
+      </TouchableOpacity>
     );
   }
 

@@ -10,11 +10,14 @@ create table if not exists notifications (
   created_at timestamptz not null default now()
 );
 
--- RLS: cada usuário só acessa as próprias notificações
+-- RLS: políticas corrigidas para permitir criar notificações para terceiros
 alter table notifications enable row level security;
 
-create policy "notifications_owner" on notifications
-  for all using (user_id = auth.uid());
+create policy "notifications_select" on notifications for select using (user_id = auth.uid());
+create policy "notifications_update" on notifications for update using (user_id = auth.uid());
+create policy "notifications_delete" on notifications for delete using (user_id = auth.uid());
+
+create policy "notifications_insert" on notifications for insert with check (auth.uid() is not null);
 
 -- Índice para listagem por usuário mais recente primeiro
 create index if not exists notifications_user_created

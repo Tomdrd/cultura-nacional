@@ -35,7 +35,7 @@ interface Opponent {
 const TOTAL_QUESTIONS = 5;
 const TIME_PER_QUESTION = 15;
 
-export function DuelScreen({ navigation }: any) {
+export function DuelScreen({ route, navigation }: any) {
   const { colors } = useTheme();
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
@@ -90,13 +90,40 @@ export function DuelScreen({ navigation }: any) {
 
   useEffect(() => { return () => cleanup(); }, []);
 
+  // ─── Lidar com Desafios e Convites por Parametros ─────────────
+  useEffect(() => {
+    console.log('[DuelScreen] useEffect params:', route.params);
+    if (!user) {
+      console.log('[DuelScreen] No user yet');
+      return;
+    }
+    
+    // Se recebemos um challengeUserId, criar desafio direcionado
+    if (route.params?.challengeUserId) {
+      console.log('[DuelScreen] Detected challengeUserId:', route.params.challengeUserId);
+      // Limpar o parâmetro para não rodar duas vezes caso a tela seja re-focada
+      const targetId = route.params.challengeUserId;
+      navigation.setParams({ challengeUserId: undefined });
+      createMatch(targetId);
+    }
+    // Se recebemos um joinCode, entrar automaticamente
+    else if (route.params?.joinCode) {
+      console.log('[DuelScreen] Detected joinCode:', route.params.joinCode);
+      const code = route.params.joinCode;
+      navigation.setParams({ joinCode: undefined });
+      setJoinCode(code);
+      joinMatch(code);
+    }
+  }, [route.params?.challengeUserId, route.params?.joinCode, user]);
+
   function cleanup() {
     stopTimer();
     if (channelRef.current) supabase.removeChannel(channelRef.current);
   }
 
   // ─── Criar duelo ───────────────────────────────────────────────
-  async function createMatch() {
+  async function createMatch(targetUserId?: string) {
+    console.log('[DuelScreen] createMatch called with target:', targetUserId);
     if (!user) return;
     setLoading(true);
 
@@ -126,20 +153,37 @@ export function DuelScreen({ navigation }: any) {
       setDuelState('waiting');
       duelStateRef.current = 'waiting';
       subscribeToMatch(match.id);
+
+      // Se temos um alvo específico, envia a notificação de convite
+      if (targetUserId) {
+        console.log('[DuelScreen] Inserting notification for', targetUserId);
+        const code = match.id.replace(/-/g, '').slice(0, 8).toUpperCase();
+        const { data: myProfile } = await supabase.from('profiles').select('username').eq('id', user.id).single();
+        const { error } = await supabase.from('notifications').insert({
+          user_id: targetUserId,
+          type:    'duel_invite',
+          title:   'Você foi desafiado! ⚔️',
+          body:    `${myProfile?.username ?? 'Alguém'} quer duelar com você.`,
+          data:    { code },
+        });
+        if (error) console.error('[DuelScreen] Error inserting notif:', error);
+        else console.log('[DuelScreen] Notification inserted successfully!');
+      }
     }
     setLoading(false);
   }
 
   // ─── Entrar no duelo por código ────────────────────────────────
-  async function joinMatch() {
-    if (!user || !joinCode.trim()) return;
+  async function joinMatch(codeArg?: string) {
+    const code = typeof codeArg === 'string' ? codeArg : joinCode;
+    if (!user || !code.trim()) return;
     setLoading(true);
 
     // A busca + validação + entrada no duelo acontece toda no servidor via RPC,
     // evitando expor a lista de duelos abertos de outros usuários (RLS não
     // permitiria o SELECT direto antes de já ser player1/player2 do duelo).
     const { data: match, error } = await supabase.rpc('join_duel_by_code', {
-      p_code: joinCode.trim().toUpperCase(),
+      p_code: code.trim().toUpperCase(),
     });
 
     if (error || !match) {

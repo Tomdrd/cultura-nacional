@@ -240,7 +240,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Duel')}
+                  onPress={() => navigation.navigate('Duel', { challengeUserId: userId })}
                   style={[styles.followBtn, styles.duelBtn, { borderColor: C.border }]}
                 >
                   <Swords size={16} color={C.text} />

@@ -16,7 +16,10 @@ export type AppStackParamList = {
     subcategory?: string;
     mode?:        'relampago';
   };
-  Duel:          undefined;
+  Duel: {
+    challengeUserId?: string;
+    joinCode?: string;
+  } | undefined;
   Subscription:  undefined;
   Missions:      undefined;
   Achievements:  undefined;
