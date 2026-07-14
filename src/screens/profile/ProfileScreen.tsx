@@ -217,7 +217,6 @@ export function ProfileScreen({ navigation }: any) {
           <Text style={[styles.statVal, { color: C.text }]}>{profile?.streak ?? 0}</Text>
           <Text style={[styles.statLbl, { color: C.muted }]}>Streak</Text>
         </View>
-        </TouchableOpacity>
         <View style={[styles.statDivider, { backgroundColor: C.border }]} />
         <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('CityRanking')}>
           <Trophy size={18} color={C.text} />
