@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { ArrowLeft, User, MapPin, Trophy, Zap, Star, Award, Copy, UserPlus, UserCheck } from 'lucide-react-native';
+import { ArrowLeft, User, MapPin, Trophy, Zap, Star, Award, Copy, UserPlus, UserCheck, Swords } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
@@ -91,6 +91,16 @@ export function PublicProfileScreen({ route, navigation }: any) {
       await supabase.from('follows').insert({ follower_id: user.id, following_id: userId });
       setIsFollowing(true);
       setFollowersCount(c => c + 1);
+
+      // Notifica o seguido
+      const myUsername = (await supabase.from('profiles').select('username').eq('id', user.id).single()).data?.username ?? 'Alguém';
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        type:    'new_follower',
+        title:   'Novo seguidor',
+        body:    `${myUsername} começou a seguir você.`,
+        data:    { followerId: user.id, followerUsername: myUsername },
+      });
     }
     setFollowLoading(false);
   }
@@ -211,21 +221,32 @@ export function PublicProfileScreen({ route, navigation }: any) {
             </View>
 
             {!isMe && (
-              <TouchableOpacity
-                onPress={toggleFollow}
-                disabled={followLoading}
-                style={[
-                  styles.followBtn,
-                  isFollowing
-                    ? { backgroundColor: C.card, borderWidth: 1, borderColor: C.border }
-                    : { backgroundColor: C.green },
-                ]}
-              >
-                {isFollowing ? <UserCheck size={16} color={C.text} /> : <UserPlus size={16} color="#FFF" />}
-                <Text style={[styles.followBtnText, { color: isFollowing ? C.text : '#FFF' }]}>
-                  {isFollowing ? 'Seguindo' : 'Adicionar'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  onPress={toggleFollow}
+                  disabled={followLoading}
+                  style={[
+                    styles.followBtn,
+                    { flex: 1 },
+                    isFollowing
+                      ? { backgroundColor: C.card, borderWidth: 1, borderColor: C.border }
+                      : { backgroundColor: C.green },
+                  ]}
+                >
+                  {isFollowing ? <UserCheck size={16} color={C.text} /> : <UserPlus size={16} color="#FFF" />}
+                  <Text style={[styles.followBtnText, { color: isFollowing ? C.text : '#FFF' }]}>
+                    {isFollowing ? 'Seguindo' : 'Adicionar'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Duel')}
+                  style={[styles.followBtn, styles.duelBtn, { borderColor: C.border }]}
+                >
+                  <Swords size={16} color={C.text} />
+                  <Text style={[styles.followBtnText, { color: C.text }]}>Desafiar</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
 
@@ -289,8 +310,10 @@ const styles = StyleSheet.create({
   followStat:     { alignItems: 'center' },
   followStatVal:  { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   followStatLbl:  { fontSize: 10, marginTop: 1 },
-  followBtn:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 9, borderRadius: Radius.full, marginTop: 4 },
+  actionRow:      { flexDirection: 'row', gap: 10, marginTop: 4, width: '100%' },
+  followBtn:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 9, borderRadius: Radius.full },
   followBtnText:  { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  duelBtn:        { backgroundColor: 'transparent', borderWidth: 1 },
   xpCard:       { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   xpRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
   xpLabel:      { fontSize: FontSize.xs, marginBottom: 2 },

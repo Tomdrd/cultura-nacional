@@ -299,6 +299,45 @@ export function DuelScreen({ navigation }: any) {
     const bothFinished = match?.player1_finished_at && match?.player2_finished_at;
     if (bothFinished) {
       await supabase.from('matches').update({ status: 'finished' }).eq('id', matchId);
+
+      // Envia notificações de resultado para ambos os jogadores
+      if (match.player1_id && match.player2_id) {
+        const [{ data: p1 }, { data: p2 }] = await Promise.all([
+          supabase.from('profiles').select('username').eq('id', match.player1_id).single(),
+          supabase.from('profiles').select('username').eq('id', match.player2_id).single(),
+        ]);
+
+        // Conta acertos de cada jogador
+        const { data: answers } = await supabase
+          .from('match_answers')
+          .select('user_id, is_correct')
+          .eq('match_id', matchId);
+
+        const scoreOf = (uid: string) =>
+          (answers ?? []).filter((a: any) => a.user_id === uid && a.is_correct).length;
+
+        const s1 = scoreOf(match.player1_id);
+        const s2 = scoreOf(match.player2_id);
+
+        const winner = s1 > s2 ? match.player1_id : s2 > s1 ? match.player2_id : null;
+
+        function buildNotif(recipientId: string, opponentUsername: string, myS: number, oppS: number) {
+          const won  = winner === recipientId;
+          const draw = winner === null;
+          return {
+            user_id: recipientId,
+            type:    'duel_result',
+            title:   won ? 'Você venceu o duelo! 🏆' : draw ? 'Duelo empatado!' : 'Você perdeu o duelo',
+            body:    `Resultado contra ${opponentUsername}: ${myS}×${oppS}`,
+            data:    { matchId, myScore: myS, oppScore: oppS, winnerId: winner },
+          };
+        }
+
+        await supabase.from('notifications').insert([
+          buildNotif(match.player1_id, p2?.username ?? 'Oponente', s1, s2),
+          buildNotif(match.player2_id, p1?.username ?? 'Oponente', s2, s1),
+        ]);
+      }
     }
 
     setDuelState('finished');

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award, Copy, Check, Lock } from 'lucide-react-native';
+import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award, Copy, Check, Lock, Swords } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -237,6 +237,7 @@ export function ProfileScreen({ navigation }: any) {
           { icon: MapPin,   label: 'Minha cidade natal',  onPress: () => navigation.navigate('CidadeSetup') },
           { icon: Trophy,   label: 'Minhas conquistas',   onPress: () => navigation.navigate('Achievements') },
           { icon: Zap,      label: 'Missões diárias',     onPress: () => navigation.navigate('Missions') },
+          { icon: Swords,   label: 'Duelo 1v1',           onPress: () => navigation.navigate('Duel') },
         ].map(({ icon: Icon, label, onPress }) => (
           <TouchableOpacity key={label} onPress={onPress} style={[styles.menuItem, { borderTopColor: C.border }]}>
             <View style={[styles.iconBoxSm, { backgroundColor: C.iconBg, borderColor: C.border }]}>

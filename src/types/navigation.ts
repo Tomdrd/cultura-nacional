@@ -16,11 +16,12 @@ export type AppStackParamList = {
     subcategory?: string;
     mode?:        'relampago';
   };
-  Duel:         undefined;
-  Subscription: undefined;
-  Missions:     undefined;
-  Achievements: undefined;
-  CidadeSetup: undefined;
+  Duel:          undefined;
+  Subscription:  undefined;
+  Missions:      undefined;
+  Achievements:  undefined;
+  CidadeSetup:   undefined;
+  Profile:       undefined;
   ViralMode: {
     stateId?:     string;
     stateName?:   string;
@@ -30,8 +31,8 @@ export type AppStackParamList = {
 };
 
 export type HomeTabsParamList = {
-  Home:     undefined;
-  Ranking:  undefined;
-  Profile:  undefined;
-  Settings: undefined;
+  Home:          undefined;
+  Ranking:       undefined;
+  Notifications: undefined;
+  Settings:      undefined;
 };
