@@ -58,8 +58,32 @@ export function PublicProfileScreen({ route, navigation }: any) {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [copied,      setCopied]      = useState(false);
+  const [quizStats, setQuizStats] = useState({ total: 0, correct: 0 });
 
-  useEffect(() => { loadProfile(); loadFollowInfo(); }, [userId]);
+  const isMe = user?.id === userId;
+
+  useEffect(() => {
+    loadProfile();
+    loadFollowInfo();
+    loadQuizStats();
+  }, [userId]);
+
+  async function loadQuizStats() {
+    const { data: progress } = await supabase
+      .from('user_state_progress')
+      .select('questions_answered, correct_answers')
+      .eq('user_id', userId);
+    
+    let total = 0;
+    let correct = 0;
+    if (progress) {
+      for (const p of progress) {
+        total += p.questions_answered || 0;
+        correct += p.correct_answers || 0;
+      }
+    }
+    setQuizStats({ total, correct });
+  }
 
   async function loadFollowInfo() {
     const [{ count: followers }, { count: following }] = await Promise.all([
@@ -142,7 +166,6 @@ export function PublicProfileScreen({ route, navigation }: any) {
   const xpToNext  = XP_PER_LEVEL;
   const xpPct     = getXpProgress(profile?.xp ?? 0);
   const levelInfo = getLevelInfo(profile?.level ?? 1);
-  const isMe      = user?.id === userId;
   const isProProfile = profile?.plan === 'pro';
 
   return (
@@ -292,6 +315,29 @@ export function PublicProfileScreen({ route, navigation }: any) {
               <Text style={[styles.statLbl, { color: C.muted }]}>Nível</Text>
             </View>
           </View>
+
+          {/* Desempenho */}
+          <View style={[styles.card, { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg, backgroundColor: C.card, borderColor: C.border }]}>
+            <Text style={{ fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: C.muted, marginBottom: Spacing.md }}>DESEMPENHO NO QUIZ</Text>
+            <View style={styles.quizStatsRow}>
+              <View style={styles.quizStat}>
+                <Text style={[styles.quizStatVal, { color: C.text }]}>{quizStats.total}</Text>
+                <Text style={[styles.quizStatLbl, { color: C.muted }]}>Respondidas</Text>
+              </View>
+              <View style={styles.quizStat}>
+                <Text style={[styles.quizStatVal, { color: C.green }]}>
+                  {quizStats.total > 0 ? Math.round((quizStats.correct / quizStats.total) * 100) : 0}%
+                </Text>
+                <Text style={[styles.quizStatLbl, { color: C.muted }]}>Acertos</Text>
+              </View>
+              <View style={styles.quizStat}>
+                <Text style={[styles.quizStatVal, { color: '#F09595' }]}>
+                  {quizStats.total > 0 ? Math.round(((quizStats.total - quizStats.correct) / quizStats.total) * 100) : 0}%
+                </Text>
+                <Text style={[styles.quizStatLbl, { color: C.muted }]}>Erros</Text>
+              </View>
+            </View>
+          </View>
         </>
       )}
 
@@ -334,5 +380,9 @@ const styles = StyleSheet.create({
   statVal:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   statLbl:      { fontSize: 9, textAlign: 'center' },
   statDivider:  { width: 1 },
+  quizStatsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm },
+  quizStat:     { alignItems: 'center', gap: 4 },
+  quizStatVal:  { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  quizStatLbl:  { fontSize: FontSize.xs },
   emptyText:    { fontSize: FontSize.sm, textAlign: 'center' },
 });

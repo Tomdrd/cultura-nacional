@@ -57,8 +57,27 @@ export function ProfileScreen({ navigation }: any) {
   const [copied,   setCopied]   = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [quizStats, setQuizStats] = useState({ total: 0, correct: 0 });
 
-  useEffect(() => { loadProfile(); loadFollowInfo(); }, []);
+  useEffect(() => { loadProfile(); loadFollowInfo(); loadQuizStats(); }, []);
+
+  async function loadQuizStats() {
+    if (!user) return;
+    const { data: progress } = await supabase
+      .from('user_state_progress')
+      .select('questions_answered, correct_answers')
+      .eq('user_id', user.id);
+    
+    let total = 0;
+    let correct = 0;
+    if (progress) {
+      for (const p of progress) {
+        total += p.questions_answered || 0;
+        correct += p.correct_answers || 0;
+      }
+    }
+    setQuizStats({ total, correct });
+  }
 
   async function loadFollowInfo() {
     if (!user) return;
@@ -231,6 +250,29 @@ export function ProfileScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      {/* Desempenho */}
+      <View style={[styles.card, styles.section, { backgroundColor: C.card, borderColor: C.border }]}>
+        <Text style={[styles.sectionTitle, { color: C.muted }]}>DESEMPENHO NO QUIZ</Text>
+        <View style={styles.quizStatsRow}>
+          <View style={styles.quizStat}>
+            <Text style={[styles.quizStatVal, { color: C.text }]}>{quizStats.total}</Text>
+            <Text style={[styles.quizStatLbl, { color: C.muted }]}>Respondidas</Text>
+          </View>
+          <View style={styles.quizStat}>
+            <Text style={[styles.quizStatVal, { color: C.green }]}>
+              {quizStats.total > 0 ? Math.round((quizStats.correct / quizStats.total) * 100) : 0}%
+            </Text>
+            <Text style={[styles.quizStatLbl, { color: C.muted }]}>Acertos</Text>
+          </View>
+          <View style={styles.quizStat}>
+            <Text style={[styles.quizStatVal, { color: '#F09595' }]}>
+              {quizStats.total > 0 ? Math.round(((quizStats.total - quizStats.correct) / quizStats.total) * 100) : 0}%
+            </Text>
+            <Text style={[styles.quizStatLbl, { color: C.muted }]}>Erros</Text>
+          </View>
+        </View>
+      </View>
+
       {/* Plan */}
       <View style={[styles.card, styles.section, { backgroundColor: C.card, borderColor: C.border }]}>
         <Text style={[styles.sectionTitle, { color: C.muted }]}>PLANO</Text>
@@ -324,6 +366,10 @@ const styles = StyleSheet.create({
   statVal:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   statLbl:      { fontSize: 9, textAlign: 'center' },
   statDivider:  { width: 1 },
+  quizStatsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm },
+  quizStat:     { alignItems: 'center', gap: 4 },
+  quizStatVal:  { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  quizStatLbl:  { fontSize: FontSize.xs },
   section:      { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   sectionTitle: { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.md, textTransform: 'uppercase' },
   planRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
