@@ -178,14 +178,14 @@ export function ProfileScreen({ navigation }: any) {
         <View style={styles.followStatsRow}>
           <TouchableOpacity
             style={styles.followStat}
-            onPress={() => navigation.navigate('FollowList', { userId: user.id, type: 'followers' })}
+            onPress={() => navigation.navigate('FollowList', { userId: user?.id, type: 'followers' })}
           >
             <Text style={[styles.followStatVal, { color: C.text }]}>{followersCount}</Text>
             <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguidores</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.followStat}
-            onPress={() => navigation.navigate('FollowList', { userId: user.id, type: 'following' })}
+            onPress={() => navigation.navigate('FollowList', { userId: user?.id, type: 'following' })}
           >
             <Text style={[styles.followStatVal, { color: C.text }]}>{followingCount}</Text>
             <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguindo</Text>

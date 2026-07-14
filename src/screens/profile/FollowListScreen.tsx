@@ -39,7 +39,7 @@ export function FollowListScreen({ route, navigation }: any) {
     const from = pageNumber * LIMIT;
     const to = from + LIMIT - 1;
 
-    let query = supabase.from('follows');
+    let query: any = supabase.from('follows');
     if (type === 'followers') {
       // Busca quem me segue
       query = query

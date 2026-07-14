@@ -457,7 +457,7 @@ export function DuelScreen({ route, navigation }: any) {
                 <TouchableOpacity onPress={() => setShowJoin(false)} style={[styles.joinCancel, { borderColor: colors.border }]}>
                   <Text style={[styles.joinCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={joinMatch} disabled={joinCode.length < 8 || loading}
+                <TouchableOpacity onPress={() => joinMatch()} disabled={joinCode.length < 8 || loading}
                   style={[styles.joinConfirm, { backgroundColor: joinCode.length === 8 ? colors.primary : colors.border }]}>
                   {loading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.joinConfirmText}>Entrar</Text>}
                 </TouchableOpacity>
@@ -600,7 +600,7 @@ export function DuelScreen({ route, navigation }: any) {
               <View key={i} style={[styles.dot, { backgroundColor: r ? colors.primary : colors.danger }]} />
             ))}
           </View>
-          <TouchableOpacity onPress={resetDuel} style={[styles.replayBtn, { backgroundColor: colors.primary }]}>
+          <TouchableOpacity onPress={() => resetDuel()} style={[styles.replayBtn, { backgroundColor: colors.primary }]}>
             <Text style={styles.replayBtnText}>Jogar novamente</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.homeBtn}>
