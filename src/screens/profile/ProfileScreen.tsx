@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { User, MapPin, Trophy, Zap, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb, LogOut, ChevronRight, Award } from 'lucide-react-native';
+import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { HomeTheme } from '../../constants/colors';
 import { getXpInCurrentLevel, getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
 import { StateFlag } from '../../components/ui/StateFlag';
 import { Plan } from '../../types';
 
 const LEVELS = [
-  { min: 0,    label: 'Curioso',     color: '#6B6B6B' },
-  { min: 3,    label: 'Viajante',    color: '#378ADD' },
-  { min: 6,    label: 'Descobridor', color: '#7F77DD' },
-  { min: 10,   label: 'Conhecedor',  color: '#BA7517' },
-  { min: 15,   label: 'Especialista',color: '#009C3B' },
-  { min: 20,   label: 'Mestre Cultural', color: '#FFDF00' },
+  { min: 0,    label: 'Curioso' },
+  { min: 3,    label: 'Viajante' },
+  { min: 6,    label: 'Descobridor' },
+  { min: 10,   label: 'Conhecedor' },
+  { min: 15,   label: 'Especialista' },
+  { min: 20,   label: 'Mestre Cultural' },
 ];
 
 function getLevelInfo(level: number) {
@@ -36,13 +38,16 @@ interface Profile {
   plan_expires_at: string | null;
   city_natal_id: string | null;
   created_at: string;
+  state_uf: string | null;
 }
 
 interface CityInfo { name: string; state_uf: string; }
 
 export function ProfileScreen({ navigation }: any) {
 
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
+  const headerPaddingTop = useHeaderTopPadding();
   const { user, signOut } = useAuthStore();
   const [profile,  setProfile]  = useState<Profile | null>(null);
   const [city,     setCity]     = useState<CityInfo | null>(null);
@@ -76,8 +81,8 @@ export function ProfileScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} size="large" />
+      <View style={[styles.center, { backgroundColor: C.bg }]}>
+        <ActivityIndicator color={C.green} size="large" />
       </View>
     );
   }
@@ -88,102 +93,102 @@ export function ProfileScreen({ navigation }: any) {
   const levelInfo   = getLevelInfo(profile?.level ?? 1);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
         <View style={{ position: 'relative' }}>
-          <View style={[styles.avatar, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}>
+          <View style={[styles.avatar, { backgroundColor: C.card, borderColor: C.border }]}>
             {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
               <Image
                 source={{ uri: profile?.avatar_url ?? user?.user_metadata?.avatar_url }}
-                style={{ width: 80, height: 80, borderRadius: 40 }}
+                style={{ width: 72, height: 72, borderRadius: 36 }}
               />
             ) : (
-              <User size={36} color={colors.primary} />
+              <User size={30} color={C.subtle} />
             )}
           </View>
-          {profile?.plan && <AvatarVerifiedBadge plan={profile.plan} avatarSize={80} />}
+          {profile?.plan && <AvatarVerifiedBadge plan={profile.plan} avatarSize={72} />}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          {profile?.state_uf && <StateFlag uf={profile.state_uf} size={22} />}
-          <Text style={[styles.username, { color: colors.text }]}>{profile?.username ?? 'Explorador'}</Text>
+          {profile?.state_uf && <StateFlag uf={profile.state_uf} size={20} />}
+          <Text style={[styles.username, { color: C.text }]}>{profile?.username ?? 'Explorador'}</Text>
           {profile?.plan && <VerifiedBadge plan={profile.plan} size={20} />}
         </View>
-        <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
+        <Text style={[styles.email, { color: C.muted }]}>{user?.email}</Text>
 
         {/* Level badge */}
-        <View style={[styles.levelBadge, { backgroundColor: levelInfo.color + '20', borderColor: levelInfo.color + '40' }]}>
-          <Award size={14} color={levelInfo.color} />
-          <Text style={[styles.levelText, { color: levelInfo.color }]}>{levelInfo.label}</Text>
+        <View style={[styles.pill, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+          <Award size={13} color={C.subtle} />
+          <Text style={[styles.pillText, { color: C.subtle }]}>{levelInfo.label}</Text>
         </View>
 
         {/* City */}
         {city && (
           <View style={styles.cityRow}>
-            <MapPin size={13} color={colors.textMuted} />
-            <Text style={[styles.cityText, { color: colors.textMuted }]}>{city.name}, {city.state_uf}</Text>
+            <MapPin size={12} color={C.muted} />
+            <Text style={[styles.cityText, { color: C.muted }]}>{city.name}, {city.state_uf}</Text>
           </View>
         )}
       </View>
 
       {/* XP Progress */}
-      <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={[styles.card, styles.xpCard, { backgroundColor: C.card, borderColor: C.border }]}>
         <View style={styles.xpRow}>
           <View>
-            <Text style={[styles.xpLabel, { color: colors.textSecondary }]}>Experiência</Text>
-            <Text style={[styles.xpValue, { color: colors.text }]}>{profile?.xp ?? 0} XP total</Text>
+            <Text style={[styles.xpLabel, { color: C.muted }]}>Experiência</Text>
+            <Text style={[styles.xpValue, { color: C.text }]}>{profile?.xp ?? 0} XP total</Text>
           </View>
-          <Text style={[styles.xpLevel, { color: colors.primary }]}>Nível {profile?.level ?? 1}</Text>
+          <Text style={[styles.xpLevel, { color: C.green }]}>Nível {profile?.level ?? 1}</Text>
         </View>
-        <View style={[styles.xpBarBg, { backgroundColor: colors.border }]}>
-          <View style={[styles.xpBarFill, { width: `${xpPct * 100}%`, backgroundColor: colors.primary }]} />
+        <View style={[styles.xpBarBg, { backgroundColor: C.border }]}>
+          <View style={[styles.xpBarFill, { width: `${xpPct * 100}%`, backgroundColor: C.green }]} />
         </View>
-        <Text style={[styles.xpHint, { color: colors.textMuted }]}>
+        <Text style={[styles.xpHint, { color: C.muted }]}>
           {xpCurrent} / {xpToNext} XP para Nível {(profile?.level ?? 1) + 1}
         </Text>
       </View>
 
       {/* Stats */}
-      <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={[styles.card, styles.statsCard, { backgroundColor: C.card, borderColor: C.border }]}>
         <View style={styles.statItem}>
-          <Zap size={20} color="#FFDF00" />
-          <Text style={[styles.statVal, { color: colors.text }]}>{profile?.streak ?? 0}</Text>
-          <Text style={[styles.statLbl, { color: colors.textMuted }]}>Streak</Text>
+          <Zap size={18} color={C.yellow} />
+          <Text style={[styles.statVal, { color: C.text }]}>{profile?.streak ?? 0}</Text>
+          <Text style={[styles.statLbl, { color: C.muted }]}>Streak</Text>
         </View>
-        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <View style={[styles.statDivider, { backgroundColor: C.border }]} />
         <View style={styles.statItem}>
-          <Trophy size={20} color={colors.primary} />
-          <Text style={[styles.statVal, { color: colors.text }]}>{cityRank ? `#${cityRank}` : '-'}</Text>
-          <Text style={[styles.statLbl, { color: colors.textMuted }]}>Ranking cidade</Text>
+          <Trophy size={18} color={C.text} />
+          <Text style={[styles.statVal, { color: C.text }]}>{cityRank ? `#${cityRank}` : '-'}</Text>
+          <Text style={[styles.statLbl, { color: C.muted }]}>Ranking cidade</Text>
         </View>
-        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+        <View style={[styles.statDivider, { backgroundColor: C.border }]} />
         <View style={styles.statItem}>
-          <Star size={20} color="#D4537E" />
-          <Text style={[styles.statVal, { color: colors.text }]}>{profile?.level ?? 1}</Text>
-          <Text style={[styles.statLbl, { color: colors.textMuted }]}>Nível</Text>
+          <Star size={18} color={C.text} />
+          <Text style={[styles.statVal, { color: C.text }]}>{profile?.level ?? 1}</Text>
+          <Text style={[styles.statLbl, { color: C.muted }]}>Nível</Text>
         </View>
       </View>
 
       {/* Plan */}
-      <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>PLANO</Text>
+      <View style={[styles.card, styles.section, { backgroundColor: C.card, borderColor: C.border }]}>
+        <Text style={[styles.sectionTitle, { color: C.muted }]}>PLANO</Text>
         <View style={styles.planRow}>
           {(() => {
             const p = profile?.plan ?? 'free';
             const isPremium = p === 'pro' || p === 'family' || p === 'education';
             const planLabel   = p === 'pro' ? 'CN Pro' : p === 'family' ? 'Família' : p === 'education' ? 'Educação' : 'Gratuito';
-            const planColor   = p === 'pro' ? '#1877F2' : p === 'family' ? '#009C3B' : p === 'education' ? '#7F77DD' : colors.border;
-            const planBgColor = p === 'pro' ? '#1877F220' : p === 'family' ? '#009C3B20' : p === 'education' ? '#7F77DD20' : colors.background;
+            const planColor   = p === 'pro' ? '#1877F2' : p === 'family' ? '#009C3B' : p === 'education' ? '#7F77DD' : C.subtle;
+            const planBgColor = p === 'pro' ? '#1877F220' : p === 'family' ? '#009C3B20' : p === 'education' ? '#7F77DD20' : C.iconBg;
             return (
               <>
-                <View style={[styles.planBadge, { backgroundColor: planBgColor, borderColor: planColor }]}>
-                  <Text style={[styles.planText, { color: isPremium ? planColor : colors.textSecondary }]}>{planLabel}</Text>
+                <View style={[styles.pill, { backgroundColor: isPremium ? planBgColor : C.iconBg, borderColor: isPremium ? planColor : C.border }]}>
+                  <Text style={[styles.pillText, { color: isPremium ? planColor : C.subtle }]}>{planLabel}</Text>
                 </View>
                 {!isPremium && (
                   <TouchableOpacity
                     onPress={() => navigation.navigate('Subscription')}
-                    style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
+                    style={[styles.upgradeBtn, { backgroundColor: C.green }]}
                   >
                     <Text style={styles.upgradeBtnText}>Assinar Pro</Text>
                   </TouchableOpacity>
@@ -195,21 +200,19 @@ export function ProfileScreen({ navigation }: any) {
       </View>
 
       {/* Menu items */}
-      <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>CONTA</Text>
+      <View style={[styles.card, styles.menuCard, { backgroundColor: C.card, borderColor: C.border }]}>
+        <Text style={[styles.sectionTitle, { color: C.muted }]}>CONTA</Text>
         {[
           { icon: MapPin,   label: 'Minha cidade natal',  onPress: () => navigation.navigate('CidadeSetup') },
           { icon: Trophy,   label: 'Minhas conquistas',   onPress: () => navigation.navigate('Achievements') },
           { icon: Zap,      label: 'Missões diárias',     onPress: () => navigation.navigate('Missions') },
-        ].map(({ icon: Icon, label, onPress }, i) => (
-          <TouchableOpacity
-            key={label}
-            onPress={onPress}
-            style={[styles.menuItem, { borderTopColor: i === 0 ? 'transparent' : colors.border }]}
-          >
-            <Icon size={18} color={colors.textSecondary} />
-            <Text style={[styles.menuLabel, { color: colors.text }]}>{label}</Text>
-            <ChevronRight size={16} color={colors.textMuted} />
+        ].map(({ icon: Icon, label, onPress }) => (
+          <TouchableOpacity key={label} onPress={onPress} style={[styles.menuItem, { borderTopColor: C.border }]}>
+            <View style={[styles.iconBoxSm, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+              <Icon size={14} color={C.text} />
+            </View>
+            <Text style={[styles.menuLabel, { color: C.text }]}>{label}</Text>
+            <ChevronRight size={15} color={C.muted} />
           </TouchableOpacity>
         ))}
       </View>
@@ -217,10 +220,10 @@ export function ProfileScreen({ navigation }: any) {
       {/* Logout */}
       <TouchableOpacity
         onPress={signOut}
-        style={[styles.logoutBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+        style={[styles.card, styles.logoutBtn, { backgroundColor: C.card, borderColor: '#E24B4A44' }]}
       >
-        <LogOut size={18} color={colors.danger} />
-        <Text style={[styles.logoutText, { color: colors.danger }]}>Sair da conta</Text>
+        <LogOut size={16} color="#F09595" />
+        <Text style={[styles.logoutText, { color: '#F09595' }]}>Sair da conta</Text>
       </TouchableOpacity>
 
       <View style={{ height: 40 }} />
@@ -230,37 +233,37 @@ export function ProfileScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   center:       { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:       { alignItems: 'center', padding: Spacing.xl, paddingTop: 60, borderBottomWidth: 0.5, gap: 8 },
-  avatar:       { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', borderWidth: 2, marginBottom: 4 },
-  username:     { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  email:        { fontSize: FontSize.sm },
-  levelBadge:   { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 0.5 },
-  levelText:    { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  header:       { alignItems: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
+  card:         { borderWidth: 1, borderRadius: 16 },
+  avatar:       { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1, marginBottom: 4 },
+  username:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  email:        { fontSize: FontSize.xs },
+  pill:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1 },
+  pillText:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   cityRow:      { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cityText:     { fontSize: FontSize.xs },
-  xpCard:       { margin: Spacing.xl, marginBottom: 0, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl },
+  xpCard:       { margin: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   xpRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
   xpLabel:      { fontSize: FontSize.xs, marginBottom: 2 },
-  xpValue:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  xpLevel:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  xpBarBg:      { height: 6, borderRadius: 3, marginBottom: 6 },
-  xpBarFill:    { height: 6, borderRadius: 3 },
-  xpHint:       { fontSize: 11 },
-  statsCard:    { flexDirection: 'row', margin: Spacing.xl, marginBottom: 0, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl },
+  xpValue:      { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  xpLevel:      { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  xpBarBg:      { height: 3, borderRadius: 99, marginBottom: 6, overflow: 'hidden' },
+  xpBarFill:    { height: 3, borderRadius: 99 },
+  xpHint:       { fontSize: 10 },
+  statsCard:    { flexDirection: 'row', marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   statItem:     { flex: 1, alignItems: 'center', gap: 4 },
-  statVal:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  statLbl:      { fontSize: 10, textAlign: 'center' },
-  statDivider:  { width: 0.5 },
-  section:      { margin: Spacing.xl, marginBottom: 0, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl },
-  sectionTitle: { fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5, marginBottom: Spacing.md },
+  statVal:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  statLbl:      { fontSize: 9, textAlign: 'center' },
+  statDivider:  { width: 1 },
+  section:      { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
+  sectionTitle: { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.md, textTransform: 'uppercase' },
   planRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  planBadge:    { paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 0.5 },
-  planText:     { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  upgradeBtn:   { paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.md },
-  upgradeBtnText: { color: '#FFF', fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  menuCard:     { margin: Spacing.xl, marginBottom: 0, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl },
-  menuItem:     { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: Spacing.md, borderTopWidth: 0.5 },
-  menuLabel:    { flex: 1, fontSize: FontSize.sm },
-  logoutBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, margin: Spacing.xl, marginBottom: 0, borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg },
-  logoutText:   { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
+  upgradeBtn:   { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.md },
+  upgradeBtnText: { color: '#FFF', fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  menuCard:     { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg, paddingTop: Spacing.lg },
+  menuItem:     { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, borderTopWidth: 1 },
+  iconBoxSm:    { width: 30, height: 30, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  menuLabel:    { flex: 1, fontSize: FontSize.xs },
+  logoutBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: Spacing.xl, padding: Spacing.md },
+  logoutText:   { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
 });
