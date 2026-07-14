@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { Trophy, MapPin, Globe, User } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { HomeTheme, MedalColors } from '../../constants/colors';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
 import { StateFlag } from '../../components/ui/StateFlag';
 import { Plan } from '../../types';
@@ -28,7 +30,9 @@ interface MyLocation {
 }
 
 export function RankingScreen() {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
+  const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const [scope,      setScope]      = useState<Scope>('national');
   const [entries,    setEntries]    = useState<RankEntry[]>([]);
@@ -129,27 +133,27 @@ export function RankingScreen() {
   const needsLocation = (scope === 'city' || scope === 'state') && myLocation && !myLocation.city_natal_id;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-        <Trophy size={24} color="#FFDF00" />
-        <Text style={[styles.title, { color: colors.text }]}>Ranking</Text>
+      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
+        <Trophy size={22} color={C.yellow} />
+        <Text style={[styles.title, { color: C.text }]}>Ranking</Text>
         {myRank ? (
-          <View style={[styles.myRankBadge, { backgroundColor: colors.primary + '20' }]}>
-            <Text style={[styles.myRankText, { color: colors.primary }]}>
+          <View style={[styles.pill, { backgroundColor: `${C.green}18`, borderColor: `${C.green}44` }]}>
+            <Text style={[styles.pillText, { color: C.green }]}>
               Sua posição: #{myRank}{scopeLabel ? ` em ${scopeLabel}` : ''}
             </Text>
           </View>
         ) : scope !== 'national' && (
-          <View style={[styles.myRankBadge, { backgroundColor: colors.border }]}>
-            <Text style={[styles.myRankText, { color: colors.textMuted }]}>Fora do top 50</Text>
+          <View style={[styles.pill, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+            <Text style={[styles.pillText, { color: C.muted }]}>Fora do top 50</Text>
           </View>
         )}
       </View>
 
       {/* Scope tabs */}
-      <View style={[styles.tabs, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.tabs, { borderBottomColor: C.border }]}>
         {([
           { key: 'national', label: 'Nacional', Icon: Globe  },
           { key: 'state',    label: 'Estado',   Icon: MapPin },
@@ -158,22 +162,22 @@ export function RankingScreen() {
           <TouchableOpacity
             key={key}
             onPress={() => setScope(key)}
-            style={[styles.tab, scope === key && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
+            style={[styles.tab, scope === key && { borderBottomColor: C.green, borderBottomWidth: 2 }]}
           >
-            <Icon size={15} color={scope === key ? colors.primary : colors.textMuted} />
-            <Text style={[styles.tabText, { color: scope === key ? colors.primary : colors.textMuted }]}>{label}</Text>
+            <Icon size={14} color={scope === key ? C.green : C.muted} />
+            <Text style={[styles.tabText, { color: scope === key ? C.green : C.muted }]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} size="large" />
+          <ActivityIndicator color={C.green} size="large" />
         </View>
       ) : needsLocation ? (
         <View style={styles.center}>
-          <MapPin size={40} color={colors.textMuted} />
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+          <MapPin size={36} color={C.muted} />
+          <Text style={[styles.emptyText, { color: C.muted }]}>
             Configure sua cidade natal no perfil{'\n'}para ver o ranking local.
           </Text>
         </View>
@@ -181,58 +185,58 @@ export function RankingScreen() {
         <>
           {/* Podium */}
           {podium.length >= 1 && (
-            <View style={[styles.podiumWrap, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+            <View style={[styles.card, styles.podiumWrap, { backgroundColor: C.card, borderColor: C.border }]}>
               {/* 2nd */}
               <View style={styles.podiumItem}>
                 <View style={{ position: 'relative' }}>
                   {podium[1]?.avatar_url
-                    ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#C0C0C0' }]} />
-                    : <View style={[styles.podiumAvatar, { backgroundColor: '#C0C0C020', borderColor: '#C0C0C0' }]}><User size={20} color="#C0C0C0" /></View>
+                    ? <Image source={{ uri: podium[1].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.silver }]} />
+                    : <View style={[styles.podiumAvatar, { backgroundColor: `${MedalColors.silver}18`, borderColor: MedalColors.silver }]}><User size={18} color={MedalColors.silver} /></View>
                   }
-                  {podium[1]?.plan && <AvatarVerifiedBadge plan={podium[1].plan} avatarSize={48} />}
+                  {podium[1]?.plan && <AvatarVerifiedBadge plan={podium[1].plan} avatarSize={44} />}
                 </View>
-                <Text style={[styles.podiumMedal, { color: '#C0C0C0' }]}>2º</Text>
+                <Text style={[styles.podiumMedal, { color: MedalColors.silver }]}>2º</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[1]?.state_uf && <StateFlag uf={podium[1].state_uf} size={16} />}
-                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
-                  {podium[1]?.plan && <VerifiedBadge plan={podium[1].plan} size={13} />}
+                  {podium[1]?.state_uf && <StateFlag uf={podium[1].state_uf} size={14} />}
+                  <Text style={[styles.podiumName, { color: C.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
+                  {podium[1]?.plan && <VerifiedBadge plan={podium[1].plan} size={12} />}
                 </View>
-                <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[1]?.xp} XP</Text>
+                <Text style={[styles.podiumXp, { color: C.muted }]}>{podium[1]?.xp} XP</Text>
               </View>
               {/* 1st */}
               <View style={[styles.podiumItem, styles.podiumFirst]}>
                 <View style={{ position: 'relative' }}>
                   {podium[0]?.avatar_url
-                    ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: '#FFDF00' }]} />
-                    : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: '#FFDF0020', borderColor: '#FFDF00' }]}><User size={28} color="#FFDF00" /></View>
+                    ? <Image source={{ uri: podium[0].avatar_url }} style={[styles.podiumAvatar, styles.podiumAvatarLg, { borderColor: MedalColors.gold }]} />
+                    : <View style={[styles.podiumAvatar, styles.podiumAvatarLg, { backgroundColor: `${MedalColors.gold}18`, borderColor: MedalColors.gold }]}><User size={26} color={MedalColors.gold} /></View>
                   }
-                  {podium[0]?.plan && <AvatarVerifiedBadge plan={podium[0].plan} avatarSize={64} />}
+                  {podium[0]?.plan && <AvatarVerifiedBadge plan={podium[0].plan} avatarSize={56} />}
                 </View>
-                <Trophy size={18} color="#FFDF00" />
-                <Text style={[styles.podiumMedal, { color: '#FFDF00' }]}>1º</Text>
+                <Trophy size={16} color={MedalColors.gold} />
+                <Text style={[styles.podiumMedal, { color: MedalColors.gold }]}>1º</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[0]?.state_uf && <StateFlag uf={podium[0].state_uf} size={16} />}
-                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
-                  {podium[0]?.plan && <VerifiedBadge plan={podium[0].plan} size={13} />}
+                  {podium[0]?.state_uf && <StateFlag uf={podium[0].state_uf} size={14} />}
+                  <Text style={[styles.podiumName, { color: C.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
+                  {podium[0]?.plan && <VerifiedBadge plan={podium[0].plan} size={12} />}
                 </View>
-                <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[0]?.xp} XP</Text>
+                <Text style={[styles.podiumXp, { color: C.muted }]}>{podium[0]?.xp} XP</Text>
               </View>
               {/* 3rd */}
               <View style={styles.podiumItem}>
                 <View style={{ position: 'relative' }}>
                   {podium[2]?.avatar_url
-                    ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: '#CD7F32' }]} />
-                    : <View style={[styles.podiumAvatar, { backgroundColor: '#CD7F3220', borderColor: '#CD7F32' }]}><User size={20} color="#CD7F32" /></View>
+                    ? <Image source={{ uri: podium[2].avatar_url }} style={[styles.podiumAvatar, { borderColor: MedalColors.bronze }]} />
+                    : <View style={[styles.podiumAvatar, { backgroundColor: `${MedalColors.bronze}18`, borderColor: MedalColors.bronze }]}><User size={18} color={MedalColors.bronze} /></View>
                   }
-                  {podium[2]?.plan && <AvatarVerifiedBadge plan={podium[2].plan} avatarSize={48} />}
+                  {podium[2]?.plan && <AvatarVerifiedBadge plan={podium[2].plan} avatarSize={44} />}
                 </View>
-                <Text style={[styles.podiumMedal, { color: '#CD7F32' }]}>3º</Text>
+                <Text style={[styles.podiumMedal, { color: MedalColors.bronze }]}>3º</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[2]?.state_uf && <StateFlag uf={podium[2].state_uf} size={16} />}
-                  <Text style={[styles.podiumName, { color: colors.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
-                  {podium[2]?.plan && <VerifiedBadge plan={podium[2].plan} size={13} />}
+                  {podium[2]?.state_uf && <StateFlag uf={podium[2].state_uf} size={14} />}
+                  <Text style={[styles.podiumName, { color: C.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
+                  {podium[2]?.plan && <VerifiedBadge plan={podium[2].plan} size={12} />}
                 </View>
-                <Text style={[styles.podiumXp, { color: colors.textMuted }]}>{podium[2]?.xp} XP</Text>
+                <Text style={[styles.podiumXp, { color: C.muted }]}>{podium[2]?.xp} XP</Text>
               </View>
             </View>
           )}
@@ -242,35 +246,35 @@ export function RankingScreen() {
             {rest.map((entry, i) => {
               const isMe = entry.user_id === user?.id;
               return (
-                <View key={entry.user_id} style={[styles.row, {
-                  backgroundColor: isMe ? colors.primary + '10' : colors.card,
-                  borderColor:     isMe ? colors.primary + '40' : colors.border,
+                <View key={entry.user_id} style={[styles.card, styles.row, {
+                  backgroundColor: isMe ? `${C.green}0f` : C.card,
+                  borderColor:     isMe ? `${C.green}44` : C.border,
                 }]}>
-                  <Text style={[styles.rank, { color: colors.textMuted }]}>#{i + 4}</Text>
+                  <Text style={[styles.rank, { color: C.muted }]}>#{i + 4}</Text>
                   <View style={{ position: 'relative' }}>
                     {entry.avatar_url
                       ? <Image source={{ uri: entry.avatar_url }} style={styles.rowAvatar} />
-                      : <View style={[styles.rowAvatar, { backgroundColor: colors.border }]}><User size={16} color={colors.textMuted} /></View>
+                      : <View style={[styles.rowAvatar, { backgroundColor: C.iconBg, borderWidth: 1, borderColor: C.border }]}><User size={14} color={C.muted} /></View>
                     }
-                    {entry.plan && <AvatarVerifiedBadge plan={entry.plan} avatarSize={36} />}
+                    {entry.plan && <AvatarVerifiedBadge plan={entry.plan} avatarSize={30} />}
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      {entry.state_uf && <StateFlag uf={entry.state_uf} size={18} />}
-                      <Text style={[styles.rowName, { color: isMe ? colors.primary : colors.text }]}>
+                      {entry.state_uf && <StateFlag uf={entry.state_uf} size={16} />}
+                      <Text style={[styles.rowName, { color: isMe ? C.green : C.text }]}>
                         {entry.username}{isMe ? ' (você)' : ''}
                       </Text>
-                      {entry.plan && <VerifiedBadge plan={entry.plan} size={14} />}
+                      {entry.plan && <VerifiedBadge plan={entry.plan} size={13} />}
                     </View>
                     {entry.city_name && (
-                      <Text style={[styles.rowCity, { color: colors.textMuted }]}>
+                      <Text style={[styles.rowCity, { color: C.muted }]}>
                         {entry.city_name}, {entry.state_uf}
                       </Text>
                     )}
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={[styles.rowXp, { color: colors.text }]}>{entry.xp} XP</Text>
-                    <Text style={[styles.rowLevel, { color: colors.textMuted }]}>Nível {entry.level}</Text>
+                    <Text style={[styles.rowXp, { color: C.text }]}>{entry.xp} XP</Text>
+                    <Text style={[styles.rowLevel, { color: C.muted }]}>Nível {entry.level}</Text>
                   </View>
                 </View>
               );
@@ -278,8 +282,8 @@ export function RankingScreen() {
 
             {entries.length === 0 && (
               <View style={styles.empty}>
-                <Trophy size={40} color={colors.textMuted} />
-                <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                <Trophy size={36} color={C.muted} />
+                <Text style={[styles.emptyText, { color: C.muted }]}>
                   Nenhum jogador ainda.{'\n'}Seja o primeiro!
                 </Text>
               </View>
@@ -294,30 +298,31 @@ export function RankingScreen() {
 }
 
 const styles = StyleSheet.create({
-  header:         { alignItems: 'center', padding: Spacing.xl, paddingTop: 60, gap: 8, borderBottomWidth: 0.5 },
-  title:          { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  myRankBadge:    { paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full },
-  myRankText:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  tabs:           { flexDirection: 'row', borderBottomWidth: 0.5 },
+  header:         { alignItems: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
+  title:          { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  card:           { borderWidth: 1, borderRadius: 16 },
+  pill:           { paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1 },
+  pillText:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  tabs:           { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: Spacing.xl },
   tab:            { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12 },
   tabText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   center:         { alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 },
-  podiumWrap:     { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.lg, borderBottomWidth: 0.5 },
+  podiumWrap:     { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', margin: Spacing.xl, padding: Spacing.lg, gap: Spacing.md },
   podiumItem:     { flex: 1, alignItems: 'center', gap: 4 },
-  podiumFirst:    { marginBottom: 16 },
-  podiumAvatar:   { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 2, overflow: 'hidden' },
-  podiumAvatarLg: { width: 60, height: 60, borderRadius: 30 },
-  podiumMedal:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  podiumFirst:    { marginBottom: 14 },
+  podiumAvatar:   { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 2, overflow: 'hidden' },
+  podiumAvatarLg: { width: 56, height: 56, borderRadius: 28 },
+  podiumMedal:    { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   podiumName:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textAlign: 'center' },
-  podiumXp:       { fontSize: 10 },
-  list:           { padding: Spacing.xl, gap: 8 },
-  row:            { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md, borderRadius: Radius.md, borderWidth: 0.5 },
-  rank:           { fontSize: FontSize.sm, fontWeight: FontWeight.bold, width: 28 },
-  rowAvatar:      { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  rowName:        { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  rowCity:        { fontSize: 11, marginTop: 2 },
-  rowXp:          { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  rowLevel:       { fontSize: 10, marginTop: 2 },
+  podiumXp:       { fontSize: 9 },
+  list:           { paddingHorizontal: Spacing.xl, gap: 8 },
+  row:            { flexDirection: 'row', alignItems: 'center', gap: 10, padding: Spacing.md },
+  rank:           { fontSize: FontSize.sm, fontWeight: FontWeight.bold, width: 26 },
+  rowAvatar:      { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  rowName:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  rowCity:        { fontSize: 10, marginTop: 2 },
+  rowXp:          { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  rowLevel:       { fontSize: 9, marginTop: 2 },
   empty:          { alignItems: 'center', gap: 12, paddingVertical: 40 },
   emptyText:      { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
 });
