@@ -1,73 +1,93 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { ArrowLeft, Music } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions, StatusBar } from 'react-native';
+import { ArrowLeft, Guitar, Leaf, Mic2 } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-import { CategoryColors, withOpacity } from '../../constants/colors';
+import { HomeTheme } from '../../constants/colors';
 
 const GENEROS = [
-  { name: 'MPB',    emoji: '🎸', color: CategoryColors.musica, desc: 'Música Popular Brasileira' },
-  { name: 'Reggae', emoji: '🌿', color: CategoryColors.reggae, desc: 'Ritmo e cultura rastafári' },
-  { name: 'RAP',    emoji: '🎤', color: CategoryColors.rap,    desc: 'Rimas e batidas urbanas' },
+  { name: 'MPB',    Icon: Guitar, desc: 'Música Popular Brasileira' },
+  { name: 'Reggae', Icon: Leaf,   desc: 'Ritmo e cultura rastafári' },
+  { name: 'RAP',    Icon: Mic2,   desc: 'Rimas e batidas urbanas' },
 ];
 
 export function MusicaScreen({ navigation }: any) {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
-  // #1A1A2E (RAP) é quase invisível sobre fundo escuro (contraste ~1:1) - usa
-  // uma variante mais clara da mesma família de cor só no dark mode.
-  const rapColor = isDark ? '#6B6B9E' : CategoryColors.rap;
-  const generosThemed = GENEROS.map(g => g.name === 'RAP' ? { ...g, color: rapColor } : g);
+  const { width } = useWindowDimensions();
+
+  const numColumns = width >= 600 ? 3 : 2;
+  const cardWidth = (Math.min(width, 480) - Spacing.xl * 2 - 12 * (numColumns - 1)) / numColumns;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ArrowLeft size={20} color={colors.primary} />
+    <View style={[styles.container, { backgroundColor: C.bg }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={C.bg} />
+
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <ArrowLeft size={20} color={C.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Música</Text>
-        <View style={{ width: 32 }} />
-      </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <View style={[styles.heroBanner, { backgroundColor: withOpacity(CategoryColors.musica, 12.5), borderColor: withOpacity(CategoryColors.musica, 25.1) }]}>
-          <Music size={32} color={CategoryColors.musica} />
-          <Text style={[styles.heroTitle, { color: colors.text }]}>Quiz Musical</Text>
-          <Text style={[styles.heroSub, { color: colors.textMuted }]}>Teste seus conhecimentos sobre a música brasileira</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.headerTitle, { color: C.text }]}>
+            Quiz <Text style={{ color: C.green }}>Musical</Text>
+          </Text>
+          <Text style={[styles.headerSub, { color: C.muted }]}>Teste seus conhecimentos sobre a música brasileira</Text>
         </View>
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Escolha um gênero</Text>
-        {generosThemed.map(({ name, emoji, color, desc }) => (
-          <TouchableOpacity
-            key={name}
-            onPress={() => navigation.navigate('Quiz', { subcategory: name })}
-            style={[styles.card, { backgroundColor: withOpacity(color, 8.2), borderColor: withOpacity(color, 25.1) }]}
-          >
-            <View style={[styles.iconWrap, { backgroundColor: withOpacity(color, 14.5) }]}>
-              <Text style={styles.emoji}>{emoji}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.cardName, { color: colors.text }]}>{name}</Text>
-              <Text style={[styles.cardDesc, { color: colors.textMuted }]}>{desc}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Section Label */}
+        <View style={[styles.sectionLabel, { paddingHorizontal: Spacing.xl }]}>
+          <Text style={[styles.sectionText, { color: C.muted }]}>GÊNEROS</Text>
+          <Text style={[styles.sectionCount, { color: C.green }]}>{GENEROS.length}</Text>
+        </View>
+
+        {/* Grid */}
+        <View style={[styles.grid, { paddingHorizontal: Spacing.xl, gap: 12 }]}>
+          {GENEROS.map(({ name, Icon, desc }) => (
+            <TouchableOpacity
+              key={name}
+              onPress={() => navigation.navigate('Quiz', { subcategory: name })}
+              style={[
+                styles.card,
+                {
+                  backgroundColor: C.card,
+                  borderColor: C.border,
+                  width: cardWidth,
+                },
+              ]}
+              activeOpacity={0.75}
+            >
+              <View style={[styles.iconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+                <Icon size={20} color={C.text} />
+              </View>
+              <Text style={[styles.cardName, { color: C.text }]}>{name}</Text>
+              <Text style={[styles.cardDesc, { color: C.muted }]}>{desc}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={{ height: 32 }} />
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:   { flex: 1 },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
-  backBtn:     { width: 32, alignItems: 'flex-start' },
-  title:       { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  content:     { padding: Spacing.xl, gap: 12 },
-  heroBanner:  { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, alignItems: 'center', gap: 8, marginBottom: Spacing.md },
-  heroTitle:   { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  heroSub:     { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
-  sectionLabel:{ fontSize: FontSize.xs, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  card:        { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 14 },
-  iconWrap:    { width: 52, height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  emoji:       { fontSize: 26 },
-  cardName:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  cardDesc:    { fontSize: FontSize.xs, marginTop: 2 },
+  container:       { flex: 1 },
+  header:          { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: Spacing.xl, paddingBottom: 16 },
+  backBtn:         { width: 20, paddingTop: 2 },
+  headerTitle:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 24 },
+  headerSub:       { fontSize: FontSize.xs, marginTop: 2 },
+  sectionLabel:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, marginTop: 8 },
+  sectionText:     { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, letterSpacing: 0.5 },
+  sectionCount:    { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  grid:            { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start' },
+  card:            { borderWidth: 1, borderRadius: 16, padding: 12, gap: 8, alignItems: 'center' },
+  iconBox:         { width: 48, height: 48, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  cardName:        { fontSize: FontSize.sm, fontWeight: FontWeight.bold, textAlign: 'center' },
+  cardDesc:        { fontSize: FontSize.xs, textAlign: 'center', lineHeight: 16 },
 });
