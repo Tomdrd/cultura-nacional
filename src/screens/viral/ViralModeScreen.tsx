@@ -272,26 +272,35 @@ export function ViralModeScreen({ navigation, route }: any) {
   // ══════════════════════════════════════════
   if (phase === 'setup') {
     return (
-      <View style={[styles.container, { backgroundColor: C.bg }]}>
+      <View style={[styles.container, { backgroundColor: '#000' }]}>
+        {/* Imagem ilustrativa de fundo — PLACEHOLDER: confirmar direitos de uso
+            comercial dessa foto específica antes de publicar em produção. */}
+        <Image source={require('../../../assets/images/viral-setup-bg.jpg')} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.8)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.88)']}
+          locations={[0, 0.42, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+
         <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { paddingTop: headerPaddingTop }]}>
-          <ArrowLeft size={18} color={C.text} /><Text style={[styles.backText, { color: C.text }]}>Voltar</Text>
+          <ArrowLeft size={18} color="#FFF" /><Text style={[styles.backText, { color: '#FFF' }]}>Voltar</Text>
         </TouchableOpacity>
 
         <View style={styles.setupCenter}>
-          <View style={[styles.viralBadge, { backgroundColor: C.iconBg, borderColor: C.border }]}>
-            <Video size={16} color={C.muted} />
-            <Text style={[styles.viralBadgeText, { color: C.muted }]}>MODO VIRAL</Text>
+          <View style={styles.glassPill}>
+            <Video size={14} color="#FFF" />
+            <Text style={[styles.glassPillText, { letterSpacing: 1, fontWeight: FontWeight.bold }]}>MODO VIRAL</Text>
           </View>
 
-          <Text style={[styles.setupTitle, { color: C.text }]}>
+          <Text style={[styles.setupTitle, { color: '#FFF' }]}>
             Grave seu quiz{'\n'}e compartilhe!
           </Text>
-          <Text style={[styles.setupSub, { color: C.muted }]}>
+          <Text style={[styles.setupSub, { color: 'rgba(255,255,255,0.8)' }]}>
             Sua câmera + quiz = conteúdo pronto{'\n'}para Reels, TikTok e YouTube Shorts
           </Text>
 
           {/* Category selector */}
-          <Text style={[styles.formatLabel, { color: C.muted }]}>Escolha a categoria</Text>
+          <Text style={[styles.formatLabel, { color: 'rgba(255,255,255,0.65)' }]}>Escolha a categoria</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -306,13 +315,12 @@ export function ViralModeScreen({ navigation, route }: any) {
                   onPress={() => setSelectedCategory(name)}
                   style={[
                     styles.categoryChip,
-                    {
-                      backgroundColor: active ? `${C.green}18` : C.card,
-                      borderColor: active ? C.green : C.border,
-                    },
+                    active
+                      ? { backgroundColor: `${C.green}30`, borderColor: C.green }
+                      : { backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.22)' },
                   ]}
                 >
-                  <Text style={[styles.categoryChipText, { color: active ? C.green : C.muted }]}>
+                  <Text style={[styles.categoryChipText, { color: active ? '#5DCAA5' : 'rgba(255,255,255,0.8)' }]}>
                     {name}
                   </Text>
                 </TouchableOpacity>
@@ -321,31 +329,31 @@ export function ViralModeScreen({ navigation, route }: any) {
           </ScrollView>
 
           {/* Aviso importante */}
-          <View style={[styles.warningCard, { backgroundColor: `${C.yellow}14`, borderColor: `${C.yellow}44` }]}>
+          <View style={[styles.warningCard, { backgroundColor: `${C.yellow}18`, borderColor: `${C.yellow}55` }]}>
             <View style={styles.warningHeader}>
               <Smartphone size={20} color={C.yellow} />
               <Text style={[styles.warningTitle, { color: C.yellow }]}>Antes de começar</Text>
             </View>
-            <Text style={[styles.warningText, { color: C.muted }]}>
+            <Text style={[styles.warningText, { color: 'rgba(255,255,255,0.8)' }]}>
               Ative a gravação de tela do seu celular antes de iniciar. O app grava sua câmera, mas é a gravação de tela que captura tudo junto: pergunta, resposta e sua reação.
             </Text>
           </View>
 
           {/* Features */}
-          <View style={[styles.featureList, { backgroundColor: C.card, borderColor: C.border }]}>
+          <BlurView intensity={35} tint="dark" style={styles.featureListGlass}>
             {([
               { Icon: Mic,     label: 'Perguntas narradas automaticamente' },
               { Icon: Volume2, label: 'Efeitos sonoros e vibração ao responder' },
               { Icon: Share2,  label: 'Compartilhe direto nas redes' },
             ] as { Icon: any; label: string }[]).map(({ Icon, label }) => (
               <View key={label} style={styles.featureRow}>
-                <View style={[styles.featureIconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>
-                  <Icon size={15} color={C.text} />
+                <View style={[styles.featureIconBox, { backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)' }]}>
+                  <Icon size={15} color="#FFF" />
                 </View>
-                <Text style={[styles.featureText, { color: C.muted }]}>{label}</Text>
+                <Text style={[styles.featureText, { color: 'rgba(255,255,255,0.85)' }]}>{label}</Text>
               </View>
             ))}
-          </View>
+          </BlurView>
 
           <TouchableOpacity
             onPress={handleStart}
@@ -627,6 +635,7 @@ const styles = StyleSheet.create({
   warningTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   warningText: { fontSize: FontSize.xs, lineHeight: 18 },
   featureList: { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, gap: 12 },
+  featureListGlass: { borderRadius: Radius.lg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', padding: Spacing.lg, gap: 12, overflow: 'hidden' },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   featureIconBox: { width: 28, height: 28, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   featureText: { fontSize: FontSize.sm, flex: 1 },
