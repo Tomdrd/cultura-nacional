@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { HomeTheme } from '../../constants/colors';
 import { Radius, FontSize, FontWeight, Spacing } from '../../constants/layout';
 
 interface ButtonProps {
@@ -14,25 +15,26 @@ interface ButtonProps {
 }
 
 export function Button({ label, onPress, variant = 'primary', loading, disabled, style, textStyle }: ButtonProps) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
 
   const bg = {
-    primary:   colors.primary,
-    secondary: colors.card,
+    primary:   C.green,
+    secondary: C.card,
     ghost:     'transparent',
-    danger:    colors.danger,
+    danger:    C.danger,
   }[variant];
 
   const textColor = {
     primary:   '#FFFFFF',
-    secondary: colors.text,
-    ghost:     colors.primary,
+    secondary: C.text,
+    ghost:     C.green,
     danger:    '#FFFFFF',
   }[variant];
 
   const borderColor = {
     primary:   'transparent',
-    secondary: colors.border,
+    secondary: C.border,
     ghost:     'transparent',
     danger:    'transparent',
   }[variant];

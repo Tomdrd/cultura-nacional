@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, ViewStyle, Platform } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { HomeTheme } from '../../constants/colors';
 import { Radius, FontSize, Spacing } from '../../constants/layout';
 
 interface InputProps {
@@ -20,23 +21,24 @@ interface InputProps {
 }
 
 export function Input({ label, placeholder, value, onChangeText, secureTextEntry, autoCapitalize = 'none', keyboardType = 'default', returnKeyType, onSubmitEditing, inputRef, error, style }: InputProps) {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const [show, setShow] = useState(false);
   const [focused, setFocused] = useState(false);
 
   return (
     <View style={[styles.wrap, style]}>
-      {label && <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: C.muted }]}>{label}</Text>}
       <View style={[
         styles.row,
-        { backgroundColor: colors.backgroundAlt ?? colors.card, borderColor: focused ? colors.primary : (error ? colors.danger : colors.border), ...(Platform.OS === 'web' ? { colorScheme: isDark ? 'dark' : 'light' } : {}) }
+        { backgroundColor: C.iconBg, borderColor: focused ? C.green : (error ? C.danger : C.border), ...(Platform.OS === 'web' ? { colorScheme: isDark ? 'dark' : 'light' } : {}) }
       ]}>
         <TextInput
           ref={inputRef}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={C.muted}
           secureTextEntry={secureTextEntry && !show}
           autoCapitalize={autoCapitalize}
           keyboardType={keyboardType}
@@ -44,15 +46,15 @@ export function Input({ label, placeholder, value, onChangeText, secureTextEntry
           onSubmitEditing={onSubmitEditing}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={[styles.input, { color: colors.text, backgroundColor: 'transparent' }]}
+          style={[styles.input, { color: C.text, backgroundColor: 'transparent' }]}
         />
         {secureTextEntry && (
           <TouchableOpacity onPress={() => setShow(!show)} style={styles.eye}>
-            {show ? <EyeOff size={18} color={colors.textMuted} /> : <Eye size={18} color={colors.textMuted} />}
+            {show ? <EyeOff size={18} color={C.muted} /> : <Eye size={18} color={C.muted} />}
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: C.danger }]}>{error}</Text>}
     </View>
   );
 }

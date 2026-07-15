@@ -87,10 +87,12 @@ export const HomeTheme = {
   dark: {
     bg: '#0e1015', card: '#1c2029', iconBg: '#16191f', border: '#252b38',
     text: '#f0f2f5', muted: '#5a6070', subtle: '#8a92a0', green: '#009C3B', yellow: '#FEDD00',
+    danger: '#E24B4A',
   },
   light: {
     bg: '#FFFFFF', card: '#FFFFFF', iconBg: '#F0F0F0', border: '#D6D6D6',
     text: '#0A0A0A', muted: '#6B6B6B', subtle: '#4A4A4A', green: '#00792E', yellow: '#8A6D00',
+    danger: '#E24B4A',
   },
 } as const;
 

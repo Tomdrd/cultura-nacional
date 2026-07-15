@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar,
 } from 'react-native';
 import CnLogo from '../../../assets/images/cn-logo.svg';
 import Svg, { Path } from 'react-native-svg';
@@ -12,9 +12,11 @@ import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { HomeTheme } from '../../constants/colors';
 
 export function LoginScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [loading,  setLoading]  = useState(false);
@@ -127,18 +129,19 @@ export function LoginScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={C.bg} />
       <ScrollView
-        style={{ flex: 1, backgroundColor: colors.background }}
+        style={{ flex: 1, backgroundColor: C.bg }}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
         {/* Logo */}
         <View style={styles.logoWrap}>
-          <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+          <View style={[styles.logoCircle, { backgroundColor: C.green }]}>
             <CnLogo width={48} height={48} />
           </View>
-          <Text style={[styles.appName, { color: colors.text }]}>Cultura Nacional</Text>
-          <Text style={[styles.appSub, { color: colors.textSecondary }]}>Quanto você sabe sobre o Brasil?</Text>
+          <Text style={[styles.appName, { color: C.text }]}>Cultura Nacional</Text>
+          <Text style={[styles.appSub, { color: C.muted }]}>Quanto você sabe sobre o Brasil?</Text>
         </View>
 
         {/* OAuth buttons */}
@@ -146,10 +149,10 @@ export function LoginScreen({ navigation }: any) {
           <TouchableOpacity
             onPress={handleGoogleLogin}
             disabled={googleLoading}
-            style={[styles.oauthBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[styles.oauthBtn, { backgroundColor: C.card, borderColor: C.border }]}
           >
             {googleLoading
-              ? <ActivityIndicator size="small" color={colors.text} />
+              ? <ActivityIndicator size="small" color={C.text} />
               : <Svg width={18} height={18} viewBox="0 0 48 48">
                   <Path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.1-2.7-.4-4z"/>
                   <Path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -157,7 +160,7 @@ export function LoginScreen({ navigation }: any) {
                   <Path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.5-4.6 5.8l6.2 5.2C40.8 35.7 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/>
                 </Svg>
             }
-            <Text style={[styles.oauthText, { color: colors.text }]}>Google</Text>
+            <Text style={[styles.oauthText, { color: C.text }]}>Google</Text>
           </TouchableOpacity>
 
           {Platform.OS === 'ios' && (
@@ -177,14 +180,14 @@ export function LoginScreen({ navigation }: any) {
 
         {/* Divider */}
         <View style={styles.divider}>
-          <View style={[styles.line, { backgroundColor: colors.border }]} />
-          <Text style={[styles.divText, { color: colors.textMuted }]}>ou entre com e-mail</Text>
-          <View style={[styles.line, { backgroundColor: colors.border }]} />
+          <View style={[styles.line, { backgroundColor: C.border }]} />
+          <Text style={[styles.divText, { color: C.muted }]}>ou entre com e-mail</Text>
+          <View style={[styles.line, { backgroundColor: C.border }]} />
         </View>
 
         {/* Email/Password Form */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>Entrar</Text>
+        <View style={[styles.card, { backgroundColor: C.card, borderColor: C.border }]}>
+          <Text style={[styles.title, { color: C.text }]}>Entrar</Text>
 
           <Input
             label="E-mail"
@@ -211,15 +214,15 @@ export function LoginScreen({ navigation }: any) {
           <Button label="Entrar" onPress={handleLogin} loading={loading} style={styles.btn} />
 
           <TouchableOpacity style={styles.forgot} onPress={handleForgotPassword}>
-            <Text style={[styles.link, { color: colors.primary }]}>Esqueci minha senha</Text>
+            <Text style={[styles.link, { color: C.green }]}>Esqueci minha senha</Text>
           </TouchableOpacity>
         </View>
 
         {/* Register */}
         <View style={styles.registerRow}>
-          <Text style={[styles.registerText, { color: colors.textSecondary }]}>Ainda não tem conta? </Text>
+          <Text style={[styles.registerText, { color: C.muted }]}>Ainda não tem conta? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={[styles.link, { color: colors.primary }]}>Cadastre-se</Text>
+            <Text style={[styles.link, { color: C.green }]}>Cadastre-se</Text>
           </TouchableOpacity>
         </View>
 
