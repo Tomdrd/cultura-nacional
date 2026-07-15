@@ -352,6 +352,12 @@ export function DuelScreen({ route, navigation }: any) {
 
     // Verifica se oponente já terminou também
     const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single();
+    if (user) await supabase.rpc('update_daily_mission_progress', {
+      p_user_id:  user.id,
+      p_state_id: match?.state_id ?? null,
+      p_correct:  myScore,
+      p_total:    questions.length,
+    });
     const bothFinished = match?.player1_finished_at && match?.player2_finished_at;
     if (bothFinished) {
       await supabase.from('matches').update({ status: 'finished' }).eq('id', matchId);
