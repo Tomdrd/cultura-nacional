@@ -13,6 +13,7 @@ import { HomeTheme } from '../../constants/colors';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
 interface Profile { username: string; xp: number; level: number; streak: number; city_natal_id: string | null; avatar_url: string | null; }
+interface Question { id: string; text: string; options: string[]; subcategory: string; difficulty: string; }
 interface PreviewQuestion { text: string; subcategory: string; }
 
 // Mesmas 9 subcategorias usadas em Categorias + Música (fonte: distinct
@@ -34,15 +35,23 @@ export function HomeScreen({ navigation }: any) {
   const [loading,  setLoading]  = useState(true);
   const [cityNatal, setCityNatal] = useState<{ id: string; name: string; state_id: string; stateName: string; stateUf: string } | null>(null);
   const [previewQuestion, setPreviewQuestion] = useState<PreviewQuestion | null>(null);
+  const [randomQuestions, setRandomQuestions] = useState<Question[] | null>(null);
 
   useFocusEffect(React.useCallback(() => { loadData(); loadPreviewQuestion(); }, []));
 
   async function loadPreviewQuestion() {
     setPreviewQuestion(null);
+    setRandomQuestions(null);
+    const subcategory = pickRandomSubcategory();
     const { data } = await supabase.rpc('get_random_quiz_questions', {
-      p_state_id: null, p_city_id: null, p_subcategory: pickRandomSubcategory(), p_limit: 1, p_progressive: false,
+      p_state_id: null, p_city_id: null, p_subcategory: subcategory, p_limit: 5, p_progressive: false,
     });
-    if (data && data.length > 0) setPreviewQuestion({ text: data[0].text, subcategory: data[0].subcategory });
+    if (data && data.length > 0) {
+      // Salva as 5 perguntas completas para serem usadas ao clicar
+      setRandomQuestions(data);
+      // Usa apenas a primeira como preview
+      setPreviewQuestion({ text: data[0].text, subcategory: data[0].subcategory });
+    }
   }
 
   async function loadData() {
@@ -155,7 +164,21 @@ export function HomeScreen({ navigation }: any) {
 
         <TouchableOpacity
           style={[styles.card, styles.randomCard, { backgroundColor: C.card, borderColor: C.border }]}
-          onPress={() => navigation.navigate('Quiz', { subcategory: previewQuestion?.subcategory ?? pickRandomSubcategory(), random: true })}
+          onPress={() => {
+            if (randomQuestions && randomQuestions.length > 0) {
+              // Passa as 5 perguntas já carregadas para o Quiz
+              navigation.navigate('Quiz', {
+                preloadedQuestions: randomQuestions,
+                random: true
+              });
+            } else {
+              // Fallback: sorteie uma subcategoria e deixe o Quiz carregar normalmente
+              navigation.navigate('Quiz', {
+                subcategory: pickRandomSubcategory(),
+                random: true
+              });
+            }
+          }}
           disabled={!previewQuestion}
         >
           <View style={[styles.iconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>

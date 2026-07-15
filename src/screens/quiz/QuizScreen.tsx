@@ -47,7 +47,7 @@ export function QuizScreen({ route, navigation }: any) {
   const { audioNarration } = useSettingsStore();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { user, cityNatalId } = useAuthStore();
-  const { stateId, stateName, cityId: routeCityId, cityName, subcategory, mode, random } = route.params ?? {};
+  const { stateId, stateName, cityId: routeCityId, cityName, subcategory, mode, random, preloadedQuestions } = route.params ?? {};
   // Se a tela não especificou uma cidade explicitamente, usa a cidade natal
   // do usuário — a função no banco cai automaticamente para as perguntas
   // do estado caso essa cidade não tenha perguntas próprias.
@@ -122,6 +122,16 @@ export function QuizScreen({ route, navigation }: any) {
 
   async function loadQuestions() {
     setLoading(true);
+
+    // Se as perguntas foram pré-carregadas (ex: do card aleatório da Home),
+    // usa elas direto — garante que a pergunta preview aparecerá na lista
+    if (preloadedQuestions && preloadedQuestions.length > 0) {
+      setQuestions(preloadedQuestions);
+      startTimer();
+      setLoading(false);
+      return;
+    }
+
     const limit = mode === 'relampago' ? 5 : TOTAL_QUESTIONS;
     const progressive = mode !== 'relampago';
     let { data } = await supabase.rpc('get_random_quiz_questions', {
