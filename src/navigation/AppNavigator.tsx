@@ -1,11 +1,14 @@
 import React from 'react';
+import { View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AppStackParamList, HomeTabsParamList } from '../types/navigation';
-import { Home, Trophy, User, Settings } from 'lucide-react-native';
+import { Home, Trophy, Bell, Settings } from 'lucide-react-native';
 import { HomeScreen }            from '../screens/home/HomeScreen';
 import { RankingScreen }         from '../screens/ranking/RankingScreen';
 import { ProfileScreen }         from '../screens/profile/ProfileScreen';
+import { PublicProfileScreen }   from '../screens/profile/PublicProfileScreen';
+import { FollowListScreen }      from '../screens/profile/FollowListScreen';
 import { SettingsScreen }        from '../screens/settings/SettingsScreen';
 import { QuizScreen }            from '../screens/quiz/QuizScreen';
 import { DuelScreen }            from '../screens/duel/DuelScreen';
@@ -17,16 +20,37 @@ import { EstadosScreen }         from '../screens/estados/EstadosScreen';
 import { CategoriasScreen }      from '../screens/categorias/CategoriasScreen';
 import { MusicaScreen }          from '../screens/musica/MusicaScreen';
 import { CidadeSetupScreen }     from '../screens/onboarding/CidadeSetupScreen';
+import { NotificationsScreen }   from '../screens/notifications/NotificationsScreen';
 import { useTheme }              from '../hooks/useTheme';
 import { HomeTheme }             from '../constants/colors';
 import { useAuthStore }          from '../store/authStore';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
 
 const Tab   = createBottomTabNavigator<HomeTabsParamList>();
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
+function NotificationBadge({ count, color }: { count: number; color: string }) {
+  if (count === 0) return null;
+  return (
+    <View style={{
+      position: 'absolute', top: -4, right: -6,
+      backgroundColor: '#E24B4A',
+      borderRadius: 8, minWidth: 16, height: 16,
+      alignItems: 'center', justifyContent: 'center',
+      paddingHorizontal: 3,
+    }}>
+      <Text style={{ color: '#FFF', fontSize: 9, fontWeight: '700', lineHeight: 16 }}>
+        {count > 99 ? '99+' : count}
+      </Text>
+    </View>
+  );
+}
+
 function HomeTabs() {
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
+  const { count } = useUnreadNotifications();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -42,18 +66,23 @@ function HomeTabs() {
         tabBarInactiveTintColor: C.muted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
         tabBarIcon: ({ color, size }) => {
-          if (route.name === 'Home')     return <Home     size={size} color={color} />;
-          if (route.name === 'Ranking')  return <Trophy   size={size} color={color} />;
-          if (route.name === 'Profile')  return <User     size={size} color={color} />;
-          if (route.name === 'Settings') return <Settings size={size} color={color} />;
+          if (route.name === 'Home')          return <Home     size={size} color={color} />;
+          if (route.name === 'Ranking')       return <Trophy   size={size} color={color} />;
+          if (route.name === 'Settings')      return <Settings size={size} color={color} />;
+          if (route.name === 'Notifications') return (
+            <View style={{ position: 'relative' }}>
+              <Bell size={size} color={color} />
+              <NotificationBadge count={count} color={color} />
+            </View>
+          );
           return null;
         },
       })}
     >
-      <Tab.Screen name="Home"     component={HomeScreen}    options={{ title: 'Explorar' }} />
-      <Tab.Screen name="Ranking"  component={RankingScreen} options={{ title: 'Ranking' }} />
-      <Tab.Screen name="Profile"  component={ProfileScreen} options={{ title: 'Perfil' }} />
-      <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Config' }} />
+      <Tab.Screen name="Home"          component={HomeScreen}          options={{ title: 'Explorar' }} />
+      <Tab.Screen name="Ranking"       component={RankingScreen}       options={{ title: 'Ranking' }} />
+      <Tab.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notif.' }} />
+      <Tab.Screen name="Settings"      component={SettingsScreen}      options={{ title: 'Config' }} />
     </Tab.Navigator>
   );
 }
@@ -77,6 +106,9 @@ export function AppNavigator() {
       <Stack.Screen name="Musica"       component={MusicaScreen} />
       <Stack.Screen name="ViralMode"    component={ViralModeScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="CidadeSetup"  component={CidadeSetupScreen} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
+      <Stack.Screen name="Profile"      component={ProfileScreen} />
+      <Stack.Screen name="FollowList"    component={FollowListScreen} />
     </Stack.Navigator>
   );
 }

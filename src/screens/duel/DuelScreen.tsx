@@ -35,7 +35,7 @@ interface Opponent {
 const TOTAL_QUESTIONS = 5;
 const TIME_PER_QUESTION = 15;
 
-export function DuelScreen({ navigation }: any) {
+export function DuelScreen({ route, navigation }: any) {
   const { colors } = useTheme();
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
@@ -90,13 +90,40 @@ export function DuelScreen({ navigation }: any) {
 
   useEffect(() => { return () => cleanup(); }, []);
 
+  // ─── Lidar com Desafios e Convites por Parametros ─────────────
+  useEffect(() => {
+    console.log('[DuelScreen] useEffect params:', route.params);
+    if (!user) {
+      console.log('[DuelScreen] No user yet');
+      return;
+    }
+    
+    // Se recebemos um challengeUserId, criar desafio direcionado
+    if (route.params?.challengeUserId) {
+      console.log('[DuelScreen] Detected challengeUserId:', route.params.challengeUserId);
+      // Limpar o parâmetro para não rodar duas vezes caso a tela seja re-focada
+      const targetId = route.params.challengeUserId;
+      navigation.setParams({ challengeUserId: undefined });
+      createMatch(targetId);
+    }
+    // Se recebemos um joinCode, entrar automaticamente
+    else if (route.params?.joinCode) {
+      console.log('[DuelScreen] Detected joinCode:', route.params.joinCode);
+      const code = route.params.joinCode;
+      navigation.setParams({ joinCode: undefined });
+      setJoinCode(code);
+      joinMatch(code);
+    }
+  }, [route.params?.challengeUserId, route.params?.joinCode, user]);
+
   function cleanup() {
     stopTimer();
     if (channelRef.current) supabase.removeChannel(channelRef.current);
   }
 
   // ─── Criar duelo ───────────────────────────────────────────────
-  async function createMatch() {
+  async function createMatch(targetUserId?: string) {
+    console.log('[DuelScreen] createMatch called with target:', targetUserId);
     if (!user) return;
     setLoading(true);
 
@@ -126,20 +153,37 @@ export function DuelScreen({ navigation }: any) {
       setDuelState('waiting');
       duelStateRef.current = 'waiting';
       subscribeToMatch(match.id);
+
+      // Se temos um alvo específico, envia a notificação de convite
+      if (targetUserId) {
+        console.log('[DuelScreen] Inserting notification for', targetUserId);
+        const code = match.id.replace(/-/g, '').slice(0, 8).toUpperCase();
+        const { data: myProfile } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single();
+        const { error } = await supabase.from('notifications').insert({
+          user_id: targetUserId,
+          type:    'duel_invite',
+          title:   'Você foi desafiado! ⚔️',
+          body:    `${myProfile?.username ?? 'Alguém'} quer duelar com você.`,
+          data:    { code, senderAvatar: myProfile?.avatar_url },
+        });
+        if (error) console.error('[DuelScreen] Error inserting notif:', error);
+        else console.log('[DuelScreen] Notification inserted successfully!');
+      }
     }
     setLoading(false);
   }
 
   // ─── Entrar no duelo por código ────────────────────────────────
-  async function joinMatch() {
-    if (!user || !joinCode.trim()) return;
+  async function joinMatch(codeArg?: string) {
+    const code = typeof codeArg === 'string' ? codeArg : joinCode;
+    if (!user || !code.trim()) return;
     setLoading(true);
 
     // A busca + validação + entrada no duelo acontece toda no servidor via RPC,
     // evitando expor a lista de duelos abertos de outros usuários (RLS não
     // permitiria o SELECT direto antes de já ser player1/player2 do duelo).
     const { data: match, error } = await supabase.rpc('join_duel_by_code', {
-      p_code: joinCode.trim().toUpperCase(),
+      p_code: code.trim().toUpperCase(),
     });
 
     if (error || !match) {
@@ -299,6 +343,45 @@ export function DuelScreen({ navigation }: any) {
     const bothFinished = match?.player1_finished_at && match?.player2_finished_at;
     if (bothFinished) {
       await supabase.from('matches').update({ status: 'finished' }).eq('id', matchId);
+
+      // Envia notificações de resultado para ambos os jogadores
+      if (match.player1_id && match.player2_id) {
+        const [{ data: p1 }, { data: p2 }] = await Promise.all([
+          supabase.from('profiles').select('username, avatar_url').eq('id', match.player1_id).single(),
+          supabase.from('profiles').select('username, avatar_url').eq('id', match.player2_id).single(),
+        ]);
+
+        // Conta acertos de cada jogador
+        const { data: answers } = await supabase
+          .from('match_answers')
+          .select('user_id, is_correct')
+          .eq('match_id', matchId);
+
+        const scoreOf = (uid: string) =>
+          (answers ?? []).filter((a: any) => a.user_id === uid && a.is_correct).length;
+
+        const s1 = scoreOf(match.player1_id);
+        const s2 = scoreOf(match.player2_id);
+
+        const winner = s1 > s2 ? match.player1_id : s2 > s1 ? match.player2_id : null;
+
+        function buildNotif(recipientId: string, opponentUsername: string, opponentAvatar: string | null, myS: number, oppS: number) {
+          const won  = winner === recipientId;
+          const draw = winner === null;
+          return {
+            user_id: recipientId,
+            type:    'duel_result',
+            title:   won ? 'Você venceu o duelo! 🏆' : draw ? 'Duelo empatado!' : 'Você perdeu o duelo',
+            body:    `Resultado contra ${opponentUsername}: ${myS}×${oppS}`,
+            data:    { matchId, myScore: myS, oppScore: oppS, winnerId: winner, opponentAvatar },
+          };
+        }
+
+        await supabase.from('notifications').insert([
+          buildNotif(match.player1_id, p2?.username ?? 'Oponente', p2?.avatar_url ?? null, s1, s2),
+          buildNotif(match.player2_id, p1?.username ?? 'Oponente', p1?.avatar_url ?? null, s2, s1),
+        ]);
+      }
     }
 
     setDuelState('finished');
@@ -374,7 +457,7 @@ export function DuelScreen({ navigation }: any) {
                 <TouchableOpacity onPress={() => setShowJoin(false)} style={[styles.joinCancel, { borderColor: colors.border }]}>
                   <Text style={[styles.joinCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={joinMatch} disabled={joinCode.length < 8 || loading}
+                <TouchableOpacity onPress={() => joinMatch()} disabled={joinCode.length < 8 || loading}
                   style={[styles.joinConfirm, { backgroundColor: joinCode.length === 8 ? colors.primary : colors.border }]}>
                   {loading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.joinConfirmText}>Entrar</Text>}
                 </TouchableOpacity>
@@ -517,7 +600,7 @@ export function DuelScreen({ navigation }: any) {
               <View key={i} style={[styles.dot, { backgroundColor: r ? colors.primary : colors.danger }]} />
             ))}
           </View>
-          <TouchableOpacity onPress={resetDuel} style={[styles.replayBtn, { backgroundColor: colors.primary }]}>
+          <TouchableOpacity onPress={() => resetDuel()} style={[styles.replayBtn, { backgroundColor: colors.primary }]}>
             <Text style={styles.replayBtnText}>Jogar novamente</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.homeBtn}>

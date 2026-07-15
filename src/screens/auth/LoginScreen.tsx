@@ -114,7 +114,7 @@ export function LoginScreen({ navigation }: any) {
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: Platform.OS === 'web' ? 'https://cultura-nacional.vercel.app/auth/reset-password' : 'culturanacional://auth/reset-password',
+      redirectTo: Platform.OS === 'web' ? window.location.origin : 'culturanacional://auth/reset-password',
     });
     if (error) {
       if (Platform.OS === 'web') window.alert(error.message);

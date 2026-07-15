@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award } from 'lucide-react-native';
+import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award, Copy, Check, Lock, Swords } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
@@ -53,8 +54,40 @@ export function ProfileScreen({ navigation }: any) {
   const [city,     setCity]     = useState<CityInfo | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [cityRank, setCityRank] = useState<number | null>(null);
+  const [copied,   setCopied]   = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [quizStats, setQuizStats] = useState({ total: 0, correct: 0 });
 
-  useEffect(() => { loadProfile(); }, []);
+  useEffect(() => { loadProfile(); loadFollowInfo(); loadQuizStats(); }, []);
+
+  async function loadQuizStats() {
+    if (!user) return;
+    const { data: progress } = await supabase
+      .from('user_state_progress')
+      .select('questions_answered, correct_answers')
+      .eq('user_id', user.id);
+    
+    let total = 0;
+    let correct = 0;
+    if (progress) {
+      for (const p of progress) {
+        total += p.questions_answered || 0;
+        correct += p.correct_answers || 0;
+      }
+    }
+    setQuizStats({ total, correct });
+  }
+
+  async function loadFollowInfo() {
+    if (!user) return;
+    const [{ count: followers }, { count: following }] = await Promise.all([
+      supabase.from('follows').select('follower_id', { count: 'exact', head: true }).eq('following_id', user.id),
+      supabase.from('follows').select('following_id', { count: 'exact', head: true }).eq('follower_id', user.id),
+    ]);
+    setFollowersCount(followers ?? 0);
+    setFollowingCount(following ?? 0);
+  }
 
   async function loadProfile() {
     if (!user) return;
@@ -91,6 +124,14 @@ export function ProfileScreen({ navigation }: any) {
   const xpCurrent   = getXpInCurrentLevel(profile?.xp ?? 0);
   const xpPct       = getXpProgress(profile?.xp ?? 0);
   const levelInfo   = getLevelInfo(profile?.level ?? 1);
+  const isPro       = profile?.plan === 'pro';
+  const profileUrl  = `cultura-nacional.vercel.app/${profile?.username ?? ''}`;
+
+  async function handleCopyUrl() {
+    await Clipboard.setStringAsync(`https://${profileUrl}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
@@ -115,7 +156,28 @@ export function ProfileScreen({ navigation }: any) {
           <Text style={[styles.username, { color: C.text }]}>{profile?.username ?? 'Explorador'}</Text>
           {profile?.plan && <VerifiedBadge plan={profile.plan} size={20} />}
         </View>
-        <Text style={[styles.email, { color: C.muted }]}>{user?.email}</Text>
+        {isPro ? (
+          <TouchableOpacity
+            onPress={handleCopyUrl}
+            style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
+          >
+            <Text style={[styles.urlText, { color: C.subtle }]} numberOfLines={1}>{profileUrl}</Text>
+            {copied
+              ? <Check size={14} color={C.green} />
+              : <Copy size={14} color={C.muted} />
+            }
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Subscription')}
+            style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
+          >
+            <Lock size={12} color={C.muted} />
+            <Text style={[styles.urlLockedText, { color: C.muted }]}>
+              Assine o Pro pra ter sua URL personalizada
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Level badge */}
         <View style={[styles.pill, { backgroundColor: C.iconBg, borderColor: C.border }]}>
@@ -130,6 +192,24 @@ export function ProfileScreen({ navigation }: any) {
             <Text style={[styles.cityText, { color: C.muted }]}>{city.name}, {city.state_uf}</Text>
           </View>
         )}
+
+        {/* Seguidores / Seguindo */}
+        <View style={styles.followStatsRow}>
+          <TouchableOpacity
+            style={styles.followStat}
+            onPress={() => navigation.navigate('FollowList', { userId: user?.id, type: 'followers' })}
+          >
+            <Text style={[styles.followStatVal, { color: C.text }]}>{followersCount}</Text>
+            <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguidores</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.followStat}
+            onPress={() => navigation.navigate('FollowList', { userId: user?.id, type: 'following' })}
+          >
+            <Text style={[styles.followStatVal, { color: C.text }]}>{followingCount}</Text>
+            <Text style={[styles.followStatLbl, { color: C.muted }]}>Seguindo</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* XP Progress */}
@@ -157,16 +237,39 @@ export function ProfileScreen({ navigation }: any) {
           <Text style={[styles.statLbl, { color: C.muted }]}>Streak</Text>
         </View>
         <View style={[styles.statDivider, { backgroundColor: C.border }]} />
-        <View style={styles.statItem}>
+        <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('CityRanking')}>
           <Trophy size={18} color={C.text} />
           <Text style={[styles.statVal, { color: C.text }]}>{cityRank ? `#${cityRank}` : '-'}</Text>
           <Text style={[styles.statLbl, { color: C.muted }]}>Ranking cidade</Text>
-        </View>
+        </TouchableOpacity>
         <View style={[styles.statDivider, { backgroundColor: C.border }]} />
-        <View style={styles.statItem}>
+        <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('Achievements')}>
           <Star size={18} color={C.text} />
           <Text style={[styles.statVal, { color: C.text }]}>{profile?.level ?? 1}</Text>
           <Text style={[styles.statLbl, { color: C.muted }]}>Nível</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Desempenho */}
+      <View style={[styles.card, styles.section, { backgroundColor: C.card, borderColor: C.border }]}>
+        <Text style={[styles.sectionTitle, { color: C.muted }]}>DESEMPENHO NO QUIZ</Text>
+        <View style={styles.quizStatsRow}>
+          <View style={styles.quizStat}>
+            <Text style={[styles.quizStatVal, { color: C.text }]}>{quizStats.total}</Text>
+            <Text style={[styles.quizStatLbl, { color: C.muted }]}>Respondidas</Text>
+          </View>
+          <View style={styles.quizStat}>
+            <Text style={[styles.quizStatVal, { color: C.green }]}>
+              {quizStats.total > 0 ? Math.round((quizStats.correct / quizStats.total) * 100) : 0}%
+            </Text>
+            <Text style={[styles.quizStatLbl, { color: C.muted }]}>Acertos</Text>
+          </View>
+          <View style={styles.quizStat}>
+            <Text style={[styles.quizStatVal, { color: '#F09595' }]}>
+              {quizStats.total > 0 ? Math.round(((quizStats.total - quizStats.correct) / quizStats.total) * 100) : 0}%
+            </Text>
+            <Text style={[styles.quizStatLbl, { color: C.muted }]}>Erros</Text>
+          </View>
         </View>
       </View>
 
@@ -206,6 +309,7 @@ export function ProfileScreen({ navigation }: any) {
           { icon: MapPin,   label: 'Minha cidade natal',  onPress: () => navigation.navigate('CidadeSetup') },
           { icon: Trophy,   label: 'Minhas conquistas',   onPress: () => navigation.navigate('Achievements') },
           { icon: Zap,      label: 'Missões diárias',     onPress: () => navigation.navigate('Missions') },
+          { icon: Swords,   label: 'Duelo 1v1',           onPress: () => navigation.navigate('Duel') },
         ].map(({ icon: Icon, label, onPress }) => (
           <TouchableOpacity key={label} onPress={onPress} style={[styles.menuItem, { borderTopColor: C.border }]}>
             <View style={[styles.iconBoxSm, { backgroundColor: C.iconBg, borderColor: C.border }]}>
@@ -238,10 +342,17 @@ const styles = StyleSheet.create({
   avatar:       { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1, marginBottom: 4 },
   username:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   email:        { fontSize: FontSize.xs },
+  urlPill:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 1, maxWidth: '90%' },
+  urlText:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium, flexShrink: 1 },
+  urlLockedText:{ fontSize: FontSize.xs, flexShrink: 1 },
   pill:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1 },
   pillText:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  cityRow:      { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cityRow:      { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   cityText:     { fontSize: FontSize.xs },
+  followStatsRow: { flexDirection: 'row', gap: 24, marginTop: 12 },
+  followStat:     { alignItems: 'center' },
+  followStatVal:  { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  followStatLbl:  { fontSize: 10, marginTop: 1 },
   xpCard:       { margin: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   xpRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
   xpLabel:      { fontSize: FontSize.xs, marginBottom: 2 },
@@ -255,6 +366,10 @@ const styles = StyleSheet.create({
   statVal:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   statLbl:      { fontSize: 9, textAlign: 'center' },
   statDivider:  { width: 1 },
+  quizStatsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm },
+  quizStat:     { alignItems: 'center', gap: 4 },
+  quizStatVal:  { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  quizStatLbl:  { fontSize: FontSize.xs },
   section:      { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   sectionTitle: { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.md, textTransform: 'uppercase' },
   planRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
