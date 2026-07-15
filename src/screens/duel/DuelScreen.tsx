@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated } from 'react-native';
-import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft, X } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated, Image } from 'react-native';
+import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft, X, User } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
-import { CategoryColors, MedalColors, withOpacity } from '../../constants/colors';
+import { HomeTheme, MedalColors } from '../../constants/colors';
 import { useGlobalQuizTimer } from '../../hooks/useGlobalQuizTimer';
+
+const DANGER = '#E24B4A';
+const DANGER_TEXT = '#F09595';
 
 type DuelState = 'lobby' | 'waiting' | 'playing' | 'finished';
 
@@ -30,13 +33,15 @@ interface Opponent {
   username: string;
   xp: number;
   level: number;
+  avatar_url?: string | null;
 }
 
 const TOTAL_QUESTIONS = 5;
 const TIME_PER_QUESTION = 15;
 
 export function DuelScreen({ route, navigation }: any) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
 
@@ -50,6 +55,7 @@ export function DuelScreen({ route, navigation }: any) {
   const [myScore,      setMyScore]      = useState(0);
   const [oppScore,     setOppScore]     = useState(0);
   const [opponent,     setOpponent]     = useState<Opponent | null>(null);
+  const [myAvatar,     setMyAvatar]     = useState<string | null>(null);
   const [myAnswers,    setMyAnswers]     = useState<boolean[]>([]);
   const [loading,      setLoading]      = useState(false);
   const [joinCode,     setJoinCode]     = useState('');
@@ -89,6 +95,12 @@ export function DuelScreen({ route, navigation }: any) {
   useEffect(() => { answeredRef.current   = answered;   }, [answered]);
 
   useEffect(() => { return () => cleanup(); }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('avatar_url').eq('id', user.id).single()
+      .then(({ data }) => { if (data) setMyAvatar(data.avatar_url); });
+  }, [user]);
 
   // ─── Lidar com Desafios e Convites por Parametros ─────────────
   useEffect(() => {
@@ -194,7 +206,7 @@ export function DuelScreen({ route, navigation }: any) {
 
     // Busca oponente e perguntas em paralelo
     const [{ data: p1 }, { data: qs }] = await Promise.all([
-      supabase.from('profiles').select('id, username, xp, level').eq('id', match.player1_id).single(),
+      supabase.from('profiles').select('id, username, xp, level, avatar_url').eq('id', match.player1_id).single(),
       // Usa os mesmos IDs de perguntas salvos no match
       match.question_ids
         ? supabase.from('questions_safe').select('*').in('id', match.question_ids)
@@ -243,7 +255,7 @@ export function DuelScreen({ route, navigation }: any) {
         // Player1: detecta player2 entrando (usa ref, não state)
         if (match.status === 'active' && match.player2_id && duelStateRef.current === 'waiting') {
           const { data: opp } = await supabase
-            .from('profiles').select('id, username, xp, level').eq('id', match.player2_id).single();
+            .from('profiles').select('id, username, xp, level, avatar_url').eq('id', match.player2_id).single();
           if (opp) setOpponent(opp);
           setDuelState('playing');
           duelStateRef.current = 'playing';
@@ -409,56 +421,56 @@ export function DuelScreen({ route, navigation }: any) {
     setShowJoin(false);
   }
 
-  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? CategoryColors.gastronomia : colors.primary;
+  const timerColor = timeLeft <= 5 ? DANGER : timeLeft <= 10 ? C.yellow : C.green;
 
   // ══════════════════════════════════════════════════════════════
   // LOBBY
   // ══════════════════════════════════════════════════════════════
   if (duelState === 'lobby') {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: C.bg }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.topBack, { paddingTop: headerPaddingTop }]}>
-          <ArrowLeft size={22} color={colors.text} />
+          <ArrowLeft size={22} color={C.text} />
         </TouchableOpacity>
         <View style={styles.center}>
-          <View style={[styles.iconWrap, { backgroundColor: withOpacity(colors.primary, 12.5) }]}>
-            <Swords size={48} color={colors.primary} />
+          <View style={[styles.iconWrap, { backgroundColor: C.iconBg, borderColor: C.border, borderWidth: 1 }]}>
+            <Swords size={40} color={C.text} />
           </View>
-          <Text style={[styles.lobbyTitle, { color: colors.text }]}>Duelo 1v1</Text>
-          <Text style={[styles.lobbySub, { color: colors.textSecondary }]}>
+          <Text style={[styles.lobbyTitle, { color: C.text }]}>Duelo 1v1</Text>
+          <Text style={[styles.lobbySub, { color: C.muted }]}>
             Desafie um amigo ou entre em um duelo existente
           </Text>
           {!showJoin ? (
             <View style={styles.lobbyActions}>
-              <TouchableOpacity onPress={createMatch} style={[styles.lobbyBtn, { backgroundColor: colors.primary }]}>
+              <TouchableOpacity onPress={() => createMatch()} style={[styles.lobbyBtn, { backgroundColor: C.green }]}>
                 {loading
                   ? <ActivityIndicator color="#FFF" />
                   : <><Swords size={20} color="#FFF" /><Text style={styles.lobbyBtnText}>Criar duelo</Text></>
                 }
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowJoin(true)} style={[styles.lobbyBtnOutline, { borderColor: colors.border, backgroundColor: colors.card }]}>
-                <Users size={20} color={colors.primary} />
-                <Text style={[styles.lobbyBtnOutlineText, { color: colors.text }]}>Entrar com código</Text>
+              <TouchableOpacity onPress={() => setShowJoin(true)} style={[styles.lobbyBtnOutline, { borderColor: C.border, backgroundColor: C.card }]}>
+                <Users size={20} color={C.text} />
+                <Text style={[styles.lobbyBtnOutlineText, { color: C.text }]}>Entrar com código</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={[styles.joinBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.joinLabel, { color: colors.textSecondary }]}>Código do duelo</Text>
+            <View style={[styles.joinBox, { backgroundColor: C.card, borderColor: C.border }]}>
+              <Text style={[styles.joinLabel, { color: C.muted }]}>Código do duelo</Text>
               <TextInput
                 value={joinCode}
                 onChangeText={t => setJoinCode(t.toUpperCase())}
                 placeholder="Ex: 5F10991B"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={C.muted}
                 maxLength={8}
                 autoCapitalize="characters"
-                style={[styles.joinInput, { color: colors.text, borderColor: joinCode.length === 8 ? colors.primary : colors.border }]}
+                style={[styles.joinInput, { color: C.text, borderColor: joinCode.length === 8 ? C.green : C.border }]}
               />
               <View style={styles.joinBtns}>
-                <TouchableOpacity onPress={() => setShowJoin(false)} style={[styles.joinCancel, { borderColor: colors.border }]}>
-                  <Text style={[styles.joinCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
+                <TouchableOpacity onPress={() => setShowJoin(false)} style={[styles.joinCancel, { borderColor: C.border }]}>
+                  <Text style={[styles.joinCancelText, { color: C.muted }]}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => joinMatch()} disabled={joinCode.length < 8 || loading}
-                  style={[styles.joinConfirm, { backgroundColor: joinCode.length === 8 ? colors.primary : colors.border }]}>
+                  style={[styles.joinConfirm, { backgroundColor: joinCode.length === 8 ? C.green : C.border }]}>
                   {loading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.joinConfirmText}>Entrar</Text>}
                 </TouchableOpacity>
               </View>
@@ -474,26 +486,26 @@ export function DuelScreen({ route, navigation }: any) {
   // ══════════════════════════════════════════════════════════════
   if (duelState === 'waiting') {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: C.bg }]}>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <Text style={[styles.waitTitle, { color: colors.text }]}>Aguardando oponente...</Text>
-          <Text style={[styles.waitSub, { color: colors.textSecondary }]}>Compartilhe o código com um amigo</Text>
-          <View style={[styles.codeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.codeLabel, { color: colors.textMuted }]}>Código do duelo</Text>
-            <Text style={[styles.codeValue, { color: colors.text }]}>
+          <ActivityIndicator color={C.green} size="large" />
+          <Text style={[styles.waitTitle, { color: C.text }]}>Aguardando oponente...</Text>
+          <Text style={[styles.waitSub, { color: C.muted }]}>Compartilhe o código com um amigo</Text>
+          <View style={[styles.codeCard, { backgroundColor: C.card, borderColor: C.border }]}>
+            <Text style={[styles.codeLabel, { color: C.muted }]}>Código do duelo</Text>
+            <Text style={[styles.codeValue, { color: C.text }]}>
               {matchId?.replace(/-/g, '').slice(0, 8).toUpperCase()}
             </Text>
           </View>
           <TouchableOpacity
             onPress={shareInvite}
-            style={[styles.shareBtn, { backgroundColor: withOpacity(colors.primary, 8.2), borderColor: withOpacity(colors.primary, 25.1) }]}
+            style={[styles.shareBtn, { backgroundColor: `${C.green}14`, borderColor: `${C.green}44` }]}
           >
-            <Copy size={16} color={colors.primary} />
-            <Text style={[styles.shareBtnText, { color: colors.primary }]}>Compartilhar convite</Text>
+            <Copy size={16} color={C.green} />
+            <Text style={[styles.shareBtnText, { color: C.green }]}>Compartilhar convite</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={resetDuel} style={styles.cancelBtn}>
-            <Text style={[styles.cancelText, { color: colors.textMuted }]}>Cancelar</Text>
+            <Text style={[styles.cancelText, { color: C.muted }]}>Cancelar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -506,23 +518,36 @@ export function DuelScreen({ route, navigation }: any) {
   if (duelState === 'playing' && questions.length > 0) {
     const q = questions[current];
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.scoreBar, { backgroundColor: colors.card, borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
+      <View style={[styles.container, { backgroundColor: C.bg }]}>
+        <View style={[styles.scoreBar, { borderBottomColor: C.border, paddingTop: headerPaddingTop }]}>
           <View style={styles.scoreItem}>
-            <Text style={[styles.scoreName, { color: colors.primary }]}>Você</Text>
-            <Text style={[styles.scoreVal, { color: colors.text }]}>{myScore}</Text>
+            <View style={[styles.avatarWrap, { backgroundColor: C.card, borderColor: C.green }]}>
+              {myAvatar ? <Image source={{ uri: myAvatar }} style={styles.avatarImg} /> : <User size={18} color={C.green} />}
+            </View>
+            <Text style={[styles.scoreName, { color: C.green }]}>Você</Text>
+            <Text style={[styles.scoreVal, { color: C.text }]}>{myScore}</Text>
           </View>
-          <View style={[styles.timerBadge, { backgroundColor: withOpacity(timerColor, 12.5) }]}>
-            <Clock size={13} color={timerColor} />
-            <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
+
+          <View style={styles.vsCol}>
+            <View style={[styles.vsBadge, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+              <Text style={[styles.vsBadgeText, { color: C.muted }]}>VS</Text>
+            </View>
+            <View style={[styles.timerBadge, { backgroundColor: `${timerColor}20` }]}>
+              <Clock size={13} color={timerColor} />
+              <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
+            </View>
           </View>
+
           <View style={styles.scoreItem}>
-            <Text style={[styles.scoreName, { color: colors.textSecondary }]}>{opponent?.username ?? 'Oponente'}</Text>
-            <Text style={[styles.scoreVal, { color: colors.text }]}>{oppScore}</Text>
+            <View style={[styles.avatarWrap, { backgroundColor: C.card, borderColor: C.border }]}>
+              {opponent?.avatar_url ? <Image source={{ uri: opponent.avatar_url }} style={styles.avatarImg} /> : <User size={18} color={C.muted} />}
+            </View>
+            <Text style={[styles.scoreName, { color: C.muted }]} numberOfLines={1}>{opponent?.username ?? 'Oponente'}</Text>
+            <Text style={[styles.scoreVal, { color: C.text }]}>{oppScore}</Text>
           </View>
         </View>
 
-        <View style={[styles.progressBg, { backgroundColor: colors.border }]}>
+        <View style={[styles.progressBg, { backgroundColor: C.border }]}>
           <Animated.View style={[styles.progressFill, {
             backgroundColor: timerColor,
             width: progressAnim.interpolate({ inputRange: [0,1], outputRange: ['0%','100%'] }),
@@ -532,32 +557,32 @@ export function DuelScreen({ route, navigation }: any) {
         <View style={styles.counterRow}>
           {questions.map((_, i) => (
             <View key={i} style={[styles.counterDot, {
-              backgroundColor: i < current ? colors.primary : i === current ? withOpacity(colors.primary, 37.6) : colors.border
+              backgroundColor: i < current ? C.green : i === current ? `${C.green}60` : C.border
             }]} />
           ))}
         </View>
 
         <View style={styles.questionWrap}>
-          <Text style={[styles.questionText, { color: colors.text }]}>{q.text}</Text>
+          <Text style={[styles.questionText, { color: C.text }]}>{q.text}</Text>
           <View style={styles.options}>
             {q.options.map((opt: string, i: number) => {
               const isCorrect  = answered && i === answerResult?.correct_index;
               const isSelected = i === selected;
-              let bg = colors.card, border = colors.border, textColor = colors.text;
+              let bg: string = C.card, border: string = C.border, textColor: string = C.text;
               if (answered) {
-                if (isCorrect)               { bg = withOpacity(colors.success, 12.5); border = colors.success; textColor = colors.success; }
-                else if (isSelected)         { bg = withOpacity(colors.danger, 12.5); border = colors.danger; textColor = colors.danger; }
-              } else if (isSelected)         { bg = withOpacity(colors.primary, 8.2); border = colors.primary; textColor = colors.primary; }
+                if (isCorrect)               { bg = `${C.green}18`; border = C.green; textColor = C.green; }
+                else if (isSelected)         { bg = `${DANGER}18`; border = DANGER; textColor = DANGER_TEXT; }
+              } else if (isSelected)         { bg = `${C.green}14`; border = C.green; textColor = C.green; }
               return (
                 <TouchableOpacity key={i} onPress={() => handleAnswer(i)} disabled={answered}
                   style={[styles.option, { backgroundColor: bg, borderColor: border }]}
                 >
-                  <View style={[styles.optLetter, { backgroundColor: withOpacity(border, 18.8) }]}>
+                  <View style={[styles.optLetter, { backgroundColor: C.iconBg }]}>
                     <Text style={[styles.optLetterText, { color: textColor }]}>{['A','B','C','D'][i]}</Text>
                   </View>
                   <Text style={[styles.optText, { color: textColor }]}>{opt}</Text>
-                  {answered && isCorrect               && <CheckCircle size={18} color={colors.success} />}
-                  {answered && isSelected && !isCorrect && <XCircle size={18} color={colors.danger} />}
+                  {answered && isCorrect               && <CheckCircle size={18} color={C.green} />}
+                  {answered && isSelected && !isCorrect && <XCircle size={18} color={DANGER_TEXT} />}
                 </TouchableOpacity>
               );
             })}
@@ -574,37 +599,43 @@ export function DuelScreen({ route, navigation }: any) {
     const iWon   = myScore > oppScore;
     const isDraw = myScore === oppScore;
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: C.bg }]}>
         <View style={styles.center}>
           <View style={[styles.resultIcon, {
-            backgroundColor: iWon ? withOpacity(MedalColors.gold, 12.5) : isDraw ? withOpacity(colors.primary, 12.5) : withOpacity(colors.danger, 12.5)
+            backgroundColor: iWon ? `${MedalColors.gold}20` : isDraw ? `${C.green}20` : `${DANGER}20`
           }]}>
-            <Trophy size={48} color={iWon ? MedalColors.gold : isDraw ? colors.primary : colors.danger} />
+            <Trophy size={48} color={iWon ? MedalColors.gold : isDraw ? C.green : DANGER} />
           </View>
-          <Text style={[styles.resultTitle, { color: colors.text }]}>
+          <Text style={[styles.resultTitle, { color: C.text }]}>
             {iWon ? 'Você venceu!' : isDraw ? 'Empate!' : 'Você perdeu!'}
           </Text>
-          <View style={[styles.finalScore, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.finalScore, { backgroundColor: C.card, borderColor: C.border }]}>
             <View style={styles.finalItem}>
-              <Text style={[styles.finalName, { color: colors.primary }]}>Você</Text>
-              <Text style={[styles.finalVal, { color: colors.text }]}>{myScore}</Text>
+              <View style={[styles.avatarWrapLg, { backgroundColor: C.iconBg, borderColor: C.green }]}>
+                {myAvatar ? <Image source={{ uri: myAvatar }} style={styles.avatarImgLg} /> : <User size={22} color={C.green} />}
+              </View>
+              <Text style={[styles.finalName, { color: C.green }]}>Você</Text>
+              <Text style={[styles.finalVal, { color: C.text }]}>{myScore}</Text>
             </View>
-            <X size={20} color={colors.textMuted} />
+            <X size={20} color={C.muted} />
             <View style={styles.finalItem}>
-              <Text style={[styles.finalName, { color: colors.textSecondary }]}>{opponent?.username ?? 'Oponente'}</Text>
-              <Text style={[styles.finalVal, { color: colors.text }]}>{oppScore}</Text>
+              <View style={[styles.avatarWrapLg, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+                {opponent?.avatar_url ? <Image source={{ uri: opponent.avatar_url }} style={styles.avatarImgLg} /> : <User size={22} color={C.muted} />}
+              </View>
+              <Text style={[styles.finalName, { color: C.muted }]} numberOfLines={1}>{opponent?.username ?? 'Oponente'}</Text>
+              <Text style={[styles.finalVal, { color: C.text }]}>{oppScore}</Text>
             </View>
           </View>
           <View style={styles.resultDots}>
             {myAnswers.map((r, i) => (
-              <View key={i} style={[styles.dot, { backgroundColor: r ? colors.primary : colors.danger }]} />
+              <View key={i} style={[styles.dot, { backgroundColor: r ? C.green : DANGER }]} />
             ))}
           </View>
-          <TouchableOpacity onPress={() => resetDuel()} style={[styles.replayBtn, { backgroundColor: colors.primary }]}>
+          <TouchableOpacity onPress={() => resetDuel()} style={[styles.replayBtn, { backgroundColor: C.green }]}>
             <Text style={styles.replayBtnText}>Jogar novamente</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.homeBtn}>
-            <Text style={[styles.homeBtnText, { color: colors.textSecondary }]}>Voltar ao início</Text>
+            <Text style={[styles.homeBtnText, { color: C.muted }]}>Voltar ao início</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -612,8 +643,8 @@ export function DuelScreen({ route, navigation }: any) {
   }
 
   return (
-    <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
-      <ActivityIndicator color={colors.primary} size="large" />
+    <View style={[styles.container, styles.center, { backgroundColor: C.bg }]}>
+      <ActivityIndicator color={C.green} size="large" />
     </View>
   );
 }
@@ -628,27 +659,34 @@ const styles = StyleSheet.create({
   lobbyActions:    { width: '100%', gap: 12 },
   lobbyBtn:        { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   lobbyBtnText:    { color: '#FFF', fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  lobbyBtnOutline: { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, borderWidth: 0.5 },
+  lobbyBtnOutline: { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, borderWidth: 1 },
   lobbyBtnOutlineText: { fontSize: FontSize.md, fontWeight: FontWeight.medium },
-  joinBox:         { width: '100%', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, gap: 12 },
+  joinBox:         { width: '100%', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, gap: 12 },
   joinLabel:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
-  joinInput:       { height: 52, borderRadius: Radius.md, borderWidth: 0.5, textAlign: 'center', fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 6 },
+  joinInput:       { height: 52, borderRadius: Radius.md, borderWidth: 1, textAlign: 'center', fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 6 },
   joinBtns:        { flexDirection: 'row', gap: 10 },
-  joinCancel:      { flex: 1, height: 44, borderRadius: Radius.md, borderWidth: 0.5, alignItems: 'center', justifyContent: 'center' },
+  joinCancel:      { flex: 1, height: 44, borderRadius: Radius.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   joinCancelText:  { fontSize: FontSize.sm },
   joinConfirm:     { flex: 1, height: 44, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   joinConfirmText: { color: '#FFF', fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   waitTitle:       { fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginTop: Spacing.xl, marginBottom: 8 },
   waitSub:         { fontSize: FontSize.sm, textAlign: 'center', marginBottom: Spacing.xl },
-  codeCard:        { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, alignItems: 'center', width: '100%', marginBottom: Spacing.md },
+  codeCard:        { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, alignItems: 'center', width: '100%', marginBottom: Spacing.md },
   codeLabel:       { fontSize: FontSize.xs, marginBottom: 6 },
   codeValue:       { fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 4 },
-  shareBtn:        { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: Radius.md, borderWidth: 0.5, marginBottom: Spacing.md },
+  shareBtn:        { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: Radius.md, borderWidth: 1, marginBottom: Spacing.md },
   shareBtnText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   cancelBtn:       { padding: Spacing.md },
   cancelText:      { fontSize: FontSize.sm },
-  scoreBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
-  scoreItem:       { alignItems: 'center', gap: 2 },
+  scoreBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 1 },
+  scoreItem:       { alignItems: 'center', gap: 4, width: 84 },
+  avatarWrap:      { width: 40, height: 40, borderRadius: 20, borderWidth: 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarImg:       { width: '100%', height: '100%' },
+  avatarWrapLg:    { width: 52, height: 52, borderRadius: 26, borderWidth: 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 4 },
+  avatarImgLg:     { width: '100%', height: '100%' },
+  vsCol:           { alignItems: 'center', gap: 6 },
+  vsBadge:         { paddingHorizontal: 10, paddingVertical: 3, borderRadius: Radius.full, borderWidth: 1 },
+  vsBadgeText:     { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5 },
   scoreName:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   scoreVal:        { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
   timerBadge:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
@@ -660,13 +698,13 @@ const styles = StyleSheet.create({
   questionWrap:    { flex: 1, padding: Spacing.xl },
   questionText:    { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
   options:         { gap: 10 },
-  option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, gap: 12 },
+  option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 1, padding: Spacing.md, gap: 12 },
   optLetter:       { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   optLetterText:   { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   optText:         { flex: 1, fontSize: FontSize.sm, lineHeight: 20 },
   resultIcon:      { width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.lg },
   resultTitle:     { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, marginBottom: Spacing.xl },
-  finalScore:      { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, gap: Spacing.xl, marginBottom: Spacing.xl },
+  finalScore:      { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, gap: Spacing.xl, marginBottom: Spacing.xl },
   finalItem:       { alignItems: 'center', gap: 4 },
   finalName:       { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   finalVal:        { fontSize: 40, fontWeight: FontWeight.bold },
