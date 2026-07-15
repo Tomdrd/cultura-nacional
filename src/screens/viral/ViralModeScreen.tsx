@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Alert, Platform, Share, ScrollView, Image,
+  Alert, Platform, Share, ScrollView, Image, useWindowDimensions,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { requestRecordingPermissionsAsync } from 'expo-audio';
@@ -21,7 +21,6 @@ import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, 
 const DANGER = '#E24B4A';
 const DANGER_TEXT = '#F09595';
 
-const { width: SW, height: SH } = Dimensions.get('window');
 
 interface Question {
   id: string;
@@ -46,6 +45,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
+  const { width: winW, height: winH } = useWindowDimensions();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { stateId, stateName, subcategory } = route.params ?? {};
 
@@ -272,13 +272,13 @@ export function ViralModeScreen({ navigation, route }: any) {
   // ══════════════════════════════════════════
   if (phase === 'setup') {
     return (
-      <View style={[styles.container, { backgroundColor: '#000' }]}>
+      <View style={[styles.container, { backgroundColor: '#000', width: winW, height: winH }]}>
         {/* Imagem ilustrativa de fundo — gerada por IA (não é foto de pessoa real) */}
-        <Image source={require('../../../assets/images/viral-setup-bg.jpg')} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <Image source={require('../../../assets/images/viral-setup-bg.jpg')} style={styles.setupBgImage} resizeMode="cover" />
         <LinearGradient
           colors={['rgba(0,0,0,0.8)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.88)']}
           locations={[0, 0.42, 1]}
-          style={StyleSheet.absoluteFill}
+          style={styles.setupBgImage}
         />
 
         <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { paddingTop: headerPaddingTop }]}>
@@ -378,7 +378,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     // ── Formato vertical: câmera ocupa a tela toda, quiz vira overlay de vidro na base ──
     if (isVertical) {
       return (
-        <View style={[styles.fullscreen, { backgroundColor: '#000' }]}>
+        <View style={[styles.fullscreen, { backgroundColor: '#000', width: winW, height: winH }]}>
           <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
 
           {/* Escurece o topo e a base pra manter o texto legível sobre o vídeo */}
@@ -468,10 +468,10 @@ export function ViralModeScreen({ navigation, route }: any) {
     }
 
     // ── Formato horizontal: câmera e quiz lado a lado (sem overlay) ──
-    const cameraW = SW * 0.4;
+    const cameraW = winW * 0.4;
     return (
-      <View style={[styles.fullscreen, { flexDirection: 'row', backgroundColor: C.bg }]}>
-        <View style={{ width: cameraW, height: SH }}>
+      <View style={[styles.fullscreen, { flexDirection: 'row', backgroundColor: C.bg, width: winW, height: winH }]}>
+        <View style={{ width: cameraW, height: winH }}>
           <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
           <Image source={require('../../../assets/images/icon.png')} style={styles.watermark} />
           {phase === 'countdown' && (
@@ -491,7 +491,7 @@ export function ViralModeScreen({ navigation, route }: any) {
         </View>
 
         {isQuiz && (
-          <View style={[{ width: SW - cameraW, height: SH }, styles.quizArea, { backgroundColor: C.bg }]}>
+          <View style={[{ width: winW - cameraW, height: winH }, styles.quizArea, { backgroundColor: C.bg }]}>
             <View style={styles.dotsRow}>
               {questions.map((_, i) => (
                 <View key={i} style={[styles.dot, { backgroundColor: i < current ? C.green : i === current ? `${C.green}60` : C.border }]} />
@@ -610,8 +610,9 @@ export function ViralModeScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  fullscreen: { flex: 1 },
+  container: { flex: 1, width: '100%', height: '100%' },
+  fullscreen: { flex: 1, width: '100%', height: '100%' },
+  setupBgImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   backBtn: { padding: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: 8 },
   backText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   setupCenter: { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
