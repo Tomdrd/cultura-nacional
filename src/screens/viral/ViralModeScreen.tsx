@@ -256,6 +256,7 @@ export function ViralModeScreen({ navigation, route }: any) {
           p_total:    questions.length,
         }),
       ]);
+      await supabase.rpc('check_and_grant_achievements', { p_user_id: user.id });
     }
     setPhase('result');
   }

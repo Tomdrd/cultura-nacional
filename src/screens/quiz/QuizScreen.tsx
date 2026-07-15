@@ -251,6 +251,7 @@ export function QuizScreen({ route, navigation }: any) {
       }),
       saveStateProgress(scoreRef.current),
     ]);
+    await supabase.rpc('check_and_grant_achievements', { p_user_id: user.id });
   }
 
   const timerColor = timeLeft <= 5 ? DANGER : timeLeft <= 10 ? C.yellow : C.green;

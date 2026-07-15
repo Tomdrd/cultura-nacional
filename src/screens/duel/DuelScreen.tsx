@@ -382,6 +382,7 @@ export function DuelScreen({ route, navigation }: any) {
         const s2 = scoreOf(match.player2_id);
 
         const winner = s1 > s2 ? match.player1_id : s2 > s1 ? match.player2_id : null;
+        await supabase.from('matches').update({ winner_id: winner }).eq('id', matchId);
 
         function buildNotif(recipientId: string, opponentUsername: string, opponentAvatar: string | null, myS: number, oppS: number) {
           const won  = winner === recipientId;
@@ -404,6 +405,7 @@ export function DuelScreen({ route, navigation }: any) {
 
     setDuelState('finished');
     duelStateRef.current = 'finished';
+    if (user) await supabase.rpc('check_and_grant_achievements', { p_user_id: user.id });
     cleanup();
   }
 
