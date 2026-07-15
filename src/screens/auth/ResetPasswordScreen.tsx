@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Alert, Platform,
-  KeyboardAvoidingView,
+  KeyboardAvoidingView, StatusBar,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
@@ -10,9 +10,11 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import CnLogo from '../../../assets/images/cn-logo.svg';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { HomeTheme } from '../../constants/colors';
 
 export function ResetPasswordScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,20 +47,21 @@ export function ResetPasswordScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={C.bg} />
       <ScrollView
-        style={{ flex: 1, backgroundColor: colors.background }}
+        style={{ flex: 1, backgroundColor: C.bg }}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoWrap}>
-          <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+          <View style={[styles.logoCircle, { backgroundColor: C.green }]}>
             <CnLogo width={48} height={48} />
           </View>
-          <Text style={[styles.appName, { color: colors.text }]}>Nova Senha</Text>
-          <Text style={[styles.appSub, { color: colors.textSecondary }]}>Digite sua nova senha abaixo</Text>
+          <Text style={[styles.appName, { color: C.text }]}>Nova Senha</Text>
+          <Text style={[styles.appSub, { color: C.muted }]}>Digite sua nova senha abaixo</Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: C.card, borderColor: C.border }]}>
           <Input
             label="Nova senha"
             placeholder="••••••"
