@@ -195,8 +195,8 @@ export function QuizScreen({ route, navigation }: any) {
     });
   }
 
-  async function saveStateProgress(correctsThisRound: number) {
-    if (!user || !stateId || correctsThisRound === 0) return;
+  async function saveStateProgress(totalThisRound: number, correctsThisRound: number) {
+    if (!user || !stateId || totalThisRound === 0) return;
 
     // Busca progresso atual
     const { data: existing } = await supabase
@@ -213,7 +213,7 @@ export function QuizScreen({ route, navigation }: any) {
     // Não ultrapassa o limite e não regride se já concluído
     if (alreadyDone) return;
 
-    const newAnswered = Math.min(prevAnswered + correctsThisRound, PROGRESS_GOAL);
+    const newAnswered = Math.min(prevAnswered + totalThisRound, PROGRESS_GOAL);
     const newCorrect  = Math.min(prevCorrect  + correctsThisRound, PROGRESS_GOAL);
     const completed   = newAnswered >= PROGRESS_GOAL;
 
@@ -249,7 +249,7 @@ export function QuizScreen({ route, navigation }: any) {
         p_correct:  scoreRef.current,
         p_total:    questions.length,
       }),
-      saveStateProgress(scoreRef.current),
+      saveStateProgress(questions.length, scoreRef.current),
     ]);
     await supabase.rpc('check_and_grant_achievements', { p_user_id: user.id });
   }
