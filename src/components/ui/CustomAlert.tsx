@@ -3,6 +3,7 @@ import {
   Modal, View, Text, TouchableOpacity, StyleSheet
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { HomeTheme } from '../../constants/colors';
 import { FontSize, FontWeight, Radius, Spacing } from '../../constants/layout';
 
 interface CustomAlertProps {
@@ -18,17 +19,18 @@ interface CustomAlertProps {
 }
 
 export function CustomAlert({ visible, title, message, buttons, onDismiss }: CustomAlertProps) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
 
   const defaultButtons = buttons ?? [{ label: 'OK', onPress: onDismiss ?? (() => {}), variant: 'primary' as const }];
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onDismiss}>
       <View style={styles.overlay}>
-        <View style={[styles.box, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          {message ? <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text> : null}
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <View style={[styles.box, { backgroundColor: C.card, borderColor: C.border }]}>
+          <Text style={[styles.title, { color: C.text }]}>{title}</Text>
+          {message ? <Text style={[styles.message, { color: C.muted }]}>{message}</Text> : null}
+          <View style={[styles.divider, { backgroundColor: C.border }]} />
           <View style={styles.buttons}>
             {defaultButtons.map((btn, i) => (
               <TouchableOpacity
@@ -36,14 +38,14 @@ export function CustomAlert({ visible, title, message, buttons, onDismiss }: Cus
                 onPress={btn.onPress}
                 style={[
                   styles.btn,
-                  i > 0 && { borderLeftWidth: 0.5, borderLeftColor: colors.border },
+                  i > 0 && { borderLeftWidth: 0.5, borderLeftColor: C.border },
                 ]}
               >
                 <Text style={[
                   styles.btnText,
-                  btn.variant === 'danger'    && { color: colors.danger },
-                  btn.variant === 'secondary' && { color: colors.textMuted },
-                  (!btn.variant || btn.variant === 'primary') && { color: colors.primary, fontWeight: FontWeight.bold },
+                  btn.variant === 'danger'    && { color: C.danger },
+                  btn.variant === 'secondary' && { color: C.muted },
+                  (!btn.variant || btn.variant === 'primary') && { color: C.green, fontWeight: FontWeight.bold },
                 ]}>
                   {btn.label}
                 </Text>
