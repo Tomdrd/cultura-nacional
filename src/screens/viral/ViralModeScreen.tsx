@@ -12,6 +12,7 @@ import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
+import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { APP_SHARE_URL } from '../../constants/app';
@@ -47,6 +48,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   const headerPaddingTop = useHeaderTopPadding();
   const { width: winW, height: winH } = useWindowDimensions();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
+  const { user } = useAuthStore();
   const { stateId, stateName, subcategory } = route.params ?? {};
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -69,6 +71,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   const [score, setScore] = useState(0);
 
   const cameraRef = useRef<any>(null);
+  const xpRef = useRef(0);
   const timerRef = useRef<any>(null);
   const recordingPromiseRef = useRef<Promise<any> | null>(null);
   const [recordedVideoUri, setRecordedVideoUri] = useState<string | null>(null);
@@ -202,6 +205,7 @@ export function ViralModeScreen({ navigation, route }: any) {
 
     setResults(r => [...r, correct]);
     setCorrectStreak(newStreak);
+    xpRef.current += result.xp;
     if (correct) setScore(s => s + 1);
     if (correct) { playCorrect(); } else { playWrong(); }
 
@@ -236,6 +240,23 @@ export function ViralModeScreen({ navigation, route }: any) {
     }
     const pct = score / questions.length;
     playResult(pct >= 0.6);
+    if (user) {
+      await Promise.all([
+        xpRef.current > 0
+          ? Promise.all([
+              supabase.rpc('update_xp_and_level', { p_user_id: user.id, p_xp_gained: xpRef.current }),
+              supabase.rpc('update_city_ranking',  { p_user_id: user.id, p_xp_gained: xpRef.current }),
+            ])
+          : Promise.resolve(),
+        supabase.rpc('update_streak_on_play', { p_user_id: user.id }),
+        supabase.rpc('update_daily_mission_progress', {
+          p_user_id:  user.id,
+          p_state_id: stateId ?? null,
+          p_correct:  score,
+          p_total:    questions.length,
+        }),
+      ]);
+    }
     setPhase('result');
   }
 
