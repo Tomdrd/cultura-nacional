@@ -42,7 +42,7 @@ export function AchievementsScreen({ navigation }: any) {
       supabase.from('user_achievements').select('achievement_id, earned_at').eq('user_id', user.id),
     ]);
     if (all) {
-      const earnedIds = new Set(earned?.map(e => e.achievement_id) ?? []);
+      const earnedIds = new Set(earned?.filter(e => e.earned_at).map(e => e.achievement_id) ?? []);
       const earnedMap = Object.fromEntries(earned?.map(e => [e.achievement_id, e.earned_at]) ?? []);
       setAchievements(all.map(a => ({
         ...a,
