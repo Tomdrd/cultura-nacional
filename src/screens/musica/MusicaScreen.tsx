@@ -42,7 +42,7 @@ export function MusicaScreen({ navigation }: any) {
         {/* Section Label */}
         <View style={[styles.sectionLabel, { paddingHorizontal: Spacing.xl }]}>
           <Text style={[styles.sectionText, { color: C.muted }]}>GÊNEROS</Text>
-          <Text style={[styles.sectionCount, { color: C.green }]}>{GENEROS.length}</Text>
+          <Text style={[styles.sectionCount, { color: C.green }]}> {GENEROS.length}</Text>
         </View>
 
         {/* Grid */}
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   backBtn:         { width: 20, paddingTop: 2 },
   headerTitle:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 24 },
   headerSub:       { fontSize: FontSize.xs, marginTop: 2 },
-  sectionLabel:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, marginTop: 8 },
+  sectionLabel:    { flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginBottom: 12, marginTop: 8 },
   sectionText:     { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, letterSpacing: 0.5 },
   sectionCount:    { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
   grid:            { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start' },
