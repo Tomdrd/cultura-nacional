@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity,
-  KeyboardAvoidingView, Platform, Linking, ActivityIndicator,
+  KeyboardAvoidingView, Platform, Linking, ActivityIndicator, StatusBar,
 } from 'react-native';
 import { ArrowLeft, CheckCircle, MapPin, Search } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
@@ -11,12 +11,14 @@ import { CustomAlert } from '../../components/ui/CustomAlert';
 import { supabase } from '../../lib/supabase';
 import CnLogo from '../../../assets/images/cn-logo.svg';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { HomeTheme } from '../../constants/colors';
 
 interface City { id: string; name: string; state_uf: string; }
 type ScreenState = 'form' | 'success';
 
 export function RegisterScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const [screenState, setScreenState] = useState<ScreenState>('form');
   const [username,    setUsername]    = useState('');
   const [email,       setEmail]       = useState('');
@@ -132,20 +134,21 @@ export function RegisterScreen({ navigation }: any) {
 
   if (screenState === 'success') {
     return (
-      <View style={[styles.successContainer, { backgroundColor: colors.background }]}>
-        <View style={[styles.successCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.successIcon, { backgroundColor: colors.primary + '20' }]}>
-            <CheckCircle size={48} color={colors.primary} />
+      <View style={[styles.successContainer, { backgroundColor: C.bg }]}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={C.bg} />
+        <View style={[styles.successCard, { backgroundColor: C.card, borderColor: C.border }]}>
+          <View style={[styles.successIcon, { backgroundColor: C.green + '20' }]}>
+            <CheckCircle size={48} color={C.green} />
           </View>
-          <Text style={[styles.successTitle, { color: colors.text }]}>Conta criada!</Text>
-          <Text style={[styles.successMsg, { color: colors.textSecondary }]}>
+          <Text style={[styles.successTitle, { color: C.text }]}>Conta criada!</Text>
+          <Text style={[styles.successMsg, { color: C.muted }]}>
             Enviamos um e-mail de confirmação para{'\n'}
-            <Text style={{ color: colors.primary, fontWeight: FontWeight.bold }}>{email.trim()}</Text>
+            <Text style={{ color: C.green, fontWeight: FontWeight.bold }}>{email.trim()}</Text>
             {'\n\n'}Verifique sua caixa de entrada (e o spam) e clique no link para ativar sua conta.
           </Text>
           <Button label="Já confirmei, fazer login" onPress={() => navigation.navigate('Login')} style={styles.successBtn} />
           <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.laterBtn}>
-            <Text style={[styles.laterText, { color: colors.textMuted }]}>Confirmar depois</Text>
+            <Text style={[styles.laterText, { color: C.muted }]}>Confirmar depois</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -154,24 +157,25 @@ export function RegisterScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={C.bg} />
       <ScrollView
-        style={{ flex: 1, backgroundColor: colors.background }}
+        style={{ flex: 1, backgroundColor: C.bg }}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <ArrowLeft size={18} color={colors.primary} />
-            <Text style={[styles.backText, { color: colors.primary }]}>Voltar</Text>
+            <ArrowLeft size={18} color={C.green} />
+            <Text style={[styles.backText, { color: C.green }]}>Voltar</Text>
           </TouchableOpacity>
-          <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+          <View style={[styles.logoCircle, { backgroundColor: C.green }]}>
             <CnLogo width={48} height={48} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Criar conta</Text>
-          <Text style={[styles.sub, { color: colors.textSecondary }]}>Junte-se a milhares de brasileiros</Text>
+          <Text style={[styles.title, { color: C.text }]}>Criar conta</Text>
+          <Text style={[styles.sub, { color: C.muted }]}>Junte-se a milhares de brasileiros</Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: C.card, borderColor: C.border }]}>
           <Input
             label="Nome de usuário"
             placeholder="seu_nome"
@@ -206,45 +210,45 @@ export function RegisterScreen({ navigation }: any) {
           />
 
           <View style={styles.cityWrap}>
-            <Text style={[styles.cityLabel, { color: colors.textSecondary }]}>CIDADE NATAL</Text>
+            <Text style={[styles.cityLabel, { color: C.muted }]}>CIDADE NATAL</Text>
             <View style={[
               styles.cityInputRow,
               {
-                backgroundColor: colors.backgroundAlt ?? colors.card,
-                borderColor: errors.city ? colors.danger : selectedCity ? colors.primary : colors.border,
+                backgroundColor: C.iconBg,
+                borderColor: errors.city ? C.danger : selectedCity ? C.green : C.border,
               }
             ]}>
               {cityLoading
-                ? <ActivityIndicator size="small" color={colors.primary} />
-                : <Search size={16} color={selectedCity ? colors.primary : colors.textMuted} />
+                ? <ActivityIndicator size="small" color={C.green} />
+                : <Search size={16} color={selectedCity ? C.green : C.muted} />
               }
               <TextInput
                 placeholder="Buscar cidade..."
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={C.muted}
                 value={cityQuery}
                 onChangeText={handleCityQueryChange}
-                style={[styles.cityInputField, { color: colors.text }]}
+                style={[styles.cityInputField, { color: C.text }]}
               />
-              {selectedCity && <MapPin size={16} color={colors.primary} />}
+              {selectedCity && <MapPin size={16} color={C.green} />}
             </View>
             {errors.city && (
-              <Text style={[styles.errorText, { color: colors.danger }]}>{errors.city}</Text>
+              <Text style={[styles.errorText, { color: C.danger }]}>{errors.city}</Text>
             )}
             {showDropdown && cityResults.length > 0 && (
-              <View style={[styles.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.dropdown, { backgroundColor: C.card, borderColor: C.border }]}>
                 {cityResults.map((city, idx) => (
                   <TouchableOpacity
                     key={city.id}
                     style={[
                       styles.dropdownItem,
-                      { borderBottomColor: colors.border },
+                      { borderBottomColor: C.border },
                       idx === cityResults.length - 1 && { borderBottomWidth: 0 },
                     ]}
                     onPress={() => handleSelectCity(city)}
                   >
-                    <MapPin size={14} color={colors.primary} />
-                    <Text style={[styles.dropdownCity, { color: colors.text }]}>{city.name}</Text>
-                    <Text style={[styles.dropdownUF, { color: colors.textMuted }]}>{city.state_uf}</Text>
+                    <MapPin size={14} color={C.green} />
+                    <Text style={[styles.dropdownCity, { color: C.text }]}>{city.name}</Text>
+                    <Text style={[styles.dropdownUF, { color: C.muted }]}>{city.state_uf}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -253,22 +257,22 @@ export function RegisterScreen({ navigation }: any) {
 
           <Button label="Criar conta" onPress={handleRegister} loading={loading} style={styles.btn} />
 
-          <Text style={[styles.terms, { color: colors.textMuted }]}>
+          <Text style={[styles.terms, { color: C.muted }]}>
             Ao continuar, você concorda com nossos{' '}
-            <Text style={{ color: colors.primary }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/termos.html')}>
+            <Text style={{ color: C.green }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/termos.html')}>
               Termos de Uso
             </Text>
             {' '}e{' '}
-            <Text style={{ color: colors.primary }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/privacidade.html')}>
+            <Text style={{ color: C.green }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/privacidade.html')}>
               Política de Privacidade
             </Text>.
           </Text>
         </View>
 
         <View style={styles.loginRow}>
-          <Text style={[styles.loginText, { color: colors.textSecondary }]}>Já tem conta? </Text>
+          <Text style={[styles.loginText, { color: C.muted }]}>Já tem conta? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={[styles.link, { color: colors.primary }]}>Entrar</Text>
+            <Text style={[styles.link, { color: C.green }]}>Entrar</Text>
           </TouchableOpacity>
         </View>
 
