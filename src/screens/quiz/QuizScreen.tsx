@@ -243,6 +243,12 @@ export function QuizScreen({ route, navigation }: any) {
           ])
         : Promise.resolve(),
       supabase.rpc('update_streak_on_play', { p_user_id: user.id }),
+      supabase.rpc('update_daily_mission_progress', {
+        p_user_id:  user.id,
+        p_state_id: stateId ?? null,
+        p_correct:  scoreRef.current,
+        p_total:    questions.length,
+      }),
       saveStateProgress(scoreRef.current),
     ]);
   }
