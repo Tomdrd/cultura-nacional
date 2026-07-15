@@ -273,8 +273,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   if (phase === 'setup') {
     return (
       <View style={[styles.container, { backgroundColor: '#000' }]}>
-        {/* Imagem ilustrativa de fundo — PLACEHOLDER: confirmar direitos de uso
-            comercial dessa foto específica antes de publicar em produção. */}
+        {/* Imagem ilustrativa de fundo — gerada por IA (não é foto de pessoa real) */}
         <Image source={require('../../../assets/images/viral-setup-bg.jpg')} style={StyleSheet.absoluteFill} resizeMode="cover" />
         <LinearGradient
           colors={['rgba(0,0,0,0.8)', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.88)']}
