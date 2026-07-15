@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { requestRecordingPermissionsAsync } from 'expo-audio';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import * as Sharing from 'expo-sharing';
 import * as Speech from 'expo-speech';
 import { useTheme } from '../../hooks/useTheme';
@@ -13,8 +15,11 @@ import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
 import { APP_SHARE_URL } from '../../constants/app';
-import { CategoryColors, MedalColors, QuickActionColors, withOpacity } from '../../constants/colors';
-import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen, Smartphone } from 'lucide-react-native';
+import { HomeTheme, MedalColors } from '../../constants/colors';
+import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen, Smartphone, X } from 'lucide-react-native';
+
+const DANGER = '#E24B4A';
+const DANGER_TEXT = '#F09595';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -32,22 +37,14 @@ interface AnswerResult {
   xp: number;
 }
 
-const VIRAL_CATEGORIES = [
-  { name: 'Aleatório',    color: CategoryColors.aleatorio },
-  { name: 'Cultura',      color: CategoryColors.cultura },
-  { name: 'História',     color: CategoryColors.historia },
-  { name: 'Gastronomia',  color: CategoryColors.gastronomia },
-  { name: 'Natureza',     color: CategoryColors.natureza },
-  { name: 'Turismo',      color: CategoryColors.turismo },
-  { name: 'Curiosidades', color: CategoryColors.curiosidades },
-  { name: 'Reggae',       color: CategoryColors.reggae },
-];
+const VIRAL_CATEGORIES = ['Aleatório', 'Cultura', 'História', 'Gastronomia', 'Natureza', 'Turismo', 'Curiosidades', 'Reggae'];
 type Format = 'vertical' | 'horizontal';
 type Phase = 'setup' | 'countdown' | 'quiz' | 'result';
 
 
 export function ViralModeScreen({ navigation, route }: any) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { stateId, stateName, subcategory } = route.params ?? {};
@@ -242,7 +239,18 @@ export function ViralModeScreen({ navigation, route }: any) {
     setPhase('result');
   }
 
-  function resetAll() {
+  async function resetAll() {
+    Speech.stop();
+    clearInterval(timerRef.current);
+    if (Platform.OS !== 'web' && isRecording && cameraRef.current) {
+      try {
+        cameraRef.current.stopRecording();
+        await recordingPromiseRef.current;
+      } catch (err) {
+        console.log('Erro ao parar gravação:', err);
+      }
+      setIsRecording(false);
+    }
     setPhase('setup');
     setCountdown(3);
     setCurrent(0);
@@ -256,7 +264,7 @@ export function ViralModeScreen({ navigation, route }: any) {
     setQuestions([]);
   }
 
-  const timerColor = timeLeft <= 5 ? colors.danger : timeLeft <= 10 ? CategoryColors.gastronomia : colors.primary;
+  const timerColor = timeLeft <= 5 ? DANGER : timeLeft <= 10 ? C.yellow : C.green;
   const q = questions[current];
 
   // ══════════════════════════════════════════
@@ -264,33 +272,33 @@ export function ViralModeScreen({ navigation, route }: any) {
   // ══════════════════════════════════════════
   if (phase === 'setup') {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: C.bg }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { paddingTop: headerPaddingTop }]}>
-          <ArrowLeft size={18} color={colors.primary} /><Text style={[styles.backText, { color: colors.primary }]}>Voltar</Text>
+          <ArrowLeft size={18} color={C.text} /><Text style={[styles.backText, { color: C.text }]}>Voltar</Text>
         </TouchableOpacity>
 
         <View style={styles.setupCenter}>
-          <View style={[styles.viralBadge, { backgroundColor: withOpacity(colors.danger, 12.5), borderColor: withOpacity(colors.danger, 25.1) }]}>
-            <Video size={18} color={colors.danger} />
-            <Text style={[styles.viralBadgeText, { color: colors.danger }]}>MODO VIRAL</Text>
+          <View style={[styles.viralBadge, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+            <Video size={16} color={C.muted} />
+            <Text style={[styles.viralBadgeText, { color: C.muted }]}>MODO VIRAL</Text>
           </View>
 
-          <Text style={[styles.setupTitle, { color: colors.text }]}>
+          <Text style={[styles.setupTitle, { color: C.text }]}>
             Grave seu quiz{'\n'}e compartilhe!
           </Text>
-          <Text style={[styles.setupSub, { color: colors.textSecondary }]}>
+          <Text style={[styles.setupSub, { color: C.muted }]}>
             Sua câmera + quiz = conteúdo pronto{'\n'}para Reels, TikTok e YouTube Shorts
           </Text>
 
           {/* Category selector */}
-          <Text style={[styles.formatLabel, { color: colors.textSecondary }]}>Escolha a categoria</Text>
+          <Text style={[styles.formatLabel, { color: C.muted }]}>Escolha a categoria</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.categoryScroll}
             contentContainerStyle={styles.categoryRow}
           >
-            {VIRAL_CATEGORIES.map(({ name, color }) => {
+            {VIRAL_CATEGORIES.map((name) => {
               const active = selectedCategory === name;
               return (
                 <TouchableOpacity
@@ -299,12 +307,12 @@ export function ViralModeScreen({ navigation, route }: any) {
                   style={[
                     styles.categoryChip,
                     {
-                      backgroundColor: active ? withOpacity(color, 12.5) : colors.card,
-                      borderColor: active ? color : colors.border,
+                      backgroundColor: active ? `${C.green}18` : C.card,
+                      borderColor: active ? C.green : C.border,
                     },
                   ]}
                 >
-                  <Text style={[styles.categoryChipText, { color: active ? color : colors.textSecondary }]}>
+                  <Text style={[styles.categoryChipText, { color: active ? C.green : C.muted }]}>
                     {name}
                   </Text>
                 </TouchableOpacity>
@@ -313,26 +321,28 @@ export function ViralModeScreen({ navigation, route }: any) {
           </ScrollView>
 
           {/* Aviso importante */}
-          <View style={[styles.warningCard, { backgroundColor: withOpacity(CategoryColors.gastronomia, 8.2), borderColor: withOpacity(CategoryColors.gastronomia, 25.1) }]}>
+          <View style={[styles.warningCard, { backgroundColor: `${C.yellow}14`, borderColor: `${C.yellow}44` }]}>
             <View style={styles.warningHeader}>
-              <Smartphone size={20} color={CategoryColors.gastronomia} />
-              <Text style={[styles.warningTitle, { color: CategoryColors.gastronomia }]}>Antes de começar</Text>
+              <Smartphone size={20} color={C.yellow} />
+              <Text style={[styles.warningTitle, { color: C.yellow }]}>Antes de começar</Text>
             </View>
-            <Text style={[styles.warningText, { color: colors.textSecondary }]}>
+            <Text style={[styles.warningText, { color: C.muted }]}>
               Ative a gravação de tela do seu celular antes de iniciar. O app grava sua câmera, mas é a gravação de tela que captura tudo junto: pergunta, resposta e sua reação.
             </Text>
           </View>
 
           {/* Features */}
-          <View style={[styles.featureList, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.featureList, { backgroundColor: C.card, borderColor: C.border }]}>
             {([
-              { Icon: Mic,       label: 'Perguntas narradas automaticamente', color: CategoryColors.curiosidades },
-              { Icon: Volume2,   label: 'Efeitos sonoros e vibração ao responder', color: CategoryColors.gastronomia },
-              { Icon: Share2,    label: 'Compartilhe direto nas redes',        color: CategoryColors.turismo },
-            ] as { Icon: any; label: string; color: string }[]).map(({ Icon, label, color }) => (
+              { Icon: Mic,     label: 'Perguntas narradas automaticamente' },
+              { Icon: Volume2, label: 'Efeitos sonoros e vibração ao responder' },
+              { Icon: Share2,  label: 'Compartilhe direto nas redes' },
+            ] as { Icon: any; label: string }[]).map(({ Icon, label }) => (
               <View key={label} style={styles.featureRow}>
-                <Icon size={18} color={color} />
-                <Text style={[styles.featureText, { color: colors.textSecondary }]}>{label}</Text>
+                <View style={[styles.featureIconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+                  <Icon size={15} color={C.text} />
+                </View>
+                <Text style={[styles.featureText, { color: C.muted }]}>{label}</Text>
               </View>
             ))}
           </View>
@@ -340,11 +350,11 @@ export function ViralModeScreen({ navigation, route }: any) {
           <TouchableOpacity
             onPress={handleStart}
             disabled={loading}
-            style={[styles.startBtn, { backgroundColor: QuickActionColors.viral.bg }]}
+            style={[styles.startBtn, { backgroundColor: C.green }]}
           >
             {loading
-              ? <ActivityIndicator color={QuickActionColors.viral.fg} />
-              : <><Video size={20} color={QuickActionColors.viral.fg} /><Text style={[styles.startBtnText, { color: QuickActionColors.viral.fg }]}>Começar gravação</Text></>
+              ? <ActivityIndicator color="#FFF" />
+              : <><Video size={20} color="#FFF" /><Text style={styles.startBtnText}>Começar gravação</Text></>
             }
           </TouchableOpacity>
         </View>
@@ -356,24 +366,23 @@ export function ViralModeScreen({ navigation, route }: any) {
   // COUNTDOWN + QUIZ + CÂMERA (câmera única, sem remontar entre fases)
   // ══════════════════════════════════════════
   if (phase === 'countdown' || (phase === 'quiz' && q)) {
-    const cameraH = isVertical ? SH * 0.38 : SH * 0.5;
-    const quizH = isVertical ? SH * 0.62 : SH * 0.5;
     const isQuiz = phase === 'quiz';
 
-    return (
-      <View style={[styles.fullscreen, { flexDirection: isQuiz && isVertical ? 'column' : isQuiz ? 'row' : 'column', backgroundColor: colors.background }]}>
-
-        {/* Camera — mesma instância entre countdown e quiz */}
-        <View style={isQuiz ? (isVertical ? { height: cameraH, width: SW } : { width: SW * 0.4, height: SH }) : styles.fullscreen}>
+    // ── Formato vertical: câmera ocupa a tela toda, quiz vira overlay de vidro na base ──
+    if (isVertical) {
+      return (
+        <View style={[styles.fullscreen, { backgroundColor: '#000' }]}>
           <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
 
-          {/* Marca d'água */}
-          <Image
-            source={require('../../../assets/images/icon.png')}
-            style={styles.watermark}
+          {/* Escurece o topo e a base pra manter o texto legível sobre o vídeo */}
+          <LinearGradient
+            colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.7)']}
+            locations={[0, 0.22, 0.6, 1]}
+            style={StyleSheet.absoluteFill}
           />
 
-          {/* Countdown overlay */}
+          <Image source={require('../../../assets/images/icon.png')} style={styles.watermark} />
+
           {phase === 'countdown' && (
             <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
               <Text style={styles.countdownNum}>{countdown}</Text>
@@ -381,89 +390,143 @@ export function ViralModeScreen({ navigation, route }: any) {
             </View>
           )}
 
-          {/* Top bar */}
           {isQuiz && (
-            <View style={styles.cameraTopBar}>
-              <View style={styles.recDot} />
-              <Text style={styles.recText}>REC</Text>
+            <View style={[styles.overlayTopBar, { paddingTop: headerPaddingTop }]}>
+              <TouchableOpacity onPress={resetAll} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <X size={20} color="#FFF" />
+              </TouchableOpacity>
+              <View style={styles.recBadge}>
+                <View style={styles.recDot} />
+                <Text style={styles.recText}>REC</Text>
+              </View>
+              <View style={{ width: 20 }} />
+            </View>
+          )}
+
+          {isQuiz && (
+            <>
+              <View style={styles.overlayDotsRow}>
+                {questions.map((_, i) => (
+                  <View key={i} style={[
+                    styles.dot,
+                    { backgroundColor: i < current ? C.green : i === current ? `${C.green}90` : 'rgba(255,255,255,0.25)' }
+                  ]} />
+                ))}
+              </View>
+
+              <View style={styles.overlayBottom}>
+                <View style={styles.overlayMetaRow}>
+                  <View style={styles.glassPill}>
+                    <Text style={styles.glassPillText}>{q.subcategory}</Text>
+                  </View>
+                  <View style={styles.glassPill}>
+                    <Clock size={12} color={timerColor} />
+                    <Text style={[styles.glassPillText, { color: timerColor, fontWeight: FontWeight.bold }]}>{timeLeft}s</Text>
+                  </View>
+                </View>
+
+                <BlurView intensity={40} tint="dark" style={styles.glassCard}>
+                  <Text style={styles.glassQuestionText} numberOfLines={4}>{q.text}</Text>
+                  <View style={styles.options}>
+                    {q.options.map((opt, i) => {
+                      const revealed  = answerResult !== null;
+                      const isCorrect = revealed && i === answerResult?.correct_index;
+                      const isSelected = i === selected;
+                      let bg = 'rgba(255,255,255,0.08)', border = 'rgba(255,255,255,0.18)', tc = '#FFF';
+                      if (revealed) {
+                        if (isCorrect)       { bg = `${C.green}30`; border = C.green; tc = C.green; }
+                        else if (isSelected) { bg = `${DANGER}30`; border = DANGER; tc = DANGER_TEXT; }
+                      } else if (isSelected) { bg = `${C.green}22`; border = C.green; tc = C.green; }
+                      return (
+                        <TouchableOpacity
+                          key={i}
+                          onPress={() => handleAnswer(i)}
+                          disabled={answered}
+                          style={[styles.glassOption, { backgroundColor: bg, borderColor: border }]}
+                        >
+                          <Text style={[styles.glassOptLetter, { color: tc }]}>{['A', 'B', 'C', 'D'][i]}</Text>
+                          <Text style={[styles.glassOptText, { color: tc }]} numberOfLines={2}>{opt}</Text>
+                          {revealed && isCorrect               && <CheckCircle size={16} color={C.green} />}
+                          {revealed && isSelected && !isCorrect && <XCircle size={16} color={DANGER_TEXT} />}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </BlurView>
+              </View>
+            </>
+          )}
+        </View>
+      );
+    }
+
+    // ── Formato horizontal: câmera e quiz lado a lado (sem overlay) ──
+    const cameraW = SW * 0.4;
+    return (
+      <View style={[styles.fullscreen, { flexDirection: 'row', backgroundColor: C.bg }]}>
+        <View style={{ width: cameraW, height: SH }}>
+          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" onCameraReady={() => setCameraReady(true)} />
+          <Image source={require('../../../assets/images/icon.png')} style={styles.watermark} />
+          {phase === 'countdown' && (
+            <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
+              <Text style={styles.countdownNum}>{countdown}</Text>
+              <Text style={styles.countdownText}>Prepare-se!</Text>
+            </View>
+          )}
+          {isQuiz && (
+            <View style={[styles.overlayTopBar, { paddingTop: headerPaddingTop, paddingHorizontal: Spacing.md }]}>
+              <View style={styles.recBadge}>
+                <View style={styles.recDot} />
+                <Text style={styles.recText}>REC</Text>
+              </View>
             </View>
           )}
         </View>
 
-        {!isQuiz && null}
-
-        {/* Quiz area */}
         {isQuiz && (
-        <View style={[
-          isVertical
-            ? { height: quizH, width: SW }
-            : { width: SW * 0.6, height: SH },
-          styles.quizArea,
-          { backgroundColor: colors.background }
-        ]}>
-          {/* Progress dots */}
-          <View style={styles.dotsRow}>
-            {questions.map((_, i) => (
-              <View key={i} style={[
-                styles.dot,
-                { backgroundColor: i < current ? colors.primary : i === current ? withOpacity(colors.primary, 43.9) : colors.border }
-              ]} />
-            ))}
-          </View>
-
-          {/* Timer */}
-          <View style={styles.timerRow}>
-            <Clock size={13} color={timerColor} />
-            <View style={[styles.timerBarBg, { backgroundColor: colors.border }]}>
-              <View style={[styles.timerBarFill, {
-                width: `${(timeLeft / TIME_PER_Q) * 100}%`,
-                backgroundColor: timerColor,
-              }]} />
+          <View style={[{ width: SW - cameraW, height: SH }, styles.quizArea, { backgroundColor: C.bg }]}>
+            <View style={styles.dotsRow}>
+              {questions.map((_, i) => (
+                <View key={i} style={[styles.dot, { backgroundColor: i < current ? C.green : i === current ? `${C.green}60` : C.border }]} />
+              ))}
             </View>
-            <Text style={[styles.timerNum, { color: timerColor }]}>{timeLeft}s</Text>
+
+            <View style={styles.timerRow}>
+              <Clock size={13} color={timerColor} />
+              <View style={[styles.timerBarBg, { backgroundColor: C.border }]}>
+                <View style={[styles.timerBarFill, { width: `${(timeLeft / TIME_PER_Q) * 100}%`, backgroundColor: timerColor }]} />
+              </View>
+              <Text style={[styles.timerNum, { color: timerColor }]}>{timeLeft}s</Text>
+            </View>
+
+            <View style={[styles.questionBox, { backgroundColor: C.card, borderColor: C.border }]}>
+              <Text style={[styles.subcatBadge, { color: C.muted }]}>{q.subcategory}</Text>
+              <Text style={[styles.questionText, { color: C.text }]} numberOfLines={4}>{q.text}</Text>
+            </View>
+
+            <View style={styles.options}>
+              {q.options.map((opt, i) => {
+                const revealed  = answerResult !== null;
+                const isCorrect = revealed && i === answerResult?.correct_index;
+                const isSelected = i === selected;
+                let bg: string = C.card, border: string = C.border, tc: string = C.text;
+                if (revealed) {
+                  if (isCorrect)       { bg = `${C.green}18`; border = C.green; tc = C.green; }
+                  else if (isSelected) { bg = `${DANGER}18`; border = DANGER; tc = DANGER_TEXT; }
+                } else if (isSelected) { bg = `${C.green}14`; border = C.green; tc = C.green; }
+                return (
+                  <TouchableOpacity key={i} onPress={() => handleAnswer(i)} disabled={answered} style={[styles.option, { backgroundColor: bg, borderColor: border }]}>
+                    <View style={[styles.optLetter, { backgroundColor: C.iconBg }]}>
+                      <Text style={[styles.optLetterText, { color: tc }]}>{['A', 'B', 'C', 'D'][i]}</Text>
+                    </View>
+                    <Text style={[styles.optText, { color: tc }]} numberOfLines={2}>{opt}</Text>
+                    {revealed && isCorrect               && <CheckCircle size={16} color={C.green} />}
+                    {revealed && isSelected && !isCorrect && <XCircle size={16} color={DANGER_TEXT} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
-
-          {/* Question */}
-          <View style={[styles.questionBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.subcatBadge, { color: colors.textMuted }]}>{q.subcategory}</Text>
-            <Text style={[styles.questionText, { color: colors.text }]} numberOfLines={4}>
-              {q.text}
-            </Text>
-          </View>
-
-          {/* Options */}
-          <View style={styles.options}>
-            {q.options.map((opt, i) => {
-              const revealed  = answerResult !== null;
-              const isCorrect = revealed && i === answerResult?.correct_index;
-              const isSelected = i === selected;
-              let bg = colors.card;
-              let border = colors.border;
-              let tc = colors.text;
-
-              if (revealed) {
-                if (isCorrect) { bg = withOpacity(colors.success, 12.5); border = colors.success; tc = colors.success; }
-                else if (isSelected) { bg = withOpacity(colors.danger, 12.5); border = colors.danger; tc = colors.danger; }
-              } else if (isSelected) { bg = withOpacity(colors.primary, 8.2); border = colors.primary; tc = colors.primary; }
-
-              return (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => handleAnswer(i)}
-                  disabled={answered}
-                  style={[styles.option, { backgroundColor: bg, borderColor: border }]}
-                >
-                  <View style={[styles.optLetter, { backgroundColor: withOpacity(border, 18.8) }]}>
-                    <Text style={[styles.optLetterText, { color: tc }]}>{['A', 'B', 'C', 'D'][i]}</Text>
-                  </View>
-                  <Text style={[styles.optText, { color: tc }]} numberOfLines={2}>{opt}</Text>
-                  {revealed && isCorrect && <CheckCircle size={16} color={colors.success} />}
-                  {revealed && isSelected && !isCorrect && <XCircle size={16} color={colors.danger} />}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
         )}
       </View>
     );
@@ -497,38 +560,38 @@ export function ViralModeScreen({ navigation, route }: any) {
     const pct = Math.round((score / questions.length) * 100);
     const msg = pct >= 80 ? 'Arrasou!' : pct >= 60 ? 'Muito bem!' : 'Treina mais!';
     const ResultIcon = pct >= 80 ? Trophy : pct >= 60 ? Star : BookOpen;
-    const resultIconColor = pct >= 80 ? MedalColors.gold : pct >= 60 ? colors.primary : colors.textSecondary;
+    const resultIconColor = pct >= 80 ? MedalColors.gold : pct >= 60 ? C.green : C.muted;
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: C.bg }]}>
         <View style={styles.resultCenter}>
           <ResultIcon size={56} color={resultIconColor} />
-          <Text style={[styles.resultTitle, { color: colors.text }]}>{msg}</Text>
-          <Text style={[styles.resultScore, { color: colors.text }]}>{score}/{questions.length} acertos</Text>
+          <Text style={[styles.resultTitle, { color: C.text }]}>{msg}</Text>
+          <Text style={[styles.resultScore, { color: C.text }]}>{score}/{questions.length} acertos</Text>
 
           <View style={styles.resultDots}>
             {results.map((r, i) => (
-              <View key={i} style={[styles.resultDot, { backgroundColor: r ? colors.success : colors.danger }]} />
+              <View key={i} style={[styles.resultDot, { backgroundColor: r ? C.green : DANGER }]} />
             ))}
           </View>
 
-          <View style={[styles.shareCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.shareTitle, { color: colors.text }]}>Compartilhe seu resultado!</Text>
-            <Text style={[styles.shareSub, { color: colors.textSecondary }]}>
+          <View style={[styles.shareCard, { backgroundColor: C.card, borderColor: C.border }]}>
+            <Text style={[styles.shareTitle, { color: C.text }]}>Compartilhe seu resultado!</Text>
+            <Text style={[styles.shareSub, { color: C.muted }]}>
               O vídeo será gerado com sua câmera e as perguntas respondidas
             </Text>
             <TouchableOpacity
-              style={[styles.shareBtn, { backgroundColor: QuickActionColors.viral.bg }]}
+              style={[styles.shareBtn, { backgroundColor: C.green }]}
               onPress={handleShareResult}
             >
-              <Share2 size={18} color={QuickActionColors.viral.fg} />
-              <Text style={[styles.shareBtnText, { color: QuickActionColors.viral.fg }]}>Compartilhar resultado</Text>
+              <Share2 size={18} color="#FFF" />
+              <Text style={styles.shareBtnText}>Compartilhar resultado</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.retryBtn, { borderColor: colors.border }]}
+              style={[styles.retryBtn, { borderColor: C.border }]}
               onPress={resetAll}
             >
-              <RotateCcw size={16} color={colors.text} />
-              <Text style={[styles.retryBtnText, { color: colors.text }]}>Jogar novamente</Text>
+              <RotateCcw size={16} color={C.text} />
+              <Text style={[styles.retryBtnText, { color: C.text }]}>Jogar novamente</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -542,10 +605,10 @@ export function ViralModeScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   fullscreen: { flex: 1 },
-  backBtn: { padding: Spacing.xl },
+  backBtn: { padding: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: 8 },
   backText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   setupCenter: { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
-  viralBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 0.5 },
+  viralBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 1 },
   viralBadgeText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, letterSpacing: 1 },
   setupTitle: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 34 },
   setupSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
@@ -553,29 +616,43 @@ const styles = StyleSheet.create({
   formatRow: { flexDirection: 'row', gap: 12 },
   categoryScroll: { flexGrow: 0 },
   categoryRow: { flexDirection: 'row', gap: 8, paddingVertical: 4, alignItems: 'center' },
-  categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.full, borderWidth: 0.5 },
+  categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.full, borderWidth: 1 },
   categoryChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  formatBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: Radius.lg, borderWidth: 0.5, paddingVertical: Spacing.lg },
+  formatBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: Radius.lg, borderWidth: 1, paddingVertical: Spacing.lg },
   formatIcon: { backgroundColor: 'transparent' },
   formatName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   formatSub: { fontSize: FontSize.xs },
-  warningCard: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 8 },
+  warningCard: { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, gap: 8 },
   warningHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   warningTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   warningText: { fontSize: FontSize.xs, lineHeight: 18 },
-  featureList: { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 10 },
+  featureList: { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, gap: 12 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  featureIcon: { fontSize: 18 },
+  featureIconBox: { width: 28, height: 28, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   featureText: { fontSize: FontSize.sm, flex: 1 },
   startBtn: { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  startBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  startBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: '#FFF' },
   countdownOverlay: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   countdownNum: { fontSize: 120, fontWeight: FontWeight.bold, color: '#FFF' },
   countdownText: { fontSize: FontSize.xl, color: '#FFF', fontWeight: FontWeight.medium },
-  cameraTopBar: { position: 'absolute', top: 48, left: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6 },
   watermark: { position: 'absolute', top: 48, right: Spacing.lg, width: 32, height: 32, borderRadius: 8, opacity: 0.85 },
-  recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E24B4A' },
-  recText: { color: '#FFF', fontSize: 12, fontWeight: FontWeight.bold },
+  recDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E24B4A' },
+  recText: { color: '#FFF', fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5 },
+
+  // Overlay de vidro (formato vertical)
+  overlayTopBar:  { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingBottom: 10 },
+  recBadge:       { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#E24B4A', paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full },
+  overlayDotsRow: { position: 'absolute', top: 92, left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', gap: 5 },
+  overlayBottom:  { position: 'absolute', left: 0, right: 0, bottom: 0, padding: Spacing.lg, paddingBottom: Spacing.xl },
+  overlayMetaRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  glassPill:      { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full },
+  glassPillText:  { fontSize: 10, fontWeight: FontWeight.medium, color: '#FFF' },
+  glassCard:      { borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', padding: Spacing.lg, overflow: 'hidden' },
+  glassQuestionText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: '#FFF', lineHeight: 22, marginBottom: 12 },
+  glassOption:    { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10 },
+  glassOptLetter: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, width: 14 },
+  glassOptText:   { flex: 1, fontSize: FontSize.xs, lineHeight: 17 },
+
   quizArea: { padding: Spacing.md },
   dotsRow: { flexDirection: 'row', gap: 5, marginBottom: Spacing.sm },
   dot: { flex: 1, height: 3, borderRadius: 2 },
@@ -583,11 +660,11 @@ const styles = StyleSheet.create({
   timerBarBg: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
   timerBarFill: { height: 4, borderRadius: 2 },
   timerNum: { fontSize: 12, fontWeight: FontWeight.bold, width: 28, textAlign: 'right' },
-  questionBox: { borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, marginBottom: Spacing.sm },
+  questionBox: { borderRadius: Radius.md, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.sm },
   subcatBadge: { fontSize: FontSize.xs, marginBottom: 4, fontWeight: FontWeight.medium },
   questionText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 22 },
-  options: { gap: 6 },
-  option: { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 0.5, paddingHorizontal: Spacing.sm, paddingVertical: 8, gap: 8 },
+  options: { gap: 8 },
+  option: { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 1, paddingHorizontal: Spacing.sm, paddingVertical: 8, gap: 8 },
   optLetter: { width: 26, height: 26, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   optLetterText: { fontSize: 12, fontWeight: FontWeight.bold },
   optText: { flex: 1, fontSize: 12, lineHeight: 17 },
@@ -597,11 +674,11 @@ const styles = StyleSheet.create({
   resultScore: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
   resultDots: { flexDirection: 'row', gap: 8, marginBottom: Spacing.xl },
   resultDot: { width: 12, height: 12, borderRadius: 6 },
-  shareCard: { width: '100%', borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, gap: 12 },
+  shareCard: { width: '100%', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, gap: 12 },
   shareTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, textAlign: 'center' },
   shareSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
-  shareBtn: { height: 50, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  shareBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  retryBtn: { height: 44, borderRadius: Radius.md, borderWidth: 0.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  shareBtn: { height: 50, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  shareBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: '#FFF' },
+  retryBtn: { height: 44, borderRadius: Radius.md, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   retryBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
 });
