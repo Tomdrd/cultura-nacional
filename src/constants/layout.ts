@@ -35,3 +35,24 @@ export const FontWeight = {
 
 export const BASE_WIDTH  = 375;
 export const BASE_HEIGHT = 667;
+
+// Pontos de quebra pra adaptar o layout a telas maiores (tablet/desktop web).
+export const Breakpoints = {
+  tablet:  600,
+  desktop: 1024,
+};
+
+// Largura maxima do conteudo por faixa de tela. Em telas largas o conteudo
+// nao fica preso ao tamanho de celular (480) nem esticado full-bleed --
+// aproveita mais espaco em tablet/desktop de forma controlada.
+// Use o hook useContentWidth() (src/hooks/useContentWidth.ts) pra ler o
+// valor ja resolvido pra largura atual.
+export const ContentWidth = {
+  mobile:  480,
+  tablet:  760,
+  desktop: 1040,
+};
+
+// Mantido por compatibilidade com telas ainda nao migradas pro sistema de
+// breakpoints -- equivale a ContentWidth.mobile.
+export const MAX_CONTENT_WIDTH = ContentWidth.mobile;
