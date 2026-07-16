@@ -74,10 +74,18 @@ function getScreenScaleFactor(): number {
 
 const SCREEN_SCALE_FACTOR = getScreenScaleFactor();
 
+// Piso minimo de legibilidade: nao deixa nenhum texto renderizar abaixo
+// disso, nem em telas pequenas. 11px e o minimo recomendado pelo Apple HIG
+// pra texto de corpo/legenda -- abaixo disso nenhuma diretriz de
+// acessibilidade (WCAG, Material Design, Apple HIG) endossa como legivel.
+export const MIN_READABLE_FONT_SIZE = 11;
+
 /**
  * Escala um tamanho de fonte conforme o tamanho da tela do dispositivo.
  * Usa "moderate scale": aplica so uma fracao (`factor`) da diferenca de
  * escala, entao o crescimento/encolhimento e suave, nao proporcional puro.
+ * Nunca retorna abaixo de MIN_READABLE_FONT_SIZE, mesmo pedindo um `size`
+ * bem pequeno.
  *
  * Usar em qualquer `fontSize` numerico solto (fora do objeto `FontSize`)
  * que ainda nao passa pela escala automatica:
@@ -85,7 +93,7 @@ const SCREEN_SCALE_FACTOR = getScreenScaleFactor();
  */
 export function scaleFont(size: number, factor: number = 0.3): number {
   const scaled = size + (SCREEN_SCALE_FACTOR - 1) * size * factor;
-  return Math.round(scaled);
+  return Math.max(MIN_READABLE_FONT_SIZE, Math.round(scaled));
 }
 
 export const FontSize = {
