@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   trustRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xl, gap: 0 },
   trustItem:      { flex: 1, alignItems: 'center', gap: 6 },
   trustDivider:   { width: 0.5, height: 36, marginHorizontal: 8 },
-  trustText:      { fontSize: scaleFont(11), textAlign: 'center', lineHeight: 16 },
+  trustText:      { fontSize: scaleFont(11), textAlign: 'center', lineHeight: 17 },
   cta:            { position: 'absolute', bottom: 0, left: 0, right: 0, padding: Spacing.xl, borderTopWidth: 0.5, gap: 8 },
   ctaBtn:         { height: 52, borderRadius: Radius.md, backgroundColor: '#1877F2', alignItems: 'center', justifyContent: 'center' },
   ctaBtnText:     { color: '#fff', fontSize: FontSize.md, fontWeight: FontWeight.bold },

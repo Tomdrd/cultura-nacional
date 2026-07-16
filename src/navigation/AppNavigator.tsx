@@ -40,7 +40,7 @@ function NotificationBadge({ count, color }: { count: number; color: string }) {
       alignItems: 'center', justifyContent: 'center',
       paddingHorizontal: 3,
     }}>
-      <Text style={{ color: '#FFF', fontSize: scaleFont(9), fontWeight: '700', lineHeight: 16 }}>
+      <Text style={{ color: '#FFF', fontSize: scaleFont(9), fontWeight: '700', lineHeight: 17 }}>
         {count > 99 ? '99+' : count}
       </Text>
     </View>

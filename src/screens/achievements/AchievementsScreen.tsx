@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   achCard:     { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, gap: 6, position: 'relative' as const, marginBottom: 12 },
   achIcon:     { width: 48, height: 48, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   achName:     { fontSize: FontSize.sm, fontWeight: FontWeight.bold, lineHeight: 18 },
-  achDesc:     { fontSize: scaleFont(11), lineHeight: 16 },
+  achDesc:     { fontSize: scaleFont(11), lineHeight: 17 },
   achXp:       { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full, borderWidth: 1 },
   achXpText:   { fontSize: scaleFont(11), fontWeight: FontWeight.bold },
   earnedBadge: { position: 'absolute', top: 8, right: 8 },

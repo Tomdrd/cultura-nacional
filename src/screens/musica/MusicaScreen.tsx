@@ -89,5 +89,5 @@ const styles = StyleSheet.create({
   card:            { borderWidth: 1, borderRadius: 16, padding: 12, gap: 8, alignItems: 'center' },
   iconBox:         { width: 48, height: 48, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   cardName:        { fontSize: FontSize.sm, fontWeight: FontWeight.bold, textAlign: 'center' },
-  cardDesc:        { fontSize: FontSize.xs, textAlign: 'center', lineHeight: 16 },
+  cardDesc:        { fontSize: FontSize.xs, textAlign: 'center', lineHeight: 17 },
 });

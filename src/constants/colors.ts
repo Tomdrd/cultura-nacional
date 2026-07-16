@@ -11,7 +11,7 @@ export const Colors = {
     border:          '#E5E5E5',
     text:            '#0A0A0A',
     textSecondary:   '#6B6B6B',
-    textMuted:       '#A0A0A0',
+    textMuted:       '#767676',
     primary:         '#009C3B',
     primaryText:     '#FFFFFF',
     accent:          '#FFDF00',
@@ -86,7 +86,7 @@ export function withOpacity(hexColor: string, level: number): string {
 export const HomeTheme = {
   dark: {
     bg: '#0e1015', card: '#1c2029', iconBg: '#16191f', border: '#252b38',
-    text: '#f0f2f5', muted: '#5a6070', subtle: '#8a92a0', green: '#009C3B', yellow: '#FEDD00',
+    text: '#f0f2f5', muted: '#7E879D', subtle: '#8a92a0', green: '#009C3B', yellow: '#FEDD00',
     danger: '#E24B4A',
   },
   light: {

@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   sub:              { fontSize: FontSize.sm, marginTop: 4 },
   card:             { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, marginBottom: Spacing.lg },
   btn:              { marginTop: Spacing.sm },
-  terms:            { fontSize: scaleFont(11), marginTop: Spacing.md, textAlign: 'center', lineHeight: 16 },
+  terms:            { fontSize: scaleFont(11), marginTop: Spacing.md, textAlign: 'center', lineHeight: 17 },
   loginRow:         { flexDirection: 'row', justifyContent: 'center' },
   loginText:        { fontSize: FontSize.sm },
   link:             { fontSize: FontSize.sm, fontWeight: FontWeight.medium },

@@ -260,5 +260,5 @@ const styles = StyleSheet.create({
   sectionCard:     { flexGrow: 1, flexBasis: 150, minWidth: 150, padding: Spacing.md },
   uf:              { fontSize: scaleFont(9), fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8 },
   sectionCardName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginTop: 4, marginBottom: 4 },
-  sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 16 },
+  sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 17 },
 });
