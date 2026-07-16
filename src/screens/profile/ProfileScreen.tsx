@@ -136,21 +136,17 @@ export function ProfileScreen({ navigation }: any) {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
 
-      {/* Header top com botão de voltar */}
-      <View style={[styles.headerTop, { paddingTop: headerPaddingTop, backgroundColor: C.bg, borderBottomColor: C.border }]}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          style={[styles.backButton, { backgroundColor: C.card, borderColor: C.border }]}
-          activeOpacity={0.7}
-        >
-          <ArrowLeft size={18} color={C.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: C.text }]}>Meu Perfil</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      {/* Back button */}
+      <TouchableOpacity 
+        onPress={() => navigation.goBack()}
+        style={[styles.backButton, { paddingTop: headerPaddingTop }]}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft size={20} color={C.text} />
+      </TouchableOpacity>
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: Spacing.lg }]}>
+      <View style={[styles.header]}>
         <View style={{ position: 'relative' }}>
           <View style={[styles.avatar, { backgroundColor: C.card, borderColor: C.border }]}>
             {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
@@ -350,9 +346,7 @@ export function ProfileScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   center:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerTop:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderBottomWidth: 1 },
-  backButton:    { width: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:   { fontSize: FontSize.md, fontWeight: FontWeight.bold, flex: 1, textAlign: 'center' },
+  backButton:    { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md },
   header:        { alignItems: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
   card:          { borderWidth: 1, borderRadius: 16 },
   avatar:        { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1, marginBottom: 4 },
