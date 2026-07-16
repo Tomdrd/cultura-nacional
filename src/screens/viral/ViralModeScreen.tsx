@@ -349,13 +349,17 @@ export function ViralModeScreen({ navigation, route }: any) {
             })}
           </ScrollView>
 
-          {/* Aviso importante */}
-          <View style={[styles.warningCard, { backgroundColor: `${C.yellow}18`, borderColor: `${C.yellow}55` }]}>
+          {/* Aviso importante - mesmo tratamento "vidro" do card de baixo
+              (featureListGlass): blur + tint sutil por cima, em vez de cor
+              lisa translucida direto sobre a foto de fundo */}
+          <View style={[styles.warningCard, { borderColor: `${C.yellow}55` }]}>
+            <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: `${C.yellow}26` }]} />
             <View style={styles.warningHeader}>
               <Smartphone size={20} color={C.yellow} />
               <Text style={[styles.warningTitle, { color: C.yellow }]}>Antes de começar</Text>
             </View>
-            <Text style={[styles.warningText, { color: 'rgba(255,255,255,0.8)' }]}>
+            <Text style={[styles.warningText, { color: 'rgba(255,255,255,0.85)' }]}>
               Ative a gravação de tela do seu celular antes de iniciar. O app grava sua câmera, mas é a gravação de tela que captura tudo junto: pergunta, resposta e sua reação.
             </Text>
           </View>
@@ -652,7 +656,7 @@ const styles = StyleSheet.create({
   formatIcon: { backgroundColor: 'transparent' },
   formatName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   formatSub: { fontSize: FontSize.xs },
-  warningCard: { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, gap: 8 },
+  warningCard: { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, gap: 8, overflow: 'hidden' },
   warningHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   warningTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   warningText: { fontSize: FontSize.xs, lineHeight: 18 },
