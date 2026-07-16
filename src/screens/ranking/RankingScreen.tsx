@@ -262,13 +262,6 @@ export function RankingScreen({ navigation }: any) {
             {rest.map((entry, i) => {
               const isMe = entry.user_id === user?.id;
               return (
-    <TouchableOpacity 
-      onPress={() => navigation.goBack()}
-      style={[styles.backButton, { paddingTop: headerPaddingTop }]}
-      activeOpacity={0.7}
-    >
-      <ArrowLeft size={20} color={C.text} />
-    </TouchableOpacity>
                 <TouchableOpacity key={entry.user_id} onPress={() => goToProfile(entry.user_id)} style={[styles.card, styles.row, {
                   backgroundColor: isMe ? `${C.green}0f` : C.card,
                   borderColor:     isMe ? `${C.green}44` : C.border,
@@ -322,7 +315,6 @@ export function RankingScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  backButton:    { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md },
   backButton:    { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md },
   header:         { alignItems: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
   title:          { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
