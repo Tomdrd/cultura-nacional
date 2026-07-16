@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award, Copy, Check, Lock, Swords } from 'lucide-react-native';
+import { User, MapPin, Trophy, Zap, Star, LogOut, ChevronRight, Award, Copy, Check, Lock, Swords, ArrowLeft } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -136,8 +136,21 @@ export function ProfileScreen({ navigation }: any) {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
 
+      {/* Header top com botão de voltar */}
+      <View style={[styles.headerTop, { paddingTop: headerPaddingTop, backgroundColor: C.bg, borderBottomColor: C.border }]}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()}
+          style={[styles.backButton, { backgroundColor: C.card, borderColor: C.border }]}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={18} color={C.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: C.text }]}>Meu Perfil</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       {/* Header */}
-      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
+      <View style={[styles.header, { paddingTop: Spacing.lg }]}>
         <View style={{ position: 'relative' }}>
           <View style={[styles.avatar, { backgroundColor: C.card, borderColor: C.border }]}>
             {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
@@ -336,49 +349,52 @@ export function ProfileScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  center:       { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:       { alignItems: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
-  card:         { borderWidth: 1, borderRadius: 16 },
-  avatar:       { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1, marginBottom: 4 },
-  username:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  email:        { fontSize: FontSize.xs },
-  urlPill:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 1, maxWidth: '90%' },
-  urlText:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium, flexShrink: 1 },
-  urlLockedText:{ fontSize: FontSize.xs, flexShrink: 1 },
-  pill:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1 },
-  pillText:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  cityRow:      { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  cityText:     { fontSize: FontSize.xs },
-  followStatsRow: { flexDirection: 'row', gap: 24, marginTop: 12 },
-  followStat:     { alignItems: 'center' },
-  followStatVal:  { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  followStatLbl:  { fontSize: 10, marginTop: 1 },
-  xpCard:       { margin: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
-  xpRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
-  xpLabel:      { fontSize: FontSize.xs, marginBottom: 2 },
-  xpValue:      { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  xpLevel:      { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  xpBarBg:      { height: 3, borderRadius: 99, marginBottom: 6, overflow: 'hidden' },
-  xpBarFill:    { height: 3, borderRadius: 99 },
-  xpHint:       { fontSize: 10 },
-  statsCard:    { flexDirection: 'row', marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
-  statItem:     { flex: 1, alignItems: 'center', gap: 4 },
-  statVal:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  statLbl:      { fontSize: 9, textAlign: 'center' },
-  statDivider:  { width: 1 },
-  quizStatsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm },
-  quizStat:     { alignItems: 'center', gap: 4 },
-  quizStatVal:  { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  quizStatLbl:  { fontSize: FontSize.xs },
-  section:      { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
-  sectionTitle: { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.md, textTransform: 'uppercase' },
-  planRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  upgradeBtn:   { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.md },
+  center:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  headerTop:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderBottomWidth: 1 },
+  backButton:    { width: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  headerTitle:   { fontSize: FontSize.md, fontWeight: FontWeight.bold, flex: 1, textAlign: 'center' },
+  header:        { alignItems: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
+  card:          { borderWidth: 1, borderRadius: 16 },
+  avatar:        { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1, marginBottom: 4 },
+  username:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  email:         { fontSize: FontSize.xs },
+  urlPill:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 1, maxWidth: '90%' },
+  urlText:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium, flexShrink: 1 },
+  urlLockedText: { fontSize: FontSize.xs, flexShrink: 1 },
+  pill:          { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1 },
+  pillText:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  cityRow:       { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  cityText:      { fontSize: FontSize.xs },
+  followStatsRow:  { flexDirection: 'row', gap: 24, marginTop: 12 },
+  followStat:      { alignItems: 'center' },
+  followStatVal:   { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  followStatLbl:   { fontSize: 10, marginTop: 1 },
+  xpCard:        { margin: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
+  xpRow:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
+  xpLabel:       { fontSize: FontSize.xs, marginBottom: 2 },
+  xpValue:       { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  xpLevel:       { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  xpBarBg:       { height: 3, borderRadius: 99, marginBottom: 6, overflow: 'hidden' },
+  xpBarFill:     { height: 3, borderRadius: 99 },
+  xpHint:        { fontSize: 10 },
+  statsCard:     { flexDirection: 'row', marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
+  statItem:      { flex: 1, alignItems: 'center', gap: 4 },
+  statVal:       { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  statLbl:       { fontSize: 9, textAlign: 'center' },
+  statDivider:   { width: 1 },
+  quizStatsRow:  { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm },
+  quizStat:      { alignItems: 'center', gap: 4 },
+  quizStatVal:   { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  quizStatLbl:   { fontSize: FontSize.xs },
+  section:       { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
+  sectionTitle:  { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.md, textTransform: 'uppercase' },
+  planRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  upgradeBtn:    { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.md },
   upgradeBtnText: { color: '#FFF', fontSize: FontSize.xs, fontWeight: FontWeight.bold },
-  menuCard:     { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg, paddingTop: Spacing.lg },
-  menuItem:     { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, borderTopWidth: 1 },
-  iconBoxSm:    { width: 30, height: 30, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  menuLabel:    { flex: 1, fontSize: FontSize.xs },
-  logoutBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: Spacing.xl, padding: Spacing.md },
-  logoutText:   { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  menuCard:      { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg, paddingTop: Spacing.lg },
+  menuItem:      { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, borderTopWidth: 1 },
+  iconBoxSm:     { width: 30, height: 30, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  menuLabel:     { flex: 1, fontSize: FontSize.xs },
+  logoutBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: Spacing.xl, padding: Spacing.md },
+  logoutText:    { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
 });
