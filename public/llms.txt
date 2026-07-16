@@ -1,0 +1,7 @@
+User-agent: CCBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: Claude-Web
+Allow: /
+Sitemap: https://cultura-nacional.vercel.app/sitemap.xml
+Canonical: https://cultura-nacional.vercel.app
