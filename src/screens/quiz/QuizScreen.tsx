@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Platform } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
+import { BlurView } from 'expo-blur';
 
 import { ReportModal } from '../../components/ui/ReportModal';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -15,7 +16,6 @@ import { HomeTheme, MedalColors } from '../../constants/colors';
 import { useGlobalQuizTimer } from '../../hooks/useGlobalQuizTimer';
 
 const DANGER = '#E24B4A';
-const DANGER_TEXT = '#F09595';
 
 interface Question {
   id: string;
@@ -43,6 +43,12 @@ const TIME_PER_QUESTION = 15;
 export function QuizScreen({ route, navigation }: any) {
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
+  // DANGER_TEXT precisa ser diferente por tema: o rosa claro (#F09595) so
+  // tem contraste decente sobre fundo escuro (~7:1). Sobre fundo claro ele
+  // cai pra ~2:1 -- ilegivel. #C23B3A (mesmo tom ja usado em
+  // QuickActionColors.viral) mantem a familia de vermelho e passa AA (~4.6:1)
+  // no claro.
+  const DANGER_TEXT = isDark ? '#F09595' : '#C23B3A';
   const headerPaddingTop = useHeaderTopPadding();
   const { audioNarration } = useSettingsStore();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
@@ -446,39 +452,61 @@ export function QuizScreen({ route, navigation }: any) {
         )}
       </Animated.ScrollView>
 
-      {/* Painel de feedback - desliza de baixo pra cima ao responder */}
+      {/* Painel de feedback - desliza de baixo pra cima ao responder.
+          Camadas (de baixo pra cima):
+          1. BlurView - borra o que estiver atras (evita o "vazamento" de
+             texto das opcoes por baixo do painel translucido)
+          2. Base quase opaca (92% da cor do card) - fixa o tom de fundo
+             num valor prevcircavel, independente do que foi blurado atras,
+             pra garantir contraste de texto sempre calculavel
+          3. Tint sutil verde/vermelho (10%) - da o "clima" de acerto/erro
+             sem comprometer o contraste da camada 2 */}
       <Animated.View
         pointerEvents={answered ? 'auto' : 'none'}
         style={[
           styles.feedbackPanel,
           {
-            backgroundColor: isCorrectAnswer ? `${C.green}22` : `${DANGER}22`,
-            borderTopColor:  isCorrectAnswer ? `${C.green}55` : `${DANGER}55`,
+            borderTopColor: isCorrectAnswer ? `${C.green}55` : `${DANGER}55`,
             transform: [{ translateY: feedbackAnim.interpolate({ inputRange: [0, 1], outputRange: [420, 0] }) }],
           },
         ]}
       >
-        <View style={styles.feedbackHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-            {isCorrectAnswer ? <CheckCircle size={20} color={C.green} /> : <XCircle size={20} color={DANGER_TEXT} />}
-            <Text style={[styles.feedbackMsg, { color: isCorrectAnswer ? C.green : DANGER_TEXT }]} numberOfLines={1}>
-              {feedbackMsg}
-            </Text>
+        <BlurView
+          intensity={50}
+          tint={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: `${C.card}EB` }]} />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: isCorrectAnswer ? `${C.green}1A` : `${DANGER}1A` },
+          ]}
+        />
+
+        <View style={styles.feedbackContent}>
+          <View style={styles.feedbackHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+              {isCorrectAnswer ? <CheckCircle size={20} color={C.green} /> : <XCircle size={20} color={DANGER_TEXT} />}
+              <Text style={[styles.feedbackMsg, { color: isCorrectAnswer ? C.green : DANGER_TEXT }]} numberOfLines={1}>
+                {feedbackMsg}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setReportOpen(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Flag size={16} color={C.subtle} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={() => setReportOpen(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Flag size={16} color={C.muted} />
+
+          {answerResult?.explanation && (
+            <Text style={[styles.feedbackExplanation, { color: C.subtle }]}>{answerResult.explanation}</Text>
+          )}
+
+          <TouchableOpacity onPress={nextQuestion} style={[styles.nextBtn, { backgroundColor: isCorrectAnswer ? C.green : DANGER }]}>
+            <Text style={styles.nextBtnText}>
+              {current + 1 >= questions.length ? 'Ver resultado' : 'Próxima pergunta'}
+            </Text>
           </TouchableOpacity>
         </View>
-
-        {answerResult?.explanation && (
-          <Text style={[styles.feedbackExplanation, { color: C.muted }]}>{answerResult.explanation}</Text>
-        )}
-
-        <TouchableOpacity onPress={nextQuestion} style={[styles.nextBtn, { backgroundColor: isCorrectAnswer ? C.green : DANGER }]}>
-          <Text style={styles.nextBtnText}>
-            {current + 1 >= questions.length ? 'Ver resultado' : 'Próxima pergunta'}
-          </Text>
-        </TouchableOpacity>
       </Animated.View>
     </View>
   );
@@ -512,7 +540,8 @@ const styles = StyleSheet.create({
   optionLetter:    { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   optionLetterText:{ fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   optionText:      { flex: 1, fontSize: FontSize.sm, lineHeight: 20 },
-  feedbackPanel:   { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopWidth: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.xl, paddingBottom: Spacing.xl * 1.5 },
+  feedbackPanel:   { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopWidth: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' },
+  feedbackContent: { padding: Spacing.xl, paddingBottom: Spacing.xl * 1.5 },
   feedbackHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   feedbackMsg:     { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   feedbackExplanation: { fontSize: FontSize.sm, lineHeight: 20, marginBottom: Spacing.lg },
