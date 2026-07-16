@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated, Image, Platform } from 'react-native';
 import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft, X, User } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
@@ -95,6 +95,33 @@ export function DuelScreen({ route, navigation }: any) {
   useEffect(() => { answeredRef.current   = answered;   }, [answered]);
 
   useEffect(() => { return () => cleanup(); }, []);
+
+  // Acessibilidade por teclado (versão web): A/B/C/D marcam a alternativa
+  // correspondente. Só ativo na web e enquanto o duelo está em andamento.
+  // Diferente do QuizScreen, aqui não existe um botão "próxima pergunta"
+  // manual — o avanço já é automático (setTimeout em handleAnswer, ver
+  // nextQuestion), então não há atalho de Enter para avançar.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || duelState !== 'playing') return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
+
+      const letters = ['A', 'B', 'C', 'D'];
+      const key = e.key.toUpperCase();
+      if (letters.includes(key)) {
+        const index = letters.indexOf(key);
+        if (!answered && index < (questions[current]?.options.length ?? 0)) {
+          e.preventDefault();
+          handleAnswer(index);
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [duelState, current, answered, questions]);
 
   useEffect(() => {
     if (!user) return;
@@ -595,6 +622,10 @@ export function DuelScreen({ route, navigation }: any) {
               );
             })}
           </View>
+
+          {Platform.OS === 'web' && !answered && (
+            <Text style={[styles.keyboardHint, { color: C.muted }]}>Use A, B, C ou D para responder</Text>
+          )}
         </View>
       </View>
     );
@@ -706,6 +737,7 @@ const styles = StyleSheet.create({
   questionWrap:    { flex: 1, padding: Spacing.xl },
   questionText:    { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
   options:         { gap: 10 },
+  keyboardHint:    { fontSize: FontSize.xs, textAlign: 'center', marginTop: Spacing.md },
   option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 1, padding: Spacing.md, gap: 12 },
   optLetter:       { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   optLetterText:   { fontSize: FontSize.sm, fontWeight: FontWeight.bold },

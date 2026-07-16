@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Platform } from 'react-native';
 import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 
@@ -109,6 +109,37 @@ export function QuizScreen({ route, navigation }: any) {
   useEffect(() => {
     scrollRef.current?.scrollTo?.({ y: 0, animated: false });
   }, [current]);
+
+  // Acessibilidade por teclado (versão web): A/B/C/D marcam a alternativa
+  // correspondente, Enter avança para a próxima pergunta. Só ativo na web
+  // (Platform.OS === 'web') porque no nativo não há teclado físico padrão.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || loading || finished || reportOpen) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      // Não interfere se o usuário estiver digitando em outro campo (ex: modal de report)
+      const target = e.target as HTMLElement | null;
+      if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
+
+      const key = e.key.toUpperCase();
+      const letters = ['A', 'B', 'C', 'D'];
+      if (letters.includes(key)) {
+        const index = letters.indexOf(key);
+        if (!answered && index < (questions[current]?.options.length ?? 0)) {
+          e.preventDefault();
+          handleAnswer(index);
+        }
+      } else if (e.key === 'Enter') {
+        if (answered) {
+          e.preventDefault();
+          nextQuestion();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [current, answered, questions, loading, finished, reportOpen]);
 
   // Painel de feedback desliza de baixo pra cima ao responder (estilo
   // Duolingo); ao avançar de pergunta, some na hora (sem animação de saída)
@@ -407,6 +438,12 @@ export function QuizScreen({ route, navigation }: any) {
             );
           })}
         </View>
+
+        {Platform.OS === 'web' && (
+          <Text style={[styles.keyboardHint, { color: C.muted }]}>
+            {answered ? 'Pressione Enter para avançar' : 'Use A, B, C ou D para responder'}
+          </Text>
+        )}
       </Animated.ScrollView>
 
       {/* Painel de feedback - desliza de baixo pra cima ao responder */}
@@ -470,6 +507,7 @@ const styles = StyleSheet.create({
   metaText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   questionText:    { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 28, marginBottom: Spacing.xl },
   options:         { gap: 10 },
+  keyboardHint:    { fontSize: FontSize.xs, textAlign: 'center', marginTop: Spacing.md },
   option:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 1, padding: Spacing.md, gap: 12 },
   optionLetter:    { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   optionLetterText:{ fontSize: FontSize.sm, fontWeight: FontWeight.bold },
