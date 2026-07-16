@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 
 type PlanId = 'monthly' | 'biannual' | 'annual';
 
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   headerTitle:    { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   hero:           { padding: Spacing.xl, paddingVertical: 28, alignItems: 'center', gap: 10, borderBottomWidth: 0.5 },
   heroBadge:      { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 0.5, marginBottom: 4 },
-  heroBadgeText:  { fontSize: 12, fontWeight: FontWeight.medium, color: '#1877F2' },
+  heroBadgeText:  { fontSize: scaleFont(12), fontWeight: FontWeight.medium, color: '#1877F2' },
   heroTitle:      { fontSize: FontSize.xl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 30 },
   heroSub:        { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
   plansSection:   { padding: Spacing.xl, gap: 10 },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   plansCol:       { gap: 8 },
   planCard:       { borderRadius: Radius.lg, padding: Spacing.lg, overflow: 'hidden' },
   popularBadge:   { position: 'absolute', top: 0, right: 12, backgroundColor: '#1877F2', paddingHorizontal: 10, paddingVertical: 3, borderBottomLeftRadius: 6, borderBottomRightRadius: 6 },
-  popularText:    { fontSize: 9, fontWeight: FontWeight.bold, color: '#fff', letterSpacing: 0.5 },
+  popularText:    { fontSize: scaleFont(9), fontWeight: FontWeight.bold, color: '#fff', letterSpacing: 0.5 },
   planRow:        { flexDirection: 'row', alignItems: 'center', gap: 12 },
   radio:          { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   radioDot:       { width: 10, height: 10, borderRadius: 5, backgroundColor: '#1877F2' },
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   planPeriod:     { fontSize: FontSize.xs, marginTop: 1 },
   planEconomy:    { fontSize: FontSize.xs, color: '#22c55e', marginTop: 2, fontWeight: FontWeight.medium },
   planPrice:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  planMonthly:    { fontSize: 11, marginTop: 1 },
+  planMonthly:    { fontSize: scaleFont(11), marginTop: 1 },
   featuresSection:{ paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xl, gap: 10 },
   featuresCard:   { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 4 },
   featureRow:     { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 5 },
@@ -223,9 +223,9 @@ const styles = StyleSheet.create({
   trustRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xl, gap: 0 },
   trustItem:      { flex: 1, alignItems: 'center', gap: 6 },
   trustDivider:   { width: 0.5, height: 36, marginHorizontal: 8 },
-  trustText:      { fontSize: 11, textAlign: 'center', lineHeight: 16 },
+  trustText:      { fontSize: scaleFont(11), textAlign: 'center', lineHeight: 16 },
   cta:            { position: 'absolute', bottom: 0, left: 0, right: 0, padding: Spacing.xl, borderTopWidth: 0.5, gap: 8 },
   ctaBtn:         { height: 52, borderRadius: Radius.md, backgroundColor: '#1877F2', alignItems: 'center', justifyContent: 'center' },
   ctaBtnText:     { color: '#fff', fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  ctaHint:        { fontSize: 11, textAlign: 'center' },
+  ctaHint:        { fontSize: scaleFont(11), textAlign: 'center' },
 });

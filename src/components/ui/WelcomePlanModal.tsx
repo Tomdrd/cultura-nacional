@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { Plan } from '../../types';
+import { scaleFont } from '../../constants/layout';
 
 interface Props {
   plan: Plan;
@@ -77,9 +78,9 @@ const styles = StyleSheet.create({
   overlay:     { flex: 1, backgroundColor: '#000000AA', justifyContent: 'center', alignItems: 'center', padding: 24 },
   card:        { width: '100%', maxWidth: 360, borderRadius: 20, borderWidth: 1, padding: 28, alignItems: 'center', gap: 12 },
   iconWrap:    { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  title:       { fontSize: 20, fontWeight: '700', textAlign: 'center' },
-  username:    { fontSize: 15, fontWeight: '600', textAlign: 'center', marginTop: -4 },
-  description: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginTop: 4 },
+  title:       { fontSize: scaleFont(20), fontWeight: '700', textAlign: 'center' },
+  username:    { fontSize: scaleFont(15), fontWeight: '600', textAlign: 'center', marginTop: -4 },
+  description: { fontSize: scaleFont(14), textAlign: 'center', lineHeight: 22, marginTop: 4 },
   btn:         { marginTop: 8, width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  btnText:     { color: '#fff', fontSize: 15, fontWeight: '700' },
+  btnText:     { color: '#fff', fontSize: scaleFont(15), fontWeight: '700' },
 });

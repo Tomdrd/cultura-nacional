@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AppStackParamList, HomeTabsParamList } from '../types/navigation';
 import { Home, Trophy, Bell, Settings } from 'lucide-react-native';
+import { scaleFont } from '../constants/layout';
 import { HomeScreen }            from '../screens/home/HomeScreen';
 import { RankingScreen }         from '../screens/ranking/RankingScreen';
 import { ProfileScreen }         from '../screens/profile/ProfileScreen';
@@ -39,7 +40,7 @@ function NotificationBadge({ count, color }: { count: number; color: string }) {
       alignItems: 'center', justifyContent: 'center',
       paddingHorizontal: 3,
     }}>
-      <Text style={{ color: '#FFF', fontSize: 9, fontWeight: '700', lineHeight: 16 }}>
+      <Text style={{ color: '#FFF', fontSize: scaleFont(9), fontWeight: '700', lineHeight: 16 }}>
         {count > 99 ? '99+' : count}
       </Text>
     </View>
@@ -64,7 +65,7 @@ function HomeTabs() {
         },
         tabBarActiveTintColor:   C.green,
         tabBarInactiveTintColor: C.muted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
+        tabBarLabelStyle: { fontSize: scaleFont(11), fontWeight: '500' },
         tabBarIcon: ({ color, size }) => {
           if (route.name === 'Home')          return <Home     size={size} color={color} />;
           if (route.name === 'Ranking')       return <Trophy   size={size} color={color} />;

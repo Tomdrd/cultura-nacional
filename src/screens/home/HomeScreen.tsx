@@ -7,7 +7,7 @@ import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useUserPlan } from '../../hooks';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { HomeTheme } from '../../constants/colors';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
@@ -93,7 +93,7 @@ export function HomeScreen({ navigation }: any) {
                   style={{ width: 38, height: 38, borderRadius: 19 }}
                 />
               ) : (
-                <Text style={{ fontSize: 13, fontWeight: '700', color: C.subtle }}>
+                <Text style={{ fontSize: scaleFont(13), fontWeight: '700', color: C.subtle }}>
                   {profile?.username?.[0]?.toUpperCase() ?? '?'}
                 </Text>
               )}
@@ -251,14 +251,14 @@ const styles = StyleSheet.create({
   quickActions:    { flexDirection: 'row', gap: 8, paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
   actionCard:      { flex: 1, padding: 10 },
   actionLabel:     { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
-  actionSub:       { fontSize: 9, marginTop: 1 },
+  actionSub:       { fontSize: scaleFont(9), marginTop: 1 },
   section:         { paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
   sectionTitle:    { fontSize: FontSize.xs, fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
   randomCard:      { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, marginBottom: 10 },
   randomTitle:     { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 20 },
   sectionGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
   sectionCard:     { flexGrow: 1, flexBasis: 150, minWidth: 150, padding: Spacing.md },
-  uf:              { fontSize: 9, fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8 },
+  uf:              { fontSize: scaleFont(9), fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8 },
   sectionCardName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginTop: 4, marginBottom: 4 },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 16 },
 });

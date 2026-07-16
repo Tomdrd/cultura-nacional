@@ -14,7 +14,7 @@ import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useQuizFeedback } from '../../hooks/useQuizFeedback';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../lib/supabase';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { APP_SHARE_URL } from '../../constants/app';
 import { HomeTheme, MedalColors } from '../../constants/colors';
 import { CheckCircle, XCircle, Clock, Video, RotateCcw, ArrowLeft, Mic, Share2, Volume2, Trophy, Star, BookOpen, Smartphone, X } from 'lucide-react-native';
@@ -664,11 +664,11 @@ const styles = StyleSheet.create({
   startBtn: { height: 52, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   startBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: '#FFF' },
   countdownOverlay: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  countdownNum: { fontSize: 120, fontWeight: FontWeight.bold, color: '#FFF' },
+  countdownNum: { fontSize: scaleFont(120), fontWeight: FontWeight.bold, color: '#FFF' },
   countdownText: { fontSize: FontSize.xl, color: '#FFF', fontWeight: FontWeight.medium },
   watermark: { position: 'absolute', top: 48, right: Spacing.lg, width: 32, height: 32, borderRadius: 8, opacity: 0.85 },
   recDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E24B4A' },
-  recText: { color: '#FFF', fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5 },
+  recText: { color: '#FFF', fontSize: scaleFont(11), fontWeight: FontWeight.bold, letterSpacing: 0.5 },
 
   // Overlay de vidro (formato vertical)
   overlayTopBar:  { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingBottom: 10 },
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   overlayBottom:  { position: 'absolute', left: 0, right: 0, bottom: 0, padding: Spacing.lg, paddingBottom: Spacing.xl },
   overlayMetaRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   glassPill:      { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full },
-  glassPillText:  { fontSize: 10, fontWeight: FontWeight.medium, color: '#FFF' },
+  glassPillText:  { fontSize: scaleFont(10), fontWeight: FontWeight.medium, color: '#FFF' },
   glassCard:      { borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', padding: Spacing.lg, overflow: 'hidden' },
   glassQuestionText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: '#FFF', lineHeight: 22, marginBottom: 12 },
   glassOption:    { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10 },
@@ -690,17 +690,17 @@ const styles = StyleSheet.create({
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.sm },
   timerBarBg: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
   timerBarFill: { height: 4, borderRadius: 2 },
-  timerNum: { fontSize: 12, fontWeight: FontWeight.bold, width: 28, textAlign: 'right' },
+  timerNum: { fontSize: scaleFont(12), fontWeight: FontWeight.bold, width: 28, textAlign: 'right' },
   questionBox: { borderRadius: Radius.md, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.sm },
   subcatBadge: { fontSize: FontSize.xs, marginBottom: 4, fontWeight: FontWeight.medium },
   questionText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 22 },
   options: { gap: 8 },
   option: { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md, borderWidth: 1, paddingHorizontal: Spacing.sm, paddingVertical: 8, gap: 8 },
   optLetter: { width: 26, height: 26, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  optLetterText: { fontSize: 12, fontWeight: FontWeight.bold },
-  optText: { flex: 1, fontSize: 12, lineHeight: 17 },
+  optLetterText: { fontSize: scaleFont(12), fontWeight: FontWeight.bold },
+  optText: { flex: 1, fontSize: scaleFont(12), lineHeight: 17 },
   resultCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
-  resultEmoji: { fontSize: 56, marginBottom: Spacing.sm },
+  resultEmoji: { fontSize: scaleFont(56), marginBottom: Spacing.sm },
   resultTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginBottom: 4 },
   resultScore: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
   resultDots: { flexDirection: 'row', gap: 8, marginBottom: Spacing.xl },

@@ -6,7 +6,7 @@ import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useContentWidth } from '../../hooks/useContentWidth';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme } from '../../constants/colors';
 import { ScreenContainer } from '../../components/ui/ScreenContainer';
 
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   statCard:    { flex: 1, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, alignItems: 'center', gap: 4 },
   statIcon:    { width: 32, height: 32, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   statVal:     { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  statLbl:     { fontSize: 10, textAlign: 'center' },
+  statLbl:     { fontSize: scaleFont(10), textAlign: 'center' },
   sectionLabel:{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginBottom: 12 },
   sectionText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, letterSpacing: 0.5 },
   sectionCount:{ fontSize: FontSize.xs, fontWeight: FontWeight.bold },
@@ -185,8 +185,8 @@ const styles = StyleSheet.create({
   achCard:     { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, gap: 6, position: 'relative' as const, marginBottom: 12 },
   achIcon:     { width: 48, height: 48, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   achName:     { fontSize: FontSize.sm, fontWeight: FontWeight.bold, lineHeight: 18 },
-  achDesc:     { fontSize: 11, lineHeight: 16 },
+  achDesc:     { fontSize: scaleFont(11), lineHeight: 16 },
   achXp:       { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full, borderWidth: 1 },
-  achXpText:   { fontSize: 11, fontWeight: FontWeight.bold },
+  achXpText:   { fontSize: scaleFont(11), fontWeight: FontWeight.bold },
   earnedBadge: { position: 'absolute', top: 8, right: 8 },
 });

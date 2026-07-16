@@ -4,7 +4,7 @@ import { AlertTriangle, X, Send } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 
 const REASONS = [
   'Resposta incorreta',
@@ -133,9 +133,9 @@ const styles = StyleSheet.create({
   headerLeft:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title:           { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   questionPreview: { borderRadius: Radius.md, borderWidth: 0.5, padding: Spacing.md, marginBottom: Spacing.lg },
-  questionLabel:   { fontSize: 11, marginBottom: 4 },
+  questionLabel:   { fontSize: scaleFont(11), marginBottom: 4 },
   questionText:    { fontSize: FontSize.sm, lineHeight: 20 },
-  sectionLabel:    { fontSize: 11, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: Spacing.sm },
+  sectionLabel:    { fontSize: scaleFont(11), fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: Spacing.sm },
   reasons:         { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: Spacing.lg },
   reasonBtn:       { paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full, borderWidth: 0.5 },
   reasonText:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium },

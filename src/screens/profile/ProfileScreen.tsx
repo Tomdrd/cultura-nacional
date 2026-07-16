@@ -6,7 +6,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme } from '../../constants/colors';
 import { getXpInCurrentLevel, getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   followStatsRow:  { flexDirection: 'row', gap: 24, marginTop: 12 },
   followStat:      { alignItems: 'center' },
   followStatVal:   { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  followStatLbl:   { fontSize: 10, marginTop: 1 },
+  followStatLbl:   { fontSize: scaleFont(10), marginTop: 1 },
   xpCard:        { margin: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   xpRow:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
   xpLabel:       { fontSize: FontSize.xs, marginBottom: 2 },
@@ -370,18 +370,18 @@ const styles = StyleSheet.create({
   xpLevel:       { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   xpBarBg:       { height: 3, borderRadius: 99, marginBottom: 6, overflow: 'hidden' },
   xpBarFill:     { height: 3, borderRadius: 99 },
-  xpHint:        { fontSize: 10 },
+  xpHint:        { fontSize: scaleFont(10) },
   statsCard:     { flexDirection: 'row', marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   statItem:      { flex: 1, alignItems: 'center', gap: 4 },
   statVal:       { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  statLbl:       { fontSize: 9, textAlign: 'center' },
+  statLbl:       { fontSize: scaleFont(9), textAlign: 'center' },
   statDivider:   { width: 1 },
   quizStatsRow:  { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm },
   quizStat:      { alignItems: 'center', gap: 4 },
   quizStatVal:   { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   quizStatLbl:   { fontSize: FontSize.xs },
   section:       { marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
-  sectionTitle:  { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.md, textTransform: 'uppercase' },
+  sectionTitle:  { fontSize: scaleFont(10), fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.md, textTransform: 'uppercase' },
   planRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   upgradeBtn:    { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.md },
   upgradeBtnText: { color: '#FFF', fontSize: FontSize.xs, fontWeight: FontWeight.bold },

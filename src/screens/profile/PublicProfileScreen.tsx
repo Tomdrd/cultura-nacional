@@ -5,7 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme } from '../../constants/colors';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   followStatsRow: { flexDirection: 'row', gap: 24, marginTop: 4 },
   followStat:     { alignItems: 'center' },
   followStatVal:  { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  followStatLbl:  { fontSize: 10, marginTop: 1 },
+  followStatLbl:  { fontSize: scaleFont(10), marginTop: 1 },
   actionRow:      { flexDirection: 'row', gap: 10, marginTop: 4, width: '100%' },
   followBtn:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 9, borderRadius: Radius.full },
   followBtnText:  { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   statsCard:    { flexDirection: 'row', marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.lg },
   statItem:     { flex: 1, alignItems: 'center', gap: 4 },
   statVal:      { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-  statLbl:      { fontSize: 9, textAlign: 'center' },
+  statLbl:      { fontSize: scaleFont(9), textAlign: 'center' },
   statDivider:  { width: 1 },
   quizStatsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.sm },
   quizStat:     { alignItems: 'center', gap: 4 },

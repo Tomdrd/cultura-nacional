@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { CustomAlert } from '../../components/ui/CustomAlert';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme } from '../../constants/colors';
 
 interface City {
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   card:            { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, margin: Spacing.xl, marginBottom: Spacing.lg },
   cityLabel:       { fontSize: FontSize.xs, fontWeight: '500', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   cityInputRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: Radius.md, borderWidth: 0.5, paddingHorizontal: Spacing.md, height: 48, marginBottom: 8 },
-  cityInputField:  { flex: 1, height: 48, fontSize: 16 },
+  cityInputField:  { flex: 1, height: 48, fontSize: scaleFont(16) },
   errorText:       { fontSize: FontSize.xs, marginBottom: 8, marginTop: -4, color: '#E24B4A' },
   helperText:      { fontSize: FontSize.xs, marginTop: Spacing.md, marginBottom: Spacing.lg },
   dropdown:        { borderRadius: Radius.md, borderWidth: 0.5, marginBottom: 12, overflow: 'hidden' },

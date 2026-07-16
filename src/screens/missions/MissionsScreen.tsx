@@ -5,7 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 
 interface Mission {
   id: string;
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   progressBarBg:   { height: 6, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 8 },
   progressBarFill: { height: 6, backgroundColor: '#FFDF00', borderRadius: 3 },
   timerRow:        { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  timerText:       { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+  timerText:       { color: 'rgba(255,255,255,0.7)', fontSize: scaleFont(11) },
   list:            { padding: Spacing.xl, gap: 12 },
   missionCard:     { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 10 },
   missionTop:      { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   missionDesc:     { fontSize: FontSize.sm, fontWeight: FontWeight.medium, lineHeight: 20 },
   missionProgress: { fontSize: FontSize.xs, marginTop: 3 },
   xpTag:          { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
-  xpTagText:      { fontSize: 11, fontWeight: FontWeight.bold },
+  xpTagText:      { fontSize: scaleFont(11), fontWeight: FontWeight.bold },
   missionBar:      { height: 4, borderRadius: 2, overflow: 'hidden' },
   missionBarFill:  { height: 4, borderRadius: 2 },
   empty:           { alignItems: 'center', gap: 12, paddingVertical: 40 },

@@ -11,7 +11,7 @@ import { CustomAlert } from '../../components/ui/CustomAlert';
 import { Input } from '../../components/ui/Input';
 import { supabase } from '../../lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme } from '../../constants/colors';
 
 export function LoginScreen({ navigation }: any) {
@@ -171,7 +171,7 @@ export function LoginScreen({ navigation }: any) {
             >
               {appleLoading
                 ? <ActivityIndicator size="small" color="#FFF" />
-                : <Text style={{ color: '#FFF', fontSize: 16 }}>􀣺</Text>
+                : <Text style={{ color: '#FFF', fontSize: scaleFont(16) }}>􀣺</Text>
               }
               <Text style={[styles.oauthText, { color: '#FFF' }]}>Apple</Text>
             </TouchableOpacity>
@@ -258,5 +258,5 @@ const styles = StyleSheet.create({
   registerRow:  { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   registerText: { fontSize: FontSize.sm },
   link:         { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  flag:         { textAlign: 'center', fontSize: 28, marginTop: Spacing.xl },
+  flag:         { textAlign: 'center', fontSize: scaleFont(28), marginTop: Spacing.xl },
 });

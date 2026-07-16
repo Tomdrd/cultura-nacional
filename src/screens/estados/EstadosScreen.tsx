@@ -7,7 +7,7 @@ import { SvgXml } from 'react-native-svg';
 import { Check, ArrowLeft } from 'lucide-react-native';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 
 const QUESTIONS_PER_STATE = 20;
 
@@ -210,10 +210,10 @@ const styles = StyleSheet.create({
   iconBox:        { width: 48, height: 48, borderRadius: 12, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   iconBoxGreen:   { backgroundColor: '#009C3B18', borderColor: '#009C3B44' },
   iconBoxYellow:  { backgroundColor: '#FEDD0012', borderColor: '#FEDD0033' },
-  ufFallback:     { fontSize: 11, fontWeight: FontWeight.bold, color: COLORS.sub },
-  uf:             { fontSize: 10, fontWeight: FontWeight.bold, color: COLORS.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 2 },
+  ufFallback:     { fontSize: scaleFont(11), fontWeight: FontWeight.bold, color: COLORS.sub },
+  uf:             { fontSize: scaleFont(10), fontWeight: FontWeight.bold, color: COLORS.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 2 },
   stateName:      { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: COLORS.text, marginBottom: 10, lineHeight: 18 },
   progressBar:    { height: 3, backgroundColor: COLORS.border, borderRadius: 99, overflow: 'hidden', marginBottom: 5 },
   progressFill:   { height: '100%', borderRadius: 99, backgroundColor: COLORS.border },
-  counter:        { fontSize: 10, color: COLORS.muted },
+  counter:        { fontSize: scaleFont(10), color: COLORS.muted },
 });

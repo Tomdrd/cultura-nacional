@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { StateFlag } from './StateFlag';
 import { useTheme } from '../../hooks/useTheme';
-import { FontWeight } from '../../constants/layout';
+import { FontWeight, scaleFont } from '../../constants/layout';
 
 interface StateFlagIconProps {
   uf: string;
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 12,
+    fontSize: scaleFont(12),
     fontWeight: FontWeight.medium ?? '500',
     textAlign: 'center',
   },

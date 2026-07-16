@@ -11,7 +11,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import { supabase } from '../../lib/supabase';
 import { HomeTheme } from '../../constants/colors';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 
 interface Notification {
   id: string;
@@ -213,6 +213,6 @@ const styles = StyleSheet.create({
   iconWrap:    { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   title:       { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginBottom: 2 },
   body:        { fontSize: FontSize.xs, lineHeight: 18 },
-  time:        { fontSize: 10, flexShrink: 0, marginTop: 2 },
+  time:        { fontSize: scaleFont(10), flexShrink: 0, marginTop: 2 },
   dot:         { width: 7, height: 7, borderRadius: 4, position: 'absolute', top: 10, right: 10 },
 });

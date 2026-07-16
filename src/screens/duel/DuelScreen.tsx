@@ -6,7 +6,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme, MedalColors } from '../../constants/colors';
 import { useGlobalQuizTimer } from '../../hooks/useGlobalQuizTimer';
 
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
   lobbyBtnOutlineText: { fontSize: FontSize.md, fontWeight: FontWeight.medium },
   joinBox:         { width: '100%', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, gap: 12 },
   joinLabel:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
-  joinInput:       { height: 52, borderRadius: Radius.md, borderWidth: 1, textAlign: 'center', fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 6 },
+  joinInput:       { height: 52, borderRadius: Radius.md, borderWidth: 1, textAlign: 'center', fontSize: scaleFont(24), fontWeight: FontWeight.bold, letterSpacing: 6 },
   joinBtns:        { flexDirection: 'row', gap: 10 },
   joinCancel:      { flex: 1, height: 44, borderRadius: Radius.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   joinCancelText:  { fontSize: FontSize.sm },
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   waitSub:         { fontSize: FontSize.sm, textAlign: 'center', marginBottom: Spacing.xl },
   codeCard:        { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, alignItems: 'center', width: '100%', marginBottom: Spacing.md },
   codeLabel:       { fontSize: FontSize.xs, marginBottom: 6 },
-  codeValue:       { fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 4 },
+  codeValue:       { fontSize: scaleFont(28), fontWeight: FontWeight.bold, letterSpacing: 4 },
   shareBtn:        { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: Radius.md, borderWidth: 1, marginBottom: Spacing.md },
   shareBtnText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   cancelBtn:       { padding: Spacing.md },
@@ -725,7 +725,7 @@ const styles = StyleSheet.create({
   avatarImgLg:     { width: '100%', height: '100%' },
   vsCol:           { alignItems: 'center', gap: 6 },
   vsBadge:         { paddingHorizontal: 10, paddingVertical: 3, borderRadius: Radius.full, borderWidth: 1 },
-  vsBadgeText:     { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5 },
+  vsBadgeText:     { fontSize: scaleFont(10), fontWeight: FontWeight.bold, letterSpacing: 0.5 },
   scoreName:       { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
   scoreVal:        { fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
   timerBadge:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
@@ -747,7 +747,7 @@ const styles = StyleSheet.create({
   finalScore:      { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, gap: Spacing.xl, marginBottom: Spacing.xl },
   finalItem:       { alignItems: 'center', gap: 4 },
   finalName:       { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  finalVal:        { fontSize: 40, fontWeight: FontWeight.bold },
+  finalVal:        { fontSize: scaleFont(40), fontWeight: FontWeight.bold },
   finalX:          { fontSize: FontSize.xl },
   resultDots:      { flexDirection: 'row', gap: 8, marginBottom: Spacing.xl },
   dot:             { width: 10, height: 10, borderRadius: 5 },

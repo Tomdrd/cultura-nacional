@@ -6,7 +6,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme } from '../../constants/colors';
 import {
   requestNotificationPermission,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   header:       { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg },
   title:        { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   section:      { paddingHorizontal: Spacing.xl, marginBottom: Spacing.md },
-  sectionLabel: { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.sm, textTransform: 'uppercase' },
+  sectionLabel: { fontSize: scaleFont(10), fontWeight: FontWeight.bold, letterSpacing: 0.6, marginBottom: Spacing.sm, textTransform: 'uppercase' },
   card:         { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
   iconBox:      { width: 28, height: 28, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   themeOption:  { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   radioDot:     { width: 7, height: 7, borderRadius: 4, backgroundColor: '#FFF' },
   notifRow:     { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md },
   notifLabel:   { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  notifSub:     { fontSize: 9, marginTop: 2 },
+  notifSub:     { fontSize: scaleFont(9), marginTop: 2 },
   menuItem:     { flexDirection: 'row', alignItems: 'center', gap: 10, padding: Spacing.md },
   menuLabel:    { flex: 1, fontSize: FontSize.xs },
   logoutBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: Spacing.xl, borderRadius: 16, borderWidth: 1, padding: Spacing.md },

@@ -10,7 +10,7 @@ import { Input } from '../../components/ui/Input';
 import { CustomAlert } from '../../components/ui/CustomAlert';
 import { supabase } from '../../lib/supabase';
 import CnLogo from '../../../assets/images/cn-logo.svg';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme } from '../../constants/colors';
 
 interface City { id: string; name: string; state_uf: string; }
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   sub:              { fontSize: FontSize.sm, marginTop: 4 },
   card:             { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.xl, marginBottom: Spacing.lg },
   btn:              { marginTop: Spacing.sm },
-  terms:            { fontSize: 11, marginTop: Spacing.md, textAlign: 'center', lineHeight: 16 },
+  terms:            { fontSize: scaleFont(11), marginTop: Spacing.md, textAlign: 'center', lineHeight: 16 },
   loginRow:         { flexDirection: 'row', justifyContent: 'center' },
   loginText:        { fontSize: FontSize.sm },
   link:             { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   cityWrap:         { marginBottom: Spacing.md, position: 'relative' },
   cityLabel:        { fontSize: FontSize.xs, fontWeight: '500', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
   cityInputRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: Radius.md, borderWidth: 0.5, paddingHorizontal: Spacing.md, height: 48 },
-  cityInputField:   { flex: 1, height: 48, fontSize: 16 },
+  cityInputField:   { flex: 1, height: 48, fontSize: scaleFont(16) },
   errorText:        { fontSize: FontSize.xs, marginTop: 4 },
   dropdown:         { borderRadius: Radius.md, borderWidth: 0.5, marginTop: 4, overflow: 'hidden' },
   dropdownItem:     { flexDirection: 'row', alignItems: 'center', gap: 8, padding: Spacing.md, borderBottomWidth: 0.5 },

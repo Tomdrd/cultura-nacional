@@ -5,7 +5,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
+import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme, MedalColors } from '../../constants/colors';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
 import { StateFlag } from '../../components/ui/StateFlag';
@@ -332,15 +332,15 @@ const styles = StyleSheet.create({
   podiumAvatarLg: { width: 56, height: 56, borderRadius: 28 },
   podiumMedal:    { fontSize: FontSize.sm, fontWeight: FontWeight.bold },
   podiumName:     { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textAlign: 'center' },
-  podiumXp:       { fontSize: 9 },
+  podiumXp:       { fontSize: scaleFont(9) },
   list:           { paddingHorizontal: Spacing.xl, gap: 8 },
   row:            { flexDirection: 'row', alignItems: 'center', gap: 10, padding: Spacing.md },
   rank:           { fontSize: FontSize.sm, fontWeight: FontWeight.bold, width: 26 },
   rowAvatar:      { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   rowName:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  rowCity:        { fontSize: 10, marginTop: 2 },
+  rowCity:        { fontSize: scaleFont(10), marginTop: 2 },
   rowXp:          { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
-  rowLevel:       { fontSize: 9, marginTop: 2 },
+  rowLevel:       { fontSize: scaleFont(9), marginTop: 2 },
   empty:          { alignItems: 'center', gap: 12, paddingVertical: 40 },
   emptyText:      { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
 });
