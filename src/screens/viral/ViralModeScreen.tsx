@@ -307,7 +307,11 @@ export function ViralModeScreen({ navigation, route }: any) {
           <ArrowLeft size={18} color="#FFF" /><Text style={[styles.backText, { color: '#FFF' }]}>Voltar</Text>
         </TouchableOpacity>
 
-        <View style={styles.setupCenter}>
+        <ScrollView
+          style={styles.setupScroll}
+          contentContainerStyle={styles.setupCenter}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.glassPill}>
             <Video size={14} color="#FFF" />
             <Text style={[styles.glassPillText, { letterSpacing: 1, fontWeight: FontWeight.bold }]}>MODO VIRAL</Text>
@@ -390,7 +394,7 @@ export function ViralModeScreen({ navigation, route }: any) {
               : <><Video size={20} color="#FFF" /><Text style={styles.startBtnText}>Começar gravação</Text></>
             }
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -641,14 +645,15 @@ const styles = StyleSheet.create({
   setupBgImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   backBtn: { padding: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: 8 },
   backText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
-  setupCenter: { flex: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
+  setupScroll: { flex: 1 },
+  setupCenter: { flexGrow: 1, padding: Spacing.xl, justifyContent: 'center', gap: 16 },
   viralBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 1 },
   viralBadgeText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, letterSpacing: 1 },
   setupTitle: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, textAlign: 'center', lineHeight: 34 },
   setupSub: { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 22 },
   formatLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
   formatRow: { flexDirection: 'row', gap: 12 },
-  categoryScroll: { flexGrow: 0 },
+  categoryScroll: { flexGrow: 0, flexShrink: 0, height: 48 },
   categoryRow: { flexDirection: 'row', gap: 8, paddingVertical: 4, alignItems: 'center' },
   categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.full, borderWidth: 1 },
   categoryChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
