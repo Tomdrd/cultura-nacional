@@ -40,8 +40,7 @@ export function HomeScreen({ navigation }: any) {
   useFocusEffect(React.useCallback(() => { loadData(); loadPreviewQuestion(); }, []));
 
   async function loadPreviewQuestion() {
-    setPreviewQuestion(null);
-    setRandomQuestions(null);
+    // Não reseta — pergunta anterior fica visível até nova chegar
     const subcategory = pickRandomSubcategory();
     const { data } = await supabase.rpc('get_random_quiz_questions', {
       p_state_id: null, p_city_id: null, p_subcategory: subcategory, p_limit: 5, p_progressive: false,
@@ -55,7 +54,7 @@ export function HomeScreen({ navigation }: any) {
   }
 
   async function loadData() {
-    setLoading(true);
+    if (!profile) setLoading(true); // spinner só na primeira vez
     const { data: profileData } = user ? await supabase.from('profiles').select('username, xp, level, streak, city_natal_id, avatar_url').eq('id', user.id).single() : { data: null };
     if (profileData) {
       setProfile(profileData);
