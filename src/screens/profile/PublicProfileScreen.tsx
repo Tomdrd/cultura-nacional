@@ -50,11 +50,30 @@ interface Profile {
 interface CityInfo { name: string; state_uf: string; }
 
 export function PublicProfileScreen({ route, navigation }: any) {
-  const { userId } = route.params;
+  const { userId: userIdParam, slug } = route.params ?? {};
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
+
+  // Se veio via URL amigável (/tom), resolve slug → userId antes de carregar
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(userIdParam ?? null);
+  const userId = resolvedUserId;
+
+  useEffect(() => {
+    if (!userIdParam && slug) {
+      supabase
+        .from('profiles')
+        .select('id')
+        .or(`profile_slug.eq.${slug},username.eq.${slug}`)
+        .maybeSingle()
+        .then(({ data }: { data: { id: string } | null }) => {
+          if (data?.id) setResolvedUserId(data.id);
+          else navigation.replace('HomeTabs'); // slug não encontrado → Home
+        });
+    }
+  }, [userIdParam, slug]);
+
   const [profile,     setProfile]     = useState<Profile | null>(null);
   const [city,        setCity]        = useState<CityInfo | null>(null);
   const [cityRank,    setCityRank]    = useState<number | null>(null);
@@ -70,6 +89,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
   const isMe = user?.id === userId;
 
   useEffect(() => {
+    if (!userId) return; // aguarda resolução do slug antes de carregar
     loadProfile();
     loadFollowInfo();
     loadQuizStats();

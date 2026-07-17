@@ -23,6 +23,7 @@ const linking: LinkingOptions<any> = {
       App: {
         screens: {
           HomeTabs: '',
+          PublicProfile: ':slug', // URL amigável: /tom → PublicProfile com slug="tom"
         },
       },
     },
