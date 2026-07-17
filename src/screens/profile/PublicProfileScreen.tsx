@@ -64,12 +64,16 @@ export function PublicProfileScreen({ route, navigation }: any) {
     if (!userIdParam && slug) {
       supabase
         .from('profiles')
-        .select('id')
+        .select('id, plan, plan_expires_at')
         .or(`profile_slug.eq.${slug},username.eq.${slug}`)
         .maybeSingle()
-        .then(({ data }: { data: { id: string } | null }) => {
-          if (data?.id) setResolvedUserId(data.id);
-          else navigation.replace('HomeTabs'); // slug não encontrado → Home
+        .then(({ data }: { data: { id: string; plan: string; plan_expires_at: string | null } | null }) => {
+          if (!data?.id) { navigation.replace('HomeTabs'); return; }
+          // URL amigável é exclusiva de CN Pro ativo
+          const isProActive = (data.plan === 'pro' || data.plan === 'family' || data.plan === 'education')
+            && (!data.plan_expires_at || new Date(data.plan_expires_at) > new Date());
+          if (isProActive) setResolvedUserId(data.id);
+          else navigation.replace('HomeTabs');
         });
     }
   }, [userIdParam, slug]);
