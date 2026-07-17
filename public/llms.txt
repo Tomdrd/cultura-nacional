@@ -1,7 +1,8 @@
-User-agent: CCBot
-User-agent: ChatGPT-User
-User-agent: GPTBot
-User-agent: Claude-Web
-Allow: /
-Sitemap: https://cultura-nacional.vercel.app/sitemap.xml
-Canonical: https://cultura-nacional.vercel.app
+# Cultura Nacional
+
+> Quiz interativo sobre cultura, história, gastronomia, natureza, turismo e curiosidades dos 27 estados brasileiros, com ranking, missões, duelos e conquistas.
+
+## Páginas principais
+- [Início](https://cultura-nacional.vercel.app): Página inicial do app, com apresentação do quiz e chamada para jogar.
+- [Quiz](https://cultura-nacional.vercel.app/quiz): Onde o usuário responde perguntas sobre os estados brasileiros.
+- [Ranking](https://cultura-nacional.vercel.app/ranking): Classificação dos jogadores por pontuação acumulada.
