@@ -9,7 +9,6 @@ import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constant
 import { HomeTheme } from '../../constants/colors';
 import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
-import { StateFlag } from '../../components/ui/StateFlag';
 import { Plan } from '../../types';
 import * as Clipboard from 'expo-clipboard';
 
@@ -204,7 +203,6 @@ export function PublicProfileScreen({ route, navigation }: any) {
               {profile?.plan && <AvatarVerifiedBadge plan={profile.plan} avatarSize={72} />}
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              {profile?.state_uf && <StateFlag uf={profile.state_uf} size={20} />}
               <Text style={[styles.username, { color: C.text }]}>{profile?.username ?? 'Explorador'}</Text>
               {profile?.plan && <VerifiedBadge plan={profile.plan} size={20} />}
             </View>

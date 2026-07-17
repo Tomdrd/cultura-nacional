@@ -8,7 +8,6 @@ import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
 import { HomeTheme, MedalColors } from '../../constants/colors';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
-import { StateFlag } from '../../components/ui/StateFlag';
 import { Plan } from '../../types';
 
 type Scope = 'national' | 'state' | 'city';
@@ -213,7 +212,6 @@ export function RankingScreen({ navigation }: any) {
                 </View>
                 <Text style={[styles.podiumMedal, { color: MedalColors.silver }]}>2º</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[1]?.state_uf && <StateFlag uf={podium[1].state_uf} size={14} />}
                   <Text style={[styles.podiumName, { color: C.text }]} numberOfLines={1}>{podium[1]?.username}</Text>
                   {podium[1]?.plan && <VerifiedBadge plan={podium[1].plan} size={12} />}
                 </View>
@@ -231,7 +229,6 @@ export function RankingScreen({ navigation }: any) {
                 <Trophy size={16} color={MedalColors.gold} />
                 <Text style={[styles.podiumMedal, { color: MedalColors.gold }]}>1º</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[0]?.state_uf && <StateFlag uf={podium[0].state_uf} size={14} />}
                   <Text style={[styles.podiumName, { color: C.text }]} numberOfLines={1}>{podium[0]?.username}</Text>
                   {podium[0]?.plan && <VerifiedBadge plan={podium[0].plan} size={12} />}
                 </View>
@@ -248,7 +245,6 @@ export function RankingScreen({ navigation }: any) {
                 </View>
                 <Text style={[styles.podiumMedal, { color: MedalColors.bronze }]}>3º</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  {podium[2]?.state_uf && <StateFlag uf={podium[2].state_uf} size={14} />}
                   <Text style={[styles.podiumName, { color: C.text }]} numberOfLines={1}>{podium[2]?.username}</Text>
                   {podium[2]?.plan && <VerifiedBadge plan={podium[2].plan} size={12} />}
                 </View>
@@ -276,7 +272,6 @@ export function RankingScreen({ navigation }: any) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      {entry.state_uf && <StateFlag uf={entry.state_uf} size={16} />}
                       <Text style={[styles.rowName, { color: isMe ? C.green : C.text }]}>
                         {entry.username}{isMe ? ' (você)' : ''}
                       </Text>
