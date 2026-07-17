@@ -61,7 +61,7 @@ export function FollowListScreen({ route, navigation }: any) {
     }
 
     const fetchedProfiles: ProfileData[] = (data || [])
-      .map(row => row.profiles as unknown as ProfileData)
+      .map((row: any) => row.profiles as unknown as ProfileData)
       .filter(Boolean);
 
     if (pageNumber === 0) {

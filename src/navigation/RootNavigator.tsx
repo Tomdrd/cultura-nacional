@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../store/authStore';
 import { AuthNavigator } from './AuthNavigator';
@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase';
 
 const Stack = createNativeStackNavigator();
 
-const linking = {
+const linking: LinkingOptions<any> = {
   prefixes: ['culturanacional://', 'https://cultura-nacional.vercel.app'],
   config: {
     screens: {
