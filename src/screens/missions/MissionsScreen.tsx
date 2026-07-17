@@ -6,6 +6,8 @@ import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
+import { HomeTheme } from '../../constants/colors';
+import { ScreenContainer } from '../../components/ui/ScreenContainer';
 
 interface Mission {
   id: string;
@@ -19,7 +21,8 @@ interface Mission {
 }
 
 export function MissionsScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
   const [missions, setMissions] = useState<Mission[]>([]);
@@ -30,27 +33,19 @@ export function MissionsScreen({ navigation }: any) {
   async function load() {
     if (!user) return;
     setLoading(true);
-
-    // Gera missões se não existirem
     await supabase.rpc('generate_daily_missions', { p_user_id: user.id });
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-
     const { data } = await supabase
       .from('daily_missions')
       .select('*')
       .eq('user_id', user.id)
       .gte('expires_at', new Date().toISOString())
       .order('completed', { ascending: true });
-
     if (data) setMissions(data);
     setLoading(false);
   }
 
   function timeUntilMidnight() {
-    const now = new Date();
+    const now      = new Date();
     const midnight = new Date();
     midnight.setHours(24, 0, 0, 0);
     const diff = midnight.getTime() - now.getTime();
@@ -60,128 +55,210 @@ export function MissionsScreen({ navigation }: any) {
   }
 
   const completedCount = missions.filter(m => m.completed).length;
-  const totalXP = missions.filter(m => m.completed).reduce((sum, m) => sum + m.xp_reward, 0);
+  const totalXP        = missions.filter(m => m.completed).reduce((sum, m) => sum + m.xp_reward, 0);
+  const totalPossible  = missions.reduce((sum, m) => sum + m.xp_reward, 0);
+  const pctDone        = missions.length > 0 ? completedCount / missions.length : 0;
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
+      <ScreenContainer style={styles.center}>
+        <ActivityIndicator color={C.green} size="large" />
+      </ScreenContainer>
     );
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: headerPaddingTop }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <ArrowLeft size={22} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Missões do Dia</Text>
-        <View style={{ width: 22 }} />
-      </View>
+    <ScreenContainer>
+      <ScrollView showsVerticalScrollIndicator={false}>
 
-      {/* Progress card */}
-      <View style={[styles.progressCard, { backgroundColor: colors.primary }]}>
-        <View style={styles.progressRow}>
-          <View>
-            <Text style={styles.progressLabel}>Missões concluídas</Text>
-            <Text style={styles.progressValue}>{completedCount}/{missions.length}</Text>
-          </View>
-          <View style={[styles.xpBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <Zap size={14} color="#FFDF00" />
-            <Text style={styles.xpBadgeText}>+{totalXP} XP ganhos</Text>
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <ArrowLeft size={20} color={C.text} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { color: C.text }]}>
+              Missões do <Text style={{ color: C.green }}>Dia</Text>
+            </Text>
+            <Text style={[styles.headerSub, { color: C.muted }]}>Complete missões e acumule XP</Text>
           </View>
         </View>
-        <View style={styles.progressBarBg}>
-          <View style={[styles.progressBarFill, { width: `${(completedCount / Math.max(missions.length, 1)) * 100}%` }]} />
-        </View>
-        <View style={styles.timerRow}>
-          <Clock size={12} color="rgba(255,255,255,0.7)" />
-          <Text style={styles.timerText}>Renova em {timeUntilMidnight()}</Text>
-        </View>
-      </View>
 
-      {/* Missions */}
-      <View style={styles.list}>
-        {missions.map(mission => {
-          const pct = Math.min((mission.progress / mission.target) * 100, 100);
-          return (
-            <View
-              key={mission.id}
-              style={[
-                styles.missionCard,
-                {
-                  backgroundColor: mission.completed ? colors.primary + '10' : colors.card,
-                  borderColor:     mission.completed ? colors.primary + '40' : colors.border,
-                }
-              ]}
-            >
-              <View style={styles.missionTop}>
-                <View style={[styles.missionIcon, { backgroundColor: mission.completed ? colors.primary + '20' : colors.background }]}>
-                  {mission.completed
-                    ? <CheckCircle size={22} color={colors.primary} />
-                    : <Target size={22} color={colors.textSecondary} />
-                  }
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.missionDesc, { color: mission.completed ? colors.primary : colors.text }]}>
-                    {mission.description}
-                  </Text>
-                  <Text style={[styles.missionProgress, { color: colors.textMuted }]}>
-                    {mission.progress}/{mission.target} {mission.completed ? '— Concluída!' : ''}
-                  </Text>
-                </View>
-                <View style={[styles.xpTag, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }]}>
-                  <Text style={[styles.xpTagText, { color: colors.primary }]}>+{mission.xp_reward} XP</Text>
-                </View>
-              </View>
-              {!mission.completed && (
-                <View style={[styles.missionBar, { backgroundColor: colors.border }]}>
-                  <View style={[styles.missionBarFill, { width: `${pct}%`, backgroundColor: colors.primary }]} />
-                </View>
-              )}
+        {/* Stats Row */}
+        <View style={[styles.statsRow, { paddingHorizontal: Spacing.xl }]}>
+          <View style={[styles.statCard, { backgroundColor: C.card, borderColor: C.border }]}>
+            <View style={[styles.statIcon, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+              <Target size={18} color={C.green} />
             </View>
-          );
-        })}
-
-        {missions.length === 0 && (
-          <View style={styles.empty}>
-            <Target size={40} color={colors.textMuted} />
-            <Text style={[styles.emptyText, { color: colors.textMuted }]}>Missões sendo geradas...</Text>
+            <Text style={[styles.statVal, { color: C.text }]}>{completedCount}/{missions.length}</Text>
+            <Text style={[styles.statLbl, { color: C.muted }]}>Concluídas</Text>
           </View>
-        )}
-      </View>
 
-      <View style={{ height: 32 }} />
-    </ScrollView>
+          <View style={[styles.statCard, { backgroundColor: C.card, borderColor: C.border }]}>
+            <View style={[styles.statIcon, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+              <Zap size={18} color={C.yellow} />
+            </View>
+            <Text style={[styles.statVal, { color: C.text }]}>{totalXP}</Text>
+            <Text style={[styles.statLbl, { color: C.muted }]}>XP ganhos</Text>
+          </View>
+
+          <View style={[styles.statCard, { backgroundColor: C.card, borderColor: C.border }]}>
+            <View style={[styles.statIcon, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+              <Clock size={18} color={C.muted} />
+            </View>
+            <Text style={[styles.statVal, { color: C.text }]}>{timeUntilMidnight()}</Text>
+            <Text style={[styles.statLbl, { color: C.muted }]}>Renova em</Text>
+          </View>
+        </View>
+
+        {/* Progress bar global */}
+        <View style={[styles.globalProgress, { paddingHorizontal: Spacing.xl }]}>
+          <View style={[styles.progressBg, { backgroundColor: C.border }]}>
+            <View style={[styles.progressFill, { width: `${pctDone * 100}%`, backgroundColor: C.green }]} />
+          </View>
+          <Text style={[styles.progressCaption, { color: C.muted }]}>
+            {Math.round(pctDone * 100)}% completo · {totalPossible} XP disponíveis
+          </Text>
+        </View>
+
+        {/* Section label */}
+        <View style={[styles.sectionLabel, { paddingHorizontal: Spacing.xl }]}>
+          <Text style={[styles.sectionText, { color: C.muted }]}>MISSÕES</Text>
+          <Text style={[styles.sectionCount, { color: C.green }]}> {missions.length}</Text>
+        </View>
+
+        {/* Mission cards */}
+        <View style={[styles.list, { paddingHorizontal: Spacing.xl }]}>
+          {missions.map(mission => {
+            const pct = Math.min((mission.progress / mission.target) * 100, 100);
+            return (
+              <View
+                key={mission.id}
+                style={[
+                  styles.missionCard,
+                  {
+                    backgroundColor: C.card,
+                    borderColor: mission.completed ? C.green : C.border,
+                  },
+                ]}
+              >
+                <View style={styles.missionTop}>
+                  {/* Icon */}
+                  <View
+                    style={[
+                      styles.missionIcon,
+                      {
+                        backgroundColor: mission.completed ? C.green + '22' : C.iconBg,
+                        borderColor:     mission.completed ? C.green + '55' : C.border,
+                      },
+                    ]}
+                  >
+                    {mission.completed
+                      ? <CheckCircle size={22} color={C.green} />
+                      : <Target      size={22} color={C.muted} />
+                    }
+                  </View>
+
+                  {/* Text */}
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      style={[
+                        styles.missionDesc,
+                        { color: mission.completed ? C.green : C.text },
+                      ]}
+                    >
+                      {mission.description}
+                    </Text>
+                    <Text style={[styles.missionProgress, { color: C.muted }]}>
+                      {mission.progress}/{mission.target}
+                      {mission.completed ? ' · Concluída!' : ''}
+                    </Text>
+                  </View>
+
+                  {/* XP tag */}
+                  <View style={[styles.xpTag, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+                    <Text style={[styles.xpTagText, { color: C.green }]}>+{mission.xp_reward} XP</Text>
+                  </View>
+                </View>
+
+                {/* Progress bar (só para missões pendentes) */}
+                {!mission.completed && (
+                  <View style={[styles.missionBar, { backgroundColor: C.border }]}>
+                    <View
+                      style={[
+                        styles.missionBarFill,
+                        { width: `${pct}%`, backgroundColor: C.green },
+                      ]}
+                    />
+                  </View>
+                )}
+              </View>
+            );
+          })}
+
+          {missions.length === 0 && (
+            <View style={styles.empty}>
+              <View style={[styles.emptyIcon, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+                <Target size={32} color={C.muted} />
+              </View>
+              <Text style={[styles.emptyTitle, { color: C.text }]}>Nenhuma missão</Text>
+              <Text style={[styles.emptyText,  { color: C.muted }]}>Suas missões diárias estão sendo geradas...</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={{ height: 32 }} />
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  center:          { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 0.5 },
-  title:           { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  progressCard:    { margin: Spacing.xl, borderRadius: Radius.lg, padding: Spacing.xl },
-  progressRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
-  progressLabel:   { color: 'rgba(255,255,255,0.8)', fontSize: FontSize.xs },
-  progressValue:   { color: '#FFF', fontSize: FontSize.xxl, fontWeight: FontWeight.bold, marginTop: 2 },
-  xpBadge:        { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
-  xpBadgeText:    { color: '#FFDF00', fontSize: FontSize.xs, fontWeight: FontWeight.medium },
-  progressBarBg:   { height: 6, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 3, marginBottom: 8 },
-  progressBarFill: { height: 6, backgroundColor: '#FFDF00', borderRadius: 3 },
-  timerRow:        { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  timerText:       { color: 'rgba(255,255,255,0.7)', fontSize: scaleFont(11) },
-  list:            { padding: Spacing.xl, gap: 12 },
-  missionCard:     { borderRadius: Radius.lg, borderWidth: 0.5, padding: Spacing.lg, gap: 10 },
-  missionTop:      { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  missionIcon:     { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  missionDesc:     { fontSize: FontSize.sm, fontWeight: FontWeight.medium, lineHeight: 20 },
-  missionProgress: { fontSize: FontSize.xs, marginTop: 3 },
-  xpTag:          { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 0.5 },
-  xpTagText:      { fontSize: scaleFont(11), fontWeight: FontWeight.bold },
-  missionBar:      { height: 4, borderRadius: 2, overflow: 'hidden' },
-  missionBarFill:  { height: 4, borderRadius: 2 },
-  empty:           { alignItems: 'center', gap: 12, paddingVertical: 40 },
-  emptyText:       { fontSize: FontSize.sm },
+  center:           { justifyContent: 'center', alignItems: 'center' },
+
+  // Header
+  header:           { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: Spacing.xl, paddingBottom: 16 },
+  backBtn:          { width: 20, paddingTop: 2 },
+  headerTitle:      { fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 24 },
+  headerSub:        { fontSize: FontSize.xs, marginTop: 2 },
+
+  // Stats
+  statsRow:         { flexDirection: 'row', gap: 10, paddingBottom: 16 },
+  statCard:         { flex: 1, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, alignItems: 'center', gap: 4 },
+  statIcon:         { width: 32, height: 32, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  statVal:          { fontSize: FontSize.sm, fontWeight: FontWeight.bold, textAlign: 'center' },
+  statLbl:          { fontSize: scaleFont(10), textAlign: 'center' },
+
+  // Global progress
+  globalProgress:   { paddingBottom: 16 },
+  progressBg:       { height: 4, borderRadius: 2, overflow: 'hidden', marginBottom: 6 },
+  progressFill:     { height: 4, borderRadius: 2 },
+  progressCaption:  { fontSize: scaleFont(11) },
+
+  // Section label
+  sectionLabel:     { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  sectionText:      { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, letterSpacing: 0.5, textTransform: 'uppercase' },
+  sectionCount:     { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+
+  // Mission cards
+  list:             { gap: 10 },
+  missionCard:      { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, gap: 10 },
+  missionTop:       { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  missionIcon:      { width: 44, height: 44, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  missionDesc:      { fontSize: FontSize.sm, fontWeight: FontWeight.medium, lineHeight: 20 },
+  missionProgress:  { fontSize: FontSize.xs, marginTop: 3 },
+  xpTag:            { paddingHorizontal: 8, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 1, flexShrink: 0 },
+  xpTagText:        { fontSize: scaleFont(11), fontWeight: FontWeight.bold },
+  missionBar:       { height: 3, borderRadius: 2, overflow: 'hidden' },
+  missionBarFill:   { height: 3, borderRadius: 2 },
+
+  // Empty state
+  empty:            { alignItems: 'center', gap: 12, paddingVertical: 48 },
+  emptyIcon:        { width: 64, height: 64, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle:       { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+  emptyText:        { fontSize: FontSize.sm, textAlign: 'center' },
 });

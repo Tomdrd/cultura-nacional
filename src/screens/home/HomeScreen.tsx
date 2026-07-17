@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video, Shuffle } from 'lucide-react-native';
+import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video, Shuffle, Flame } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -107,15 +107,38 @@ export function HomeScreen({ navigation }: any) {
             </View>
           </View>
         </View>
-        <View style={[styles.pill, { backgroundColor: C.iconBg, borderColor: C.border }]}>
-          <Text style={[styles.pillText, { color: C.subtle }]}>{profile?.streak ?? 0} dias</Text>
-        </View>
+        <TouchableOpacity
+          style={[
+            styles.streakCard,
+            (profile?.streak ?? 0) > 0
+              ? { backgroundColor: '#FF6B2022', borderColor: '#FF6B2055' }
+              : { backgroundColor: C.iconBg,    borderColor: C.border },
+          ]}
+          onPress={() => navigation.navigate('Missions')}
+          activeOpacity={0.75}
+        >
+          <Flame
+            size={14}
+            color={(profile?.streak ?? 0) > 0 ? '#FF6B20' : C.muted}
+            fill={(profile?.streak ?? 0) > 0 ? '#FF6B2055' : 'transparent'}
+          />
+          <Text style={[styles.streakCount, { color: (profile?.streak ?? 0) > 0 ? '#FF6B20' : C.muted }]}>
+            {profile?.streak ?? 0}
+          </Text>
+          <Text style={[styles.streakLabel, { color: C.muted }]}>
+            {(profile?.streak ?? 0) > 0 ? 'sequência' : 'Reacenda!'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Nível / XP */}
-      <View style={[styles.card, styles.levelCard, { backgroundColor: C.card, borderColor: C.border }]}>
+      <TouchableOpacity
+        style={[styles.card, styles.levelCard, { backgroundColor: C.card, borderColor: C.border }]}
+        onPress={() => navigation.navigate('Achievements')}
+        activeOpacity={0.8}
+      >
         <View style={[styles.iconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>
-          <Trophy size={18} color={C.yellow} />
+          <Trophy size={18} color={C.yellow} fill={C.yellow + '55'} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5 }}>
@@ -129,7 +152,7 @@ export function HomeScreen({ navigation }: any) {
         <View style={[styles.pill, { backgroundColor: C.iconBg, borderColor: C.border }]}>
           <Text style={[styles.pillText, { color: C.subtle }]}>Curioso</Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
@@ -241,6 +264,9 @@ const styles = StyleSheet.create({
   username:        { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   pill:            { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, borderWidth: 1 },
   pillText:        { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  streakCard:      { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.lg, borderWidth: 1 },
+  streakCount:     { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 18 },
+  streakLabel:     { fontSize: scaleFont(10), fontWeight: FontWeight.medium },
   card:            { borderWidth: 1, borderRadius: 16 },
   iconBox:         { width: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   iconBoxSm:       { width: 32, height: 32, borderRadius: 9, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
