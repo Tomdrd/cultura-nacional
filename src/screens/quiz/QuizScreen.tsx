@@ -56,10 +56,12 @@ export function QuizScreen({ route, navigation }: any) {
   // no claro.
   const DANGER_TEXT = isDark ? '#F09595' : '#C23B3A';
   const headerPaddingTop = useHeaderTopPadding();
-  const { audioNarration } = useSettingsStore();
+  const { audioNarration, quizTimer } = useSettingsStore();
   const { playCorrect, playWrong, playResult, vibrateSelect } = useQuizFeedback();
   const { user, cityNatalId } = useAuthStore();
   const { stateId, stateName, cityId: routeCityId, cityName, subcategory, mode, random, preloadedQuestions } = route.params ?? {};
+  // Relâmpago sempre usa timer; nos demais modos segue a preferência do usuário
+  const shouldUseTimer = mode === 'relampago' || quizTimer;
   // Se a tela não especificou uma cidade explicitamente, usa a cidade natal
   // do usuário — a função no banco cai automaticamente para as perguntas
   // do estado caso essa cidade não tenha perguntas próprias.
@@ -114,8 +116,9 @@ export function QuizScreen({ route, navigation }: any) {
   }, [current, loading, finished]);
 
   useEffect(() => {
+    if (!shouldUseTimer) return;
     if (answered) pauseTimer(); else resumeTimer();
-  }, [answered]);
+  }, [answered, shouldUseTimer]);
 
   // Volta pro topo ao trocar de pergunta
   useEffect(() => {
@@ -170,7 +173,7 @@ export function QuizScreen({ route, navigation }: any) {
     // usa elas direto — garante que a pergunta preview aparecerá na lista
     if (preloadedQuestions && preloadedQuestions.length > 0) {
       setQuestions(preloadedQuestions);
-      startTimer();
+      if (shouldUseTimer) startTimer();
       setLoading(false);
       return;
     }
@@ -192,7 +195,7 @@ export function QuizScreen({ route, navigation }: any) {
     }
     if (data && data.length > 0) {
       setQuestions(data);
-      startTimer();
+      if (shouldUseTimer) startTimer();
     }
     setLoading(false);
   }
@@ -380,10 +383,14 @@ export function QuizScreen({ route, navigation }: any) {
           <ArrowLeft size={22} color={C.text} />
         </TouchableOpacity>
         <Text style={[styles.topTitle, { color: C.text }]}>{stateName ?? subcategory ?? 'Quiz'}</Text>
-        <View style={[styles.timerBadge, { backgroundColor: `${timerColor}20` }]}>
-          <Clock size={13} color={timerColor} />
-          <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
-        </View>
+        {shouldUseTimer ? (
+          <View style={[styles.timerBadge, { backgroundColor: `${timerColor}20` }]}>
+            <Clock size={13} color={timerColor} />
+            <Text style={[styles.timerText, { color: timerColor }]}>{timeLeft}s</Text>
+          </View>
+        ) : (
+          <View style={styles.timerBadge} /> // placeholder para manter o layout centralizado
+        )}
       </View>
 
       <ReportModal visible={reportOpen} questionId={q.id} questionText={q.text} onClose={() => setReportOpen(false)} />

@@ -9,6 +9,7 @@ import Info from 'lucide-react-native/dist/esm/icons/info';
 import ChevronRight from 'lucide-react-native/dist/esm/icons/chevron-right';
 import LogOut from 'lucide-react-native/dist/esm/icons/log-out';
 import Volume2 from 'lucide-react-native/dist/esm/icons/volume-2';
+import Timer from 'lucide-react-native/dist/esm/icons/timer';
 import { Linking } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -28,7 +29,7 @@ export function SettingsScreen() {
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
-  const { themeMode, setThemeMode, notifStreak, notifMissions, notifDuel, setNotifStreak, setNotifMissions, setNotifDuel, audioNarration, audioSfx, setAudioNarration, setAudioSfx } = useSettingsStore();
+  const { themeMode, setThemeMode, notifStreak, notifMissions, notifDuel, setNotifStreak, setNotifMissions, setNotifDuel, audioNarration, audioSfx, setAudioNarration, setAudioSfx, quizTimer, setQuizTimer } = useSettingsStore();
   const { signOut } = useAuthStore();
 
   // Ao montar, sincroniza notificações agendadas com as preferências salvas
@@ -154,6 +155,26 @@ export function SettingsScreen() {
               onValueChange={setAudioSfx}
               trackColor={{ false: C.border, true: `${C.green}60` }}
               thumbColor={audioSfx ? C.green : C.subtle}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Quiz */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: C.muted }]}>QUIZ</Text>
+        <View style={[styles.card, { backgroundColor: C.card, borderColor: C.border }]}>
+          <View style={styles.notifRow}>
+            <Timer size={16} color={C.muted} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.notifLabel, { color: C.text }]}>Cronômetro</Text>
+              <Text style={[styles.notifSub, { color: C.muted }]}>Ativado automaticamente no modo Relâmpago</Text>
+            </View>
+            <Switch
+              value={quizTimer}
+              onValueChange={setQuizTimer}
+              trackColor={{ false: C.border, true: `${C.green}60` }}
+              thumbColor={quizTimer ? C.green : C.subtle}
             />
           </View>
         </View>
