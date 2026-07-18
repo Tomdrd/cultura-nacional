@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video, Shuffle, Flame } from 'lucide-react-native';
+import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video, Flame, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb, Guitar, Mic2 } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -24,6 +24,21 @@ const RANDOM_SUBCATEGORIES = ['Cultura', 'História', 'Gastronomia', 'Natureza',
 function pickRandomSubcategory() {
   return RANDOM_SUBCATEGORIES[Math.floor(Math.random() * RANDOM_SUBCATEGORIES.length)];
 }
+
+// Ícone + cor por subcategoria pro card "Aleatório" — mesmos ícones já
+// usados em Categorias/Música, cada um com uma cor própria pra dar
+// identidade visual (o card antes usava um ícone genérico de shuffle).
+const CATEGORY_META: Record<string, { Icon: any; color: string }> = {
+  'Cultura':      { Icon: Star,      color: '#F5B942' },
+  'História':     { Icon: BookOpen,  color: '#4C8DFF' },
+  'Gastronomia':  { Icon: Utensils,  color: '#FF8A65' },
+  'Natureza':     { Icon: Leaf,      color: '#3DC77A' },
+  'Turismo':      { Icon: Compass,   color: '#3EC6C6' },
+  'Curiosidades': { Icon: Lightbulb, color: '#FFD24D' },
+  'MPB':          { Icon: Guitar,    color: '#A78BFA' },
+  'Reggae':       { Icon: Leaf,      color: '#E2A33D' },
+  'RAP':          { Icon: Mic2,      color: '#E2635B' },
+};
 
 export function HomeScreen({ navigation }: any) {
   const { isDark } = useTheme();
@@ -203,13 +218,25 @@ export function HomeScreen({ navigation }: any) {
           }}
           disabled={!previewQuestion}
         >
-          <View style={[styles.iconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>
-            <Shuffle size={18} color={C.text} />
+          {(() => {
+            const meta = previewQuestion ? CATEGORY_META[previewQuestion.subcategory] : null;
+            const Icon = meta?.Icon ?? Star;
+            const iconColor = meta?.color ?? C.green;
+            return (
+              <View style={[styles.randomIconBox, { backgroundColor: `${iconColor}29`, borderColor: `${iconColor}52` }]}>
+                <Icon size={28} color={iconColor} />
+              </View>
+            );
+          })()}
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.randomEyebrow, { color: C.muted }]}>
+              {previewQuestion?.subcategory ?? 'Aleatório'}
+            </Text>
+            <Text style={[styles.randomTitle, { color: C.text }]} numberOfLines={2}>
+              {previewQuestion?.text ?? 'Carregando pergunta...'}
+            </Text>
           </View>
-          <Text style={[styles.randomTitle, { color: C.text, flex: 1 }]} numberOfLines={2}>
-            {previewQuestion?.text ?? 'Carregando pergunta...'}
-          </Text>
-          <ChevronRight size={18} color={C.muted} />
+          <ChevronRight size={16} color={C.muted} />
         </TouchableOpacity>
 
         <View style={styles.sectionGrid}>
@@ -279,8 +306,10 @@ const styles = StyleSheet.create({
   actionSub:       { fontSize: scaleFont(9), marginTop: 1 },
   section:         { paddingHorizontal: Spacing.xl, marginBottom: Spacing.xl },
   sectionTitle:    { fontSize: FontSize.xs, fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
-  randomCard:      { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, marginBottom: 10 },
-  randomTitle:     { fontSize: FontSize.md, fontWeight: FontWeight.bold, lineHeight: 20 },
+  randomCard:      { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, marginBottom: 10 },
+  randomIconBox:   { width: 56, height: 56, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  randomEyebrow:   { fontSize: FontSize.xs, fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 3 },
+  randomTitle:     { fontSize: FontSize.sm, fontWeight: FontWeight.bold, lineHeight: 18 },
   sectionGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
   sectionCard:     { flexGrow: 1, flexBasis: 150, minWidth: 150, padding: Spacing.md },
   uf:              { fontSize: scaleFont(9), fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8 },
