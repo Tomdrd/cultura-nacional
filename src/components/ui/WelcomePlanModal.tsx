@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { Ionicons } from '@expo/vector-icons';
+import { CircleCheck } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Plan } from '../../types';
 import { scaleFont } from '../../constants/layout';
@@ -53,7 +53,7 @@ export function WelcomePlanModal({ plan, username }: Props) {
       <View style={styles.overlay}>
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: config.color + '40' }]}>
           <View style={[styles.iconWrap, { backgroundColor: config.color + '15' }]}>
-            <Ionicons name="checkmark-circle" size={48} color={config.color} />
+            <CircleCheck size={48} color={config.color} fill={config.color} stroke="#fff" strokeWidth={1.5} />
           </View>
           <Text style={[styles.title, { color: colors.text }]}>
             Bem-vindo ao {config.label}

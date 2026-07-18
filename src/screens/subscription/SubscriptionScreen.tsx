@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
-import { ArrowLeft, Shield, Zap, RefreshCw } from 'lucide-react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ArrowLeft, Shield, Zap, RefreshCw, BadgeCheck, CircleCheck } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useAuthStore } from '../../store/authStore';
@@ -92,7 +91,7 @@ export function SubscriptionScreen({ navigation }: any) {
         {/* Hero */}
         <View style={[styles.hero, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           <View style={[styles.heroBadge, { backgroundColor: '#1877F215', borderColor: '#1877F240' }]}>
-            <Ionicons name="checkmark-circle" size={14} color="#1877F2" />
+            <BadgeCheck size={14} color="#1877F2" fill="#1877F2" stroke="#fff" strokeWidth={1.5} />
             <Text style={styles.heroBadgeText}>Verificado</Text>
           </View>
           <Text style={[styles.heroTitle, { color: colors.text }]}>Leve o Cultura Nacional{'\n'}ao próximo nível</Text>
@@ -152,7 +151,7 @@ export function SubscriptionScreen({ navigation }: any) {
           <View style={[styles.featuresCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {FEATURES.map(f => (
               <View key={f} style={styles.featureRow}>
-                <Ionicons name="checkmark-circle" size={18} color="#1877F2" />
+                <CircleCheck size={18} color="#1877F2" fill="#1877F2" stroke="#fff" strokeWidth={1.5} />
                 <Text style={[styles.featureText, { color: colors.text }]}>{f}</Text>
               </View>
             ))}

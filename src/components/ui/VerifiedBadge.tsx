@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { BadgeCheck } from 'lucide-react-native';
 import { Plan } from '../../types';
 
 interface Props {
@@ -14,7 +14,7 @@ export function VerifiedBadge({ plan, size = 18 }: Props) {
   if (plan === 'free') return null;
   return (
     <View style={styles.wrapper}>
-      <Ionicons name="checkmark-circle" size={size} color={BADGE_COLOR} />
+      <BadgeCheck size={size} color={BADGE_COLOR} fill={BADGE_COLOR} stroke="#fff" strokeWidth={1.5} />
     </View>
   );
 }
@@ -25,12 +25,12 @@ export function AvatarVerifiedBadge({ plan, avatarSize }: { plan: Plan; avatarSi
   const offset    = Math.round(badgeSize * 0.1);
   return (
     <View style={[styles.avatarBadge, { width: badgeSize + 4, height: badgeSize + 4, borderRadius: (badgeSize + 4) / 2, bottom: -offset, right: -offset }]}>
-      <Ionicons name="checkmark-circle" size={badgeSize} color={BADGE_COLOR} />
+      <BadgeCheck size={badgeSize} color={BADGE_COLOR} fill={BADGE_COLOR} stroke="#fff" strokeWidth={1.5} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper:     {},
+  wrapper:     { lineHeight: 0 },
   avatarBadge: { position: 'absolute', backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
 });
