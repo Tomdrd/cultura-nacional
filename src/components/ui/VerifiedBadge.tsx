@@ -31,6 +31,6 @@ export function AvatarVerifiedBadge({ plan, avatarSize }: { plan: Plan; avatarSi
 }
 
 const styles = StyleSheet.create({
-  wrapper:     { lineHeight: 0 },
+  wrapper:     {},
   avatarBadge: { position: 'absolute', backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
 });
