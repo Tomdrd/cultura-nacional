@@ -52,7 +52,7 @@ export function LoginScreen({ navigation }: any) {
     setGoogleLoading(true);
     try {
       const redirectTo = Platform.OS === 'web'
-        ? 'https://cultura-nacional.vercel.app/auth/callback'
+        ? 'https://culturanacional.com.br/auth/callback'
         : 'culturanacional://auth/callback';
 
       const { data, error } = await supabase.auth.signInWithOAuth({
