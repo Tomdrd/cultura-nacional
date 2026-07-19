@@ -27,7 +27,14 @@ const linking: LinkingOptions<any> = {
       },
       App: {
         screens: {
-          HomeTabs: '',
+          HomeTabs: {
+            screens: {
+              Home: '',
+              Ranking: 'ranking',
+              Notifications: 'notificacoes',
+              Settings: 'configuracoes',
+            },
+          },
           PublicProfile: ':slug', // URL amigável: /tom → PublicProfile com slug="tom"
         },
       },
