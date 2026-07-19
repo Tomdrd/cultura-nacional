@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Platform } from 'react-native';
-import { ArrowLeft, Clock, Zap, CheckCircle, XCircle, Trophy, Flag } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import Clock from 'lucide-react-native/dist/esm/icons/clock';
+import Zap from 'lucide-react-native/dist/esm/icons/zap';
+import CheckCircle from 'lucide-react-native/dist/esm/icons/circle-check';
+import XCircle from 'lucide-react-native/dist/esm/icons/circle-x';
+import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
+import Flag from 'lucide-react-native/dist/esm/icons/flag';
 import * as Speech from 'expo-speech';
 import { BlurView } from 'expo-blur';
 

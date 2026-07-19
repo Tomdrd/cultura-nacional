@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { Trophy, MapPin, Globe, User, ArrowLeft } from 'lucide-react-native';
+import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
+import MapPin from 'lucide-react-native/dist/esm/icons/map-pin';
+import Globe from 'lucide-react-native/dist/esm/icons/globe';
+import User from 'lucide-react-native/dist/esm/icons/user';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';

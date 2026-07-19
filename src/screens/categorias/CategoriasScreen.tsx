@@ -1,6 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions, StatusBar } from 'react-native';
-import { ArrowLeft, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import Star from 'lucide-react-native/dist/esm/icons/star';
+import BookOpen from 'lucide-react-native/dist/esm/icons/book-open';
+import Utensils from 'lucide-react-native/dist/esm/icons/utensils';
+import Leaf from 'lucide-react-native/dist/esm/icons/leaf';
+import Compass from 'lucide-react-native/dist/esm/icons/compass';
+import Lightbulb from 'lucide-react-native/dist/esm/icons/lightbulb';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';

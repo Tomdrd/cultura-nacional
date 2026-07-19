@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Award, Star, Zap, BookOpen, Trophy, MapPin, Globe, Flag, TrendingUp, CheckCircle, Swords, ArrowLeft } from 'lucide-react-native';
+import Award from 'lucide-react-native/dist/esm/icons/award';
+import Star from 'lucide-react-native/dist/esm/icons/star';
+import Zap from 'lucide-react-native/dist/esm/icons/zap';
+import BookOpen from 'lucide-react-native/dist/esm/icons/book-open';
+import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
+import MapPin from 'lucide-react-native/dist/esm/icons/map-pin';
+import Globe from 'lucide-react-native/dist/esm/icons/globe';
+import Flag from 'lucide-react-native/dist/esm/icons/flag';
+import TrendingUp from 'lucide-react-native/dist/esm/icons/trending-up';
+import CheckCircle from 'lucide-react-native/dist/esm/icons/circle-check';
+import Swords from 'lucide-react-native/dist/esm/icons/swords';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useContentWidth } from '../../hooks/useContentWidth';

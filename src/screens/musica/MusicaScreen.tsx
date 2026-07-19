@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions, StatusBar } from 'react-native';
-import { ArrowLeft, Guitar, Leaf, Mic2 } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import Guitar from 'lucide-react-native/dist/esm/icons/guitar';
+import Leaf from 'lucide-react-native/dist/esm/icons/leaf';
+import Mic2 from 'lucide-react-native/dist/esm/icons/mic-vocal';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';

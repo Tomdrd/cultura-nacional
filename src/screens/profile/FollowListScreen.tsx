@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
-import { ArrowLeft, User } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import User from 'lucide-react-native/dist/esm/icons/user';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
@@ -61,7 +62,7 @@ export function FollowListScreen({ route, navigation }: any) {
     }
 
     const fetchedProfiles: ProfileData[] = (data || [])
-      .map((row: any) => row.profiles as unknown as ProfileData)
+      .map(row => row.profiles as unknown as ProfileData)
       .filter(Boolean);
 
     if (pageNumber === 0) {

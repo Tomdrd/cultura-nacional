@@ -4,8 +4,8 @@ import {
   ActivityIndicator, useWindowDimensions, StatusBar,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Check, ArrowLeft } from 'lucide-react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import Check from 'lucide-react-native/dist/esm/icons/check';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
 import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
@@ -42,10 +42,9 @@ export function EstadosScreen({ navigation }: any) {
   const [states, setStates]   = useState<StateItem[]>([]);
   const [region, setRegion]   = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const hasLoaded = React.useRef(false);
 
   const fetchData = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true); // spinner só na primeira vez
+    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
 
     const [{ data: statesData }, { data: progressData }] = await Promise.all([
@@ -68,10 +67,9 @@ export function EstadosScreen({ navigation }: any) {
 
     setStates(merged);
     setLoading(false);
-    hasLoaded.current = true;
   }, []);
 
-  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filtered = region ? states.filter(s => s.region === region) : states;
   const completed = states.filter(s => s.completed).length;

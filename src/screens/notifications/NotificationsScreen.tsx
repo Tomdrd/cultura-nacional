@@ -3,7 +3,11 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   ActivityIndicator, Image, Alert
 } from 'react-native';
-import { Bell, UserPlus, Swords, Trophy, Trash2 } from 'lucide-react-native';
+import Bell from 'lucide-react-native/dist/esm/icons/bell';
+import UserPlus from 'lucide-react-native/dist/esm/icons/user-plus';
+import Swords from 'lucide-react-native/dist/esm/icons/swords';
+import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
+import Trash2 from 'lucide-react-native/dist/esm/icons/trash-2';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';

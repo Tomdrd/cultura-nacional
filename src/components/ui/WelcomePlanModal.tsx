@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { CircleCheck } from 'lucide-react-native';
+import { CircleCheckSolid } from './FilledCheckIcons';
 import { useTheme } from '../../hooks/useTheme';
 import { Plan } from '../../types';
 import { scaleFont } from '../../constants/layout';
-
 interface Props {
   plan: Plan;
   username: string;
 }
-
 const PLAN_CONFIG: Record<string, { label: string; color: string; description: string }> = {
   pro: {
     label: 'CN Pro',
@@ -28,32 +26,27 @@ const PLAN_CONFIG: Record<string, { label: string; color: string; description: s
     description: 'Sua instituição agora tem acesso completo ao Cultura Nacional. Use o app como ferramenta de aprendizado sobre a cultura brasileira.',
   },
 }
-
 export function WelcomePlanModal({ plan, username }: Props) {
   const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
   const config = PLAN_CONFIG[plan];
-
   useEffect(() => {
     if (!config) return;
     SecureStore.getItemAsync(`welcome_shown_${plan}`).then(shown => {
       if (!shown) setVisible(true);
     });
   }, [plan]);
-
   async function dismiss() {
     await SecureStore.setItemAsync(`welcome_shown_${plan}`, 'true');
     setVisible(false);
   }
-
   if (!config || !visible) return null;
-
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={dismiss}>
       <View style={styles.overlay}>
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: config.color + '40' }]}>
           <View style={[styles.iconWrap, { backgroundColor: config.color + '15' }]}>
-            <CircleCheck size={48} color={config.color} fill={config.color} stroke="#fff" strokeWidth={1.5} />
+            <CircleCheckSolid size={48} color={config.color} />
           </View>
           <Text style={[styles.title, { color: colors.text }]}>
             Bem-vindo ao {config.label}
@@ -73,7 +66,6 @@ export function WelcomePlanModal({ plan, username }: Props) {
     </Modal>
   );
 }
-
 const styles = StyleSheet.create({
   overlay:     { flex: 1, backgroundColor: '#000000AA', justifyContent: 'center', alignItems: 'center', padding: 24 },
   card:        { width: '100%', maxWidth: 360, borderRadius: 20, borderWidth: 1, padding: 28, alignItems: 'center', gap: 12 },

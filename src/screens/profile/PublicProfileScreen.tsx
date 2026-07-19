@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { ArrowLeft, User, MapPin, Trophy, Zap, Star, Award, Copy, Check, UserPlus, UserCheck, Swords } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import User from 'lucide-react-native/dist/esm/icons/user';
+import MapPin from 'lucide-react-native/dist/esm/icons/map-pin';
+import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
+import Zap from 'lucide-react-native/dist/esm/icons/zap';
+import Star from 'lucide-react-native/dist/esm/icons/star';
+import Award from 'lucide-react-native/dist/esm/icons/award';
+import Copy from 'lucide-react-native/dist/esm/icons/copy';
+import UserPlus from 'lucide-react-native/dist/esm/icons/user-plus';
+import UserCheck from 'lucide-react-native/dist/esm/icons/user-check';
+import Swords from 'lucide-react-native/dist/esm/icons/swords';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';
@@ -11,12 +21,6 @@ import { getXpProgress, XP_PER_LEVEL } from '../../utils/xp';
 import { VerifiedBadge, AvatarVerifiedBadge } from '../../components/ui/VerifiedBadge';
 import { Plan } from '../../types';
 import * as Clipboard from 'expo-clipboard';
-
-function isActivePlan(plan: Plan, expiresAt: string | null): boolean {
-  if (plan === 'free') return false;
-  if (!expiresAt) return true;
-  return new Date(expiresAt) > new Date();
-}
 
 const LEVELS = [
   { min: 0,    label: 'Curioso' },
@@ -35,49 +39,24 @@ function getLevelInfo(level: number) {
 }
 
 interface Profile {
-  username:        string;
-  avatar_url:      string | null;
-  xp:              number;
-  level:           number;
-  streak:          number;
-  plan:            Plan;
-  plan_expires_at: string | null;
-  city_natal_id:   string | null;
-  state_uf:        string | null;
-  profile_slug:    string | null;
+  username: string;
+  avatar_url: string | null;
+  xp: number;
+  level: number;
+  streak: number;
+  plan: Plan;
+  city_natal_id: string | null;
+  state_uf: string | null;
 }
 
 interface CityInfo { name: string; state_uf: string; }
 
 export function PublicProfileScreen({ route, navigation }: any) {
-  const { userId: userIdParam, slug } = route.params ?? {};
+  const { userId } = route.params;
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
-
-  // Se veio via URL amigável (/tom), resolve slug → userId antes de carregar
-  const [resolvedUserId, setResolvedUserId] = useState<string | null>(userIdParam ?? null);
-  const userId = resolvedUserId;
-
-  useEffect(() => {
-    if (!userIdParam && slug) {
-      supabase
-        .from('profiles')
-        .select('id, plan, plan_expires_at')
-        .or(`profile_slug.eq.${slug},username.eq.${slug}`)
-        .maybeSingle()
-        .then(({ data }: { data: { id: string; plan: string; plan_expires_at: string | null } | null }) => {
-          if (!data?.id) { navigation.replace('HomeTabs'); return; }
-          // URL amigável é exclusiva de CN Pro ativo
-          const isProActive = (data.plan === 'pro' || data.plan === 'family' || data.plan === 'education')
-            && (!data.plan_expires_at || new Date(data.plan_expires_at) > new Date());
-          if (isProActive) setResolvedUserId(data.id);
-          else navigation.replace('HomeTabs');
-        });
-    }
-  }, [userIdParam, slug]);
-
   const [profile,     setProfile]     = useState<Profile | null>(null);
   const [city,        setCity]        = useState<CityInfo | null>(null);
   const [cityRank,    setCityRank]    = useState<number | null>(null);
@@ -93,7 +72,6 @@ export function PublicProfileScreen({ route, navigation }: any) {
   const isMe = user?.id === userId;
 
   useEffect(() => {
-    if (!userId) return; // aguarda resolução do slug antes de carregar
     loadProfile();
     loadFollowInfo();
     loadQuizStats();
@@ -141,11 +119,11 @@ export function PublicProfileScreen({ route, navigation }: any) {
     if (isFollowing) {
       await supabase.from('follows').delete().eq('follower_id', user.id).eq('following_id', userId);
       setIsFollowing(false);
-      setFollowersCount((c: number) => Math.max(0, c - 1));
+      setFollowersCount(c => Math.max(0, c - 1));
     } else {
       await supabase.from('follows').insert({ follower_id: user.id, following_id: userId });
       setIsFollowing(true);
-      setFollowersCount((c: number) => c + 1);
+      setFollowersCount(c => c + 1);
 
       // Notifica o seguido
       const { data: myProfile } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single();
@@ -163,9 +141,8 @@ export function PublicProfileScreen({ route, navigation }: any) {
   }
 
   async function handleCopyUrl() {
-    if (!profile) return;
-    const slug = profile.profile_slug ?? profile.username;
-    await Clipboard.setStringAsync(`https://cultura-nacional.vercel.app/${slug}`);
+    if (!profile?.username) return;
+    await Clipboard.setStringAsync(`https://cultura-nacional.vercel.app/${profile.username}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -175,16 +152,12 @@ export function PublicProfileScreen({ route, navigation }: any) {
     setNotFound(false);
     const { data } = await supabase
       .from('profiles')
-      .select('username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, profile_slug, cities!city_natal_id(state_uf)')
+      .select('username, avatar_url, xp, level, streak, plan, city_natal_id, cities!city_natal_id(state_uf)')
       .eq('id', userId)
       .single();
 
     if (data) {
-      setProfile({
-        ...data,
-        state_uf:     (data as any).cities?.state_uf ?? null,
-        profile_slug: (data as any).profile_slug     ?? null,
-      } as Profile);
+      setProfile({ ...data, state_uf: (data as any).cities?.state_uf ?? null } as Profile);
       if (data.city_natal_id) {
         const [{ data: cityData }, { data: rankData }] = await Promise.all([
           supabase.from('cities').select('name, state_uf').eq('id', data.city_natal_id).single(),
@@ -199,12 +172,10 @@ export function PublicProfileScreen({ route, navigation }: any) {
     setLoading(false);
   }
 
-  const xpToNext     = XP_PER_LEVEL;
-  const xpPct        = getXpProgress(profile?.xp ?? 0);
-  const levelInfo    = getLevelInfo(profile?.level ?? 1);
-  // ✅ Corrigido: verifica expiração do plano
-  const isProProfile = isActivePlan(profile?.plan ?? 'free', profile?.plan_expires_at ?? null);
-  const urlSlug      = profile?.profile_slug ?? profile?.username ?? '';
+  const xpToNext  = XP_PER_LEVEL;
+  const xpPct     = getXpProgress(profile?.xp ?? 0);
+  const levelInfo = getLevelInfo(profile?.level ?? 1);
+  const isProProfile = profile?.plan === 'pro';
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
@@ -264,12 +235,9 @@ export function PublicProfileScreen({ route, navigation }: any) {
                 style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
               >
                 <Text style={[styles.urlText, { color: C.subtle }]} numberOfLines={1}>
-                  cultura-nacional.vercel.app/{urlSlug}
+                  cultura-nacional.vercel.app/{profile?.username}
                 </Text>
-                {copied
-                  ? <Check size={13} color={C.green} />
-                  : <Copy size={13} color={C.muted} />
-                }
+                <Copy size={13} color={C.muted} />
               </TouchableOpacity>
             )}
 

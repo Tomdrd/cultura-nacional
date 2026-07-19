@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, ViewStyle, Platform } from 'react-native';
-import { Eye, EyeOff } from 'lucide-react-native';
+import Eye from 'lucide-react-native/dist/esm/icons/eye';
+import EyeOff from 'lucide-react-native/dist/esm/icons/eye-off';
 import { useTheme } from '../../hooks/useTheme';
 import { HomeTheme } from '../../constants/colors';
 import { Radius, FontSize, Spacing } from '../../constants/layout';

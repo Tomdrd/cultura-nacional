@@ -1,6 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated, Image, Platform } from 'react-native';
-import { Swords, Clock, CheckCircle, XCircle, Trophy, Copy, Users, ArrowLeft, X, User } from 'lucide-react-native';
+import Swords from 'lucide-react-native/dist/esm/icons/swords';
+import Clock from 'lucide-react-native/dist/esm/icons/clock';
+import CheckCircle from 'lucide-react-native/dist/esm/icons/circle-check';
+import XCircle from 'lucide-react-native/dist/esm/icons/circle-x';
+import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
+import Copy from 'lucide-react-native/dist/esm/icons/copy';
+import Users from 'lucide-react-native/dist/esm/icons/users';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import X from 'lucide-react-native/dist/esm/icons/x';
+import User from 'lucide-react-native/dist/esm/icons/user';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';

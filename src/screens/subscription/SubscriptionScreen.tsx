@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
-import { ArrowLeft, Shield, Zap, RefreshCw, BadgeCheck, CircleCheck } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import Shield from 'lucide-react-native/dist/esm/icons/shield';
+import Zap from 'lucide-react-native/dist/esm/icons/zap';
+import RefreshCw from 'lucide-react-native/dist/esm/icons/refresh-cw';
+import { BadgeCheckSolid, CircleCheckSolid } from '../../components/ui/FilledCheckIcons';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { useAuthStore } from '../../store/authStore';
@@ -91,7 +95,7 @@ export function SubscriptionScreen({ navigation }: any) {
         {/* Hero */}
         <View style={[styles.hero, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           <View style={[styles.heroBadge, { backgroundColor: '#1877F215', borderColor: '#1877F240' }]}>
-            <BadgeCheck size={14} color="#1877F2" fill="#1877F2" stroke="#fff" strokeWidth={1.5} />
+            <BadgeCheckSolid size={14} color="#1877F2" />
             <Text style={styles.heroBadgeText}>Verificado</Text>
           </View>
           <Text style={[styles.heroTitle, { color: colors.text }]}>Leve o Cultura Nacional{'\n'}ao próximo nível</Text>
@@ -151,7 +155,7 @@ export function SubscriptionScreen({ navigation }: any) {
           <View style={[styles.featuresCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {FEATURES.map(f => (
               <View key={f} style={styles.featureRow}>
-                <CircleCheck size={18} color="#1877F2" fill="#1877F2" stroke="#fff" strokeWidth={1.5} />
+                <CircleCheckSolid size={18} color="#1877F2" />
                 <Text style={[styles.featureText, { color: colors.text }]}>{f}</Text>
               </View>
             ))}

@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Target, CheckCircle, Clock, Zap, ArrowLeft } from 'lucide-react-native';
+import Target from 'lucide-react-native/dist/esm/icons/target';
+import CheckCircle from 'lucide-react-native/dist/esm/icons/circle-check';
+import Clock from 'lucide-react-native/dist/esm/icons/clock';
+import Zap from 'lucide-react-native/dist/esm/icons/zap';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { supabase } from '../../lib/supabase';

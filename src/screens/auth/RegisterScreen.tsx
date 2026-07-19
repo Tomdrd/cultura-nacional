@@ -3,7 +3,10 @@ import {
   View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity,
   KeyboardAvoidingView, Platform, Linking, ActivityIndicator, StatusBar,
 } from 'react-native';
-import { ArrowLeft, CheckCircle, MapPin, Search } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import CheckCircle from 'lucide-react-native/dist/esm/icons/circle-check';
+import MapPin from 'lucide-react-native/dist/esm/icons/map-pin';
+import Search from 'lucide-react-native/dist/esm/icons/search';
 import { useTheme } from '../../hooks/useTheme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';

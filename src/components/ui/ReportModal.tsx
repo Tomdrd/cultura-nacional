@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
-import { AlertTriangle, X, Send } from 'lucide-react-native';
+import AlertTriangle from 'lucide-react-native/dist/esm/icons/triangle-alert';
+import X from 'lucide-react-native/dist/esm/icons/x';
+import Send from 'lucide-react-native/dist/esm/icons/send';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';

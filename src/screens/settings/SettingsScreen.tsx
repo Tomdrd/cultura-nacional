@@ -1,6 +1,14 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
-import { Moon, Sun, Smartphone, Bell, Shield, Info, ChevronRight, LogOut, Volume2 } from 'lucide-react-native';
+import Moon from 'lucide-react-native/dist/esm/icons/moon';
+import Sun from 'lucide-react-native/dist/esm/icons/sun';
+import Smartphone from 'lucide-react-native/dist/esm/icons/smartphone';
+import Bell from 'lucide-react-native/dist/esm/icons/bell';
+import Shield from 'lucide-react-native/dist/esm/icons/shield';
+import Info from 'lucide-react-native/dist/esm/icons/info';
+import ChevronRight from 'lucide-react-native/dist/esm/icons/chevron-right';
+import LogOut from 'lucide-react-native/dist/esm/icons/log-out';
+import Volume2 from 'lucide-react-native/dist/esm/icons/volume-2';
 import { Linking } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';

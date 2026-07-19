@@ -3,7 +3,9 @@ import {
   View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar,
 } from 'react-native';
-import { ArrowLeft, MapPin, Search } from 'lucide-react-native';
+import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import MapPin from 'lucide-react-native/dist/esm/icons/map-pin';
+import Search from 'lucide-react-native/dist/esm/icons/search';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Button } from '../../components/ui/Button';

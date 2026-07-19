@@ -1,6 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { MapPin, Trophy, Zap, Music, Map, Tag, ChevronRight, Video, Flame, Star, BookOpen, Utensils, Leaf, Compass, Lightbulb, Guitar, Mic2 } from 'lucide-react-native';
+import MapPin from 'lucide-react-native/dist/esm/icons/map-pin';
+import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
+import Zap from 'lucide-react-native/dist/esm/icons/zap';
+import Music from 'lucide-react-native/dist/esm/icons/music';
+import Map from 'lucide-react-native/dist/esm/icons/map';
+import Tag from 'lucide-react-native/dist/esm/icons/tag';
+import ChevronRight from 'lucide-react-native/dist/esm/icons/chevron-right';
+import Video from 'lucide-react-native/dist/esm/icons/video';
+import Flame from 'lucide-react-native/dist/esm/icons/flame';
+import Star from 'lucide-react-native/dist/esm/icons/star';
+import BookOpen from 'lucide-react-native/dist/esm/icons/book-open';
+import Utensils from 'lucide-react-native/dist/esm/icons/utensils';
+import Leaf from 'lucide-react-native/dist/esm/icons/leaf';
+import Compass from 'lucide-react-native/dist/esm/icons/compass';
+import Lightbulb from 'lucide-react-native/dist/esm/icons/lightbulb';
+import Guitar from 'lucide-react-native/dist/esm/icons/guitar';
+import Mic2 from 'lucide-react-native/dist/esm/icons/mic-vocal';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -55,7 +71,8 @@ export function HomeScreen({ navigation }: any) {
   useFocusEffect(React.useCallback(() => { loadData(); loadPreviewQuestion(); }, []));
 
   async function loadPreviewQuestion() {
-    // Não reseta — pergunta anterior fica visível até nova chegar
+    setPreviewQuestion(null);
+    setRandomQuestions(null);
     const subcategory = pickRandomSubcategory();
     const { data } = await supabase.rpc('get_random_quiz_questions', {
       p_state_id: null, p_city_id: null, p_subcategory: subcategory, p_limit: 5, p_progressive: false,
@@ -69,7 +86,7 @@ export function HomeScreen({ navigation }: any) {
   }
 
   async function loadData() {
-    if (!profile) setLoading(true); // spinner só na primeira vez
+    setLoading(true);
     const { data: profileData } = user ? await supabase.from('profiles').select('username, xp, level, streak, city_natal_id, avatar_url').eq('id', user.id).single() : { data: null };
     if (profileData) {
       setProfile(profileData);
