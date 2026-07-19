@@ -142,7 +142,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
 
   async function handleCopyUrl() {
     if (!profile?.username) return;
-    await Clipboard.setStringAsync(`https://cultura-nacional.vercel.app/${profile.username}`);
+    await Clipboard.setStringAsync(`https://culturanacional.com.br/${profile.username}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -235,7 +235,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
                 style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
               >
                 <Text style={[styles.urlText, { color: C.subtle }]} numberOfLines={1}>
-                  cultura-nacional.vercel.app/{profile?.username}
+                  culturanacional.com.br/{profile?.username}
                 </Text>
                 <Copy size={13} color={C.muted} />
               </TouchableOpacity>

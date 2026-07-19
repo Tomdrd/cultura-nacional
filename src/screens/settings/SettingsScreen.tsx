@@ -189,8 +189,8 @@ export function SettingsScreen() {
         <Text style={[styles.sectionLabel, { color: C.muted }]}>SOBRE</Text>
         <View style={[styles.card, { backgroundColor: C.card, borderColor: C.border }]}>
           {([
-            { Icon: Shield, label: 'Política de Privacidade', url: 'https://cultura-nacional.vercel.app/privacidade.html' },
-            { Icon: Info,   label: 'Termos de Uso',             url: 'https://cultura-nacional.vercel.app/termos.html' },
+            { Icon: Shield, label: 'Política de Privacidade', url: 'https://culturanacional.com.br/privacidade.html' },
+            { Icon: Info,   label: 'Termos de Uso',             url: 'https://culturanacional.com.br/termos.html' },
             { Icon: Info,   label: 'Versão 1.0.0',               url: null },
           ] as { Icon: any; label: string; url: string | null }[]).map(({ Icon, label, url }, i) => (
             <TouchableOpacity

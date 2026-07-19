@@ -136,7 +136,7 @@ export function ProfileScreen({ navigation }: any) {
   const xpPct       = getXpProgress(profile?.xp ?? 0);
   const levelInfo   = getLevelInfo(profile?.level ?? 1);
   const isPro       = profile?.plan === 'pro';
-  const profileUrl  = `cultura-nacional.vercel.app/${profile?.username ?? ''}`;
+  const profileUrl  = `culturanacional.com.br/${profile?.username ?? ''}`;
 
   async function handleCopyUrl() {
     await Clipboard.setStringAsync(`https://${profileUrl}`);

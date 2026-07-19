@@ -11,7 +11,12 @@ import { supabase } from '../lib/supabase';
 const Stack = createNativeStackNavigator();
 
 const linking: LinkingOptions<any> = {
-  prefixes: ['culturanacional://', 'https://cultura-nacional.vercel.app'],
+  prefixes: [
+    'culturanacional://',
+    'https://culturanacional.com.br',
+    'https://www.culturanacional.com.br',
+    'https://cultura-nacional.vercel.app',
+  ],
   config: {
     screens: {
       Auth: {

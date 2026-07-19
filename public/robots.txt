@@ -2,7 +2,7 @@
 User-agent: *
 Allow: /
 Crawl-delay: 1
-Sitemap: https://cultura-nacional.vercel.app/sitemap.xml
+Sitemap: https://culturanacional.com.br/sitemap.xml
 User-agent: AhrefsBot
 User-agent: SemrushBot
 Disallow: /

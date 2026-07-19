@@ -1,50 +1,644 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cultura Nacional — Quiz de Cultura Brasileira</title>
-  <meta name="description" content="Cultura Nacional é um aplicativo de quiz sobre cultura brasileira: música, geografia, história e curiosidades dos estados e cidades do Brasil.">
-  <link rel="icon" href="/favicon.png">
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #1a1a1a; line-height: 1.7; }
-    h1 { color: #009C3B; margin-top: 24px; }
-    h2 { color: #002776; margin-top: 32px; font-size: 20px; }
-    a { color: #009C3B; }
-    .logo { width: 72px; height: 72px; border-radius: 16px; }
-    .tagline { color: #444; font-size: 18px; margin-top: 0; }
-    ul { padding-left: 20px; }
-    footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cultura Nacional — Quiz de Cultura Brasileira</title>
+<meta name="description" content="Cultura Nacional é um aplicativo gratuito de quiz sobre a cultura brasileira: música, geografia, história e curiosidades dos 27 estados. Jogue agora, sem instalar nada.">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://culturanacional.com.br/">
+<meta property="og:title" content="Cultura Nacional — Quiz de Cultura Brasileira">
+<meta property="og:description" content="Quanto você realmente sabe sobre o Brasil? Teste seus conhecimentos em música, geografia, história e curiosidades regionais.">
+<meta property="og:image" content="https://culturanacional.com.br/og-image.png">
+<meta property="og:url" content="https://culturanacional.com.br/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Cultura Nacional">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cultura Nacional — Quiz de Cultura Brasileira">
+<meta name="twitter:description" content="Quanto você realmente sabe sobre o Brasil? Teste seus conhecimentos em música, geografia, história e curiosidades regionais.">
+<meta name="twitter:image" content="https://culturanacional.com.br/twitter-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Cultura Nacional",
+  "url": "https://culturanacional.com.br/",
+  "description": "Aplicativo gratuito de perguntas e respostas sobre a cultura brasileira: música, geografia, história e curiosidades dos 27 estados.",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Android, Web",
+  "inLanguage": "pt-BR",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "BRL"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1015;
+    --card: #1c2029;
+    --card-border: #252b38;
+    --ink: #f0f2f5;
+    --muted: #7E879D;
+    --green: #009C3B;
+    --green-bright: #00C24A;
+    --yellow: #FFDF00;
+    --blue: #002776;
+    --blue-bright: #2255CC;
+    --pink: #D4537E;
+    --purple: #7F3FBF;
+    --terracotta: #D85A30;
+    --quiz-option-bg: #15181f;
+    --tag-cat-text: #6FA8E8;
+    --tag-diff-text: var(--yellow);
+    --mode-pink-text: #D4537E;
+    --mode-purple-text: #7F3FBF;
+    --mode-blue-text: #6FA8E8;
+    --mode-yellow-text: #FFDF00;
+    --mode-green-text: #00C24A;
+    --mode-cyan-text: #378ADD;
+    --diamond-opacity: 0.16;
+    --shadow-strength: 0.6;
+    --check-mark-color: var(--bg);
+    --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #FFFFFF;
+      --card: #FFFFFF;
+      --card-border: #D6D6D6;
+      --ink: #0A0A0A;
+      --muted: #6B6B6B;
+      --green: #00792E;
+      --green-bright: #00792E;
+      --yellow: #8A6D00;
+      --blue: #002776;
+      --blue-bright: #002776;
+      --quiz-option-bg: #F5F5F5;
+      --tag-cat-text: #185FA5;
+      --tag-diff-text: #8A6D00;
+      --mode-pink-text: #99355A;
+      --mode-purple-text: #534AB7;
+      --mode-blue-text: #185FA5;
+      --mode-yellow-text: #8A6D00;
+      --mode-green-text: #00792E;
+      --mode-cyan-text: #0C447C;
+      --diamond-opacity: 0.08;
+      --shadow-strength: 0.12;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- Header ---------- */
+
+  .header {
+    padding: 28px 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .brand img {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .brand span {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Hero ---------- */
+
+  .hero {
+    position: relative;
+    padding: 48px 0 88px;
+    overflow: hidden;
+  }
+
+  .hero-diamond {
+    position: absolute;
+    top: -220px;
+    right: -260px;
+    width: 620px;
+    height: 620px;
+    background: linear-gradient(135deg, var(--green) 0%, var(--blue) 100%);
+    opacity: var(--diamond-opacity);
+    transform: rotate(45deg);
+    border-radius: 64px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 56px;
+    align-items: center;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    background: rgba(0, 156, 59, 0.12);
+    border: 1px solid rgba(0, 156, 59, 0.3);
+    padding: 6px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  .eyebrow .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--yellow);
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 44px;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin: 0 0 20px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--green-bright);
+  }
+
+  .hero p.lead {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 46ch;
+    margin: 0 0 32px;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, filter 0.15s ease;
+  }
+
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+  .btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+
+  .btn-primary {
+    background: var(--green);
+    color: #fff;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--card-border);
+  }
+
+  /* ---------- Quiz demo card ---------- */
+
+  .quiz-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, var(--shadow-strength));
+  }
+
+  .quiz-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 6px;
+  }
+
+  .tag-category {
+    background: rgba(55, 138, 221, 0.15);
+    color: var(--tag-cat-text);
+  }
+
+  .tag-difficulty {
+    background: rgba(255, 223, 0, 0.14);
+    color: var(--tag-diff-text);
+  }
+
+  .quiz-question {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.35;
+    margin: 0 0 20px;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: var(--quiz-option-bg);
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+
+  .quiz-option .check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--card-border);
+    flex-shrink: 0;
+  }
+
+  .quiz-option.correct {
+    border-color: rgba(0, 194, 74, 0.5);
+    background: rgba(0, 156, 59, 0.14);
+    animation: reveal 6s ease-in-out infinite;
+  }
+
+  .quiz-option.correct .check {
+    border-color: var(--green-bright);
+    background: var(--green-bright);
+    position: relative;
+  }
+
+  .quiz-option.correct .check::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid var(--check-mark-color);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  @keyframes reveal {
+    0%, 55% { border-color: var(--card-border); background: var(--quiz-option-bg); }
+    65%, 100% { border-color: rgba(0, 194, 74, 0.5); background: rgba(0, 156, 59, 0.14); }
+  }
+
+  .quiz-option.correct .check {
+    animation: reveal-check 6s ease-in-out infinite;
+  }
+
+  @keyframes reveal-check {
+    0%, 55% { border-color: var(--card-border); background: transparent; }
+    65%, 100% { border-color: var(--green-bright); background: var(--green-bright); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quiz-option.correct,
+    .quiz-option.correct .check {
+      animation: none;
+      border-color: rgba(0, 194, 74, 0.5);
+      background: rgba(0, 156, 59, 0.14);
+    }
+    .quiz-option.correct .check { background: var(--green-bright); }
+  }
+
+  .quiz-card-foot {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .quiz-card-foot .flag-dot {
+    display: inline-flex;
+    gap: 3px;
+  }
+
+  .quiz-card-foot .flag-dot span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  /* ---------- Sobre ---------- */
+
+  .section {
+    padding: 72px 0;
+    border-top: 1px solid var(--card-border);
+  }
+
+  .section-head {
+    max-width: 60ch;
+    margin-bottom: 40px;
+  }
+
+  .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .section h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+  }
+
+  .section p {
+    font-size: 16px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* ---------- Modos de jogo ---------- */
+
+  .modes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .mode-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 22px;
+  }
+
+  .mode-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 18px;
+  }
+
+  .mode-pink   { background: rgba(212, 83, 126, 0.14); color: var(--mode-pink-text); }
+  .mode-purple { background: rgba(127, 63, 191, 0.14); color: var(--mode-purple-text); }
+  .mode-blue   { background: rgba(0, 39, 118, 0.14);   color: var(--mode-blue-text); }
+  .mode-yellow { background: rgba(255, 223, 0, 0.14);  color: var(--mode-yellow-text); }
+  .mode-green  { background: rgba(0, 156, 59, 0.14);   color: var(--mode-green-text); }
+  .mode-cyan   { background: rgba(55, 138, 221, 0.14); color: var(--mode-cyan-text); }
+
+  .mode-card h3 {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15.5px;
+    margin: 0 0 6px;
+  }
+
+  .mode-card p {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  /* ---------- Footer ---------- */
+
+  .footer {
+    padding: 40px 0 56px;
+    border-top: 1px solid var(--card-border);
+  }
+
+  .footer-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .footer-links a {
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .footer-links a:hover { color: var(--ink); }
+
+  .footer-meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .footer-meta p { margin: 0 0 6px; }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hero h1 { font-size: 34px; }
+    .modes-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-diamond { width: 420px; height: 420px; top: -140px; right: -180px; }
+  }
+
+  @media (max-width: 560px) {
+    .modes-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 29px; }
+    .cta-row { flex-direction: column; }
+    .btn { justify-content: center; }
+    .footer-grid { flex-direction: column; }
+  }
+</style>
 </head>
 <body>
-  <img class="logo" src="/apple-touch-icon.png" alt="Logo do Cultura Nacional">
-  <h1>Cultura Nacional</h1>
-  <p class="tagline">Um quiz sobre cultura brasileira: música, geografia, história e curiosidades dos estados e cidades do Brasil.</p>
 
-  <h2>Sobre o app</h2>
-  <p>O Cultura Nacional é um jogo de perguntas e respostas que desafia você a testar seus conhecimentos sobre o Brasil. Responda quizzes de música, categorias gerais e desafios por estado, acompanhe seu progresso, dispute rankings com outros jogadores e desbloqueie conquistas conforme avança.</p>
+  <header class="header">
+    <div class="wrap">
+      <a class="brand" href="/">
+        <img src="/apple-touch-icon.png" alt="Logo do Cultura Nacional">
+        <span>Cultura Nacional</span>
+      </a>
+    </div>
+  </header>
 
-  <h2>Principais recursos</h2>
-  <ul>
-    <li>Quizzes de música brasileira por gênero</li>
-    <li>Categorias variadas de cultura geral</li>
-    <li>Desafios (duelos) contra outros jogadores</li>
-    <li>Rankings locais e nacionais</li>
-    <li>Missões diárias e sistema de conquistas</li>
-  </ul>
+  <section class="hero">
+    <div class="hero-diamond" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow"><span class="dot"></span>Quiz de cultura brasileira</span>
+        <h1>Quanto você <em>realmente</em> sabe sobre o Brasil?</h1>
+        <p class="lead">Responda perguntas de música, geografia, história e curiosidades dos 27 estados. Dispute rankings, complete missões diárias e desafie outros jogadores — direto do navegador, sem precisar instalar nada.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/app.html">Jogar agora</a>
+          <a class="btn btn-secondary" href="#modos">Ver modos de jogo</a>
+        </div>
+      </div>
 
-  <h2>Links úteis</h2>
-  <ul>
-    <li><a href="/privacidade.html">Política de Privacidade</a></li>
-    <li><a href="/termos.html">Termos de Uso</a></li>
-  </ul>
+      <div class="quiz-card" role="img" aria-label="Exemplo de pergunta do quiz: Qual é a capital do Brasil? Resposta correta: Brasília.">
+        <div class="quiz-card-top">
+          <span class="tag tag-category">Geografia</span>
+          <span class="tag tag-difficulty">Fácil</span>
+        </div>
+        <p class="quiz-question">Qual é a capital do Brasil?</p>
+        <div class="quiz-options">
+          <div class="quiz-option correct">Brasília <span class="check"></span></div>
+          <div class="quiz-option">Rio de Janeiro <span class="check"></span></div>
+          <div class="quiz-option">São Paulo <span class="check"></span></div>
+          <div class="quiz-option">Salvador <span class="check"></span></div>
+        </div>
+        <div class="quiz-card-foot">
+          <span class="flag-dot"><span style="background:var(--green)"></span><span style="background:var(--yellow)"></span><span style="background:var(--blue)"></span></span>
+          Uma entre milhares de perguntas
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <h2>Contato</h2>
-  <p>Dúvidas ou suporte: <a href="mailto:antonyeltonrodrigues@gmail.com">antonyeltonrodrigues@gmail.com</a></p>
+  <section class="section" id="sobre">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-eyebrow">O que é o Cultura Nacional</div>
+        <h2>Um quiz gratuito sobre o Brasil, feito para quem tem orgulho de saber</h2>
+        <p>O Cultura Nacional é um aplicativo gratuito de perguntas e respostas sobre a cultura brasileira. Você responde quizzes de música, categorias gerais e desafios por estado, acompanha seu progresso, disputa rankings com outros jogadores e desbloqueia conquistas conforme avança. É possível jogar direto pelo navegador ou pelo aplicativo Android. O login existe apenas para salvar seu progresso e sincronizar entre dispositivos.</p>
+      </div>
+    </div>
+  </section>
 
-  <footer>
-    &copy; 2026 Cultura Nacional. Todos os direitos reservados.
+  <section class="section" id="modos">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-eyebrow">Modos de jogo</div>
+        <h2>Seis formas de testar o que você sabe</h2>
+      </div>
+      <div class="modes-grid">
+        <div class="mode-card">
+          <div class="mode-icon mode-pink"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg></div>
+          <h3>Categorias variadas</h3>
+          <p>Perguntas de cultura geral, gastronomia, natureza e curiosidades regionais.</p>
+        </div>
+        <div class="mode-card">
+          <div class="mode-icon mode-purple"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <h3>Música brasileira</h3>
+          <p>Quizzes de MPB, rap, reggae e outros gêneros, separados por ritmo.</p>
+        </div>
+        <div class="mode-card">
+          <div class="mode-icon mode-blue"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg></div>
+          <h3>Desafios (duelos)</h3>
+          <p>Dispute partidas diretamente contra outros jogadores em tempo real.</p>
+        </div>
+        <div class="mode-card">
+          <div class="mode-icon mode-yellow"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg></div>
+          <h3>Rankings</h3>
+          <p>Acompanhe sua posição em rankings locais e nacionais.</p>
+        </div>
+        <div class="mode-card">
+          <div class="mode-icon mode-green"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
+          <h3>Missões diárias</h3>
+          <p>Complete desafios do dia e desbloqueie conquistas conforme joga.</p>
+        </div>
+        <div class="mode-card">
+          <div class="mode-icon mode-cyan"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg></div>
+          <h3>Perguntas por estado</h3>
+          <p>Desafios específicos sobre cada um dos 27 estados brasileiros.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer-grid">
+      <div class="footer-links">
+        <a href="/privacidade.html">Política de Privacidade</a>
+        <a href="/termos.html">Termos de Uso</a>
+        <a href="mailto:antonyeltonrodrigues@gmail.com">Contato</a>
+      </div>
+      <div class="footer-meta">
+        <p>Dúvidas ou suporte: antonyeltonrodrigues@gmail.com</p>
+        <p>© 2026 Cultura Nacional. Todos os direitos reservados.</p>
+      </div>
+    </div>
   </footer>
+
 </body>
 </html>

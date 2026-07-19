@@ -262,11 +262,11 @@ export function RegisterScreen({ navigation }: any) {
 
           <Text style={[styles.terms, { color: C.muted }]}>
             Ao continuar, você concorda com nossos{' '}
-            <Text style={{ color: C.green }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/termos.html')}>
+            <Text style={{ color: C.green }} onPress={() => Linking.openURL('https://culturanacional.com.br/termos.html')}>
               Termos de Uso
             </Text>
             {' '}e{' '}
-            <Text style={{ color: C.green }} onPress={() => Linking.openURL('https://cultura-nacional.vercel.app/privacidade.html')}>
+            <Text style={{ color: C.green }} onPress={() => Linking.openURL('https://culturanacional.com.br/privacidade.html')}>
               Política de Privacidade
             </Text>.
           </Text>

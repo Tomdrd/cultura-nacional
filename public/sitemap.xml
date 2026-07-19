@@ -1,35 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://cultura-nacional.vercel.app</loc>
+    <loc>https://culturanacional.com.br/</loc>
     <priority>1.0</priority>
+    <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://cultura-nacional.vercel.app/quiz</loc>
-    <priority>0.9</priority>
+    <loc>https://culturanacional.com.br/termos.html</loc>
+    <priority>0.3</priority>
+    <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://cultura-nacional.vercel.app/ranking</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cultura-nacional.vercel.app/estados</loc>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://cultura-nacional.vercel.app/duelos</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cultura-nacional.vercel.app/missoes</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://cultura-nacional.vercel.app/conquistas</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://cultura-nacional.vercel.app/perfil</loc>
-    <priority>0.6</priority>
+    <loc>https://culturanacional.com.br/privacidade.html</loc>
+    <priority>0.3</priority>
+    <changefreq>monthly</changefreq>
   </url>
 </urlset>
