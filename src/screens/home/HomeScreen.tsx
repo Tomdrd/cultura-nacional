@@ -68,25 +68,40 @@ export function HomeScreen({ navigation }: any) {
   const [previewQuestion, setPreviewQuestion] = useState<PreviewQuestion | null>(null);
   const [randomQuestions, setRandomQuestions] = useState<Question[] | null>(null);
 
-  useFocusEffect(React.useCallback(() => { loadData(); loadPreviewQuestion(); }, []));
+  // Evita recarregar tudo (com spinner de tela cheia) toda vez que a Home
+  // ganha foco. So mostra o loading grande na primeira vez; nas proximas
+  // visitas, so refaz o fetch se os dados ja tiverem "envelhecido" mais
+  // que STALE_TIME, e faz isso em segundo plano (sem trocar a tela).
+  const isFirstLoad = React.useRef(true);
+  const lastFetchAt = React.useRef(0);
+  const STALE_TIME = 30_000; // 30s
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const now = Date.now();
+      const isStale = now - lastFetchAt.current > STALE_TIME;
+      if (isFirstLoad.current || isStale) {
+        lastFetchAt.current = now;
+        loadData(isFirstLoad.current);
+        loadPreviewQuestion();
+        isFirstLoad.current = false;
+      }
+    }, [])
+  );
 
   async function loadPreviewQuestion() {
-    setPreviewQuestion(null);
-    setRandomQuestions(null);
     const subcategory = pickRandomSubcategory();
     const { data } = await supabase.rpc('get_random_quiz_questions', {
       p_state_id: null, p_city_id: null, p_subcategory: subcategory, p_limit: 5, p_progressive: false,
     });
     if (data && data.length > 0) {
-      // Salva as 5 perguntas completas para serem usadas ao clicar
       setRandomQuestions(data);
-      // Usa apenas a primeira como preview
       setPreviewQuestion({ text: data[0].text, subcategory: data[0].subcategory });
     }
   }
 
-  async function loadData() {
-    setLoading(true);
+  async function loadData(showSpinner = false) {
+    if (showSpinner) setLoading(true);
     const { data: profileData } = user ? await supabase.from('profiles').select('username, xp, level, streak, city_natal_id, avatar_url').eq('id', user.id).single() : { data: null };
     if (profileData) {
       setProfile(profileData);
@@ -96,7 +111,7 @@ export function HomeScreen({ navigation }: any) {
         if (cityData) setCityNatal({ id: cityData.id, name: cityData.name, state_id: cityData.state_id, stateName: (cityData.states as any)?.name ?? '', stateUf: (cityData.states as any)?.uf?.trim()?.toLowerCase() ?? '' });
       }
     }
-    setLoading(false);
+    if (showSpinner) setLoading(false);
   }
 
   const xpToNext = XP_PER_LEVEL;
