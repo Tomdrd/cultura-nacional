@@ -23,6 +23,7 @@ const linking: LinkingOptions<any> = {
         screens: {
           ResetPassword: 'auth/reset-password',
           Login: 'auth/callback',
+          Register: 'cadastro',
         },
       },
       App: {
@@ -35,6 +36,19 @@ const linking: LinkingOptions<any> = {
               Settings: 'configuracoes',
             },
           },
+          Estados: 'estados',
+          Categorias: 'categorias',
+          Musica: 'musica',
+          CityQuiz: 'quiz-cidade',
+          Quiz: 'quiz',
+          Duel: 'duelo',
+          Subscription: 'assinatura',
+          Missions: 'missoes',
+          Achievements: 'conquistas',
+          CidadeSetup: 'configurar-cidade',
+          Profile: 'perfil',
+          ViralMode: 'modo-viral',
+          FollowList: 'seguidores',
           PublicProfile: ':slug', // URL amigável: /tom → PublicProfile com slug="tom"
         },
       },
