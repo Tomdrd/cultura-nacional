@@ -177,12 +177,21 @@ export function PublicProfileScreen({ route, navigation }: any) {
   const levelInfo = getLevelInfo(profile?.level ?? 1);
   const isProProfile = profile?.plan === 'pro';
 
+  function handleBack() {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // Sem histórico de navegação (ex: perfil aberto direto por link/deep link)
+      navigation.reset({ index: 0, routes: [{ name: 'HomeTabs' }] });
+    }
+  }
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} showsVerticalScrollIndicator={false}>
 
       {/* Topbar */}
       <View style={[styles.topBar, { paddingTop: headerPaddingTop, borderBottomColor: C.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={handleBack}>
           <ArrowLeft size={22} color={C.text} />
         </TouchableOpacity>
         <Text style={[styles.topTitle, { color: C.text }]}>Perfil</Text>
@@ -197,6 +206,12 @@ export function PublicProfileScreen({ route, navigation }: any) {
         <View style={styles.center}>
           <User size={36} color={C.muted} />
           <Text style={[styles.emptyText, { color: C.muted }]}>Perfil não encontrado.</Text>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={[styles.notFoundButton, { backgroundColor: C.green }]}
+          >
+            <Text style={styles.notFoundButtonText}>Ir para o início</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <>
@@ -393,4 +408,15 @@ const styles = StyleSheet.create({
   quizStatVal:  { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
   quizStatLbl:  { fontSize: FontSize.xs },
   emptyText:    { fontSize: FontSize.sm, textAlign: 'center' },
+  notFoundButton: {
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.md,
+  },
+  notFoundButtonText: {
+    color: '#FFFFFF',
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+  },
 });
