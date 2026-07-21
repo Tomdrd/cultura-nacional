@@ -190,3 +190,27 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   passaram a priorizar `profile_slug` sobre `username`, igual já era feito
   no `ProfileScreen`. Rota `PublicProfile: ':slug'` no linking config já
   estava correta, não precisou mexer nela.
+- 2026-07-21: Descoberto (ainda não corrigido, aguardando confirmação):
+  `PublicProfile` só existe dentro do `AppNavigator`, que só é montado se
+  `session` existir no `RootNavigator`. Sem sessão, só o `AuthNavigator`
+  monta — e como ele não tem nenhuma tela compatível com `/:slug`, o React
+  Navigation cai na rota inicial do stack (`Login`, path `auth/callback`).
+  **Resultado: perfil público não é de fato público** — visitante deslogado
+  que clica num link de perfil compartilhado é redirecionado pra
+  `/auth/callback` em vez de ver o perfil. Correção planejada: mover
+  `PublicProfile` pra fora do `AppNavigator`, como tela sempre montada no
+  nível raiz do `RootNavigator` (ao lado do `App`/`Auth` condicional), e
+  ajustar o `linking.config` correspondente. Ainda não implementado nesta
+  sessão — mexe na divisão raiz Auth/App, aguardando confirmação explícita
+  antes de tocar em rota de autenticação.
+- 2026-07-21: Criado `docs/DEEP_LINKING.md` — plano (não implementado) de
+  Universal Links (iOS) / App Links (Android). Motivo: hoje um link
+  `https://culturanacional.com.br/algumusername` tocado no celular abre no
+  navegador, não no app instalado — `app.json` só tem o scheme customizado
+  `culturanacional://`, sem `associatedDomains`/`intentFilters` nem os
+  arquivos de verificação (`apple-app-site-association`/`assetlinks.json`)
+  hospedados no domínio. Não é urgente (o fallback web funciona), mas exige
+  credenciais que uma sessão de IA não tem (Apple Team ID, SHA256 do
+  certificado do Google Play App Signing) e termina em build nativo novo +
+  submissão pras lojas — não é só um commit. Checklist de pré-requisitos no
+  próprio arquivo.

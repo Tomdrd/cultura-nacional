@@ -46,6 +46,9 @@ Leia o arquivo relevante para a sua tarefa antes de mexer nessa área:
   sessões paralelas no banco
 - [`docs/DEPLOY.md`](docs/DEPLOY.md) — domínio, Vercel, build da landing page,
   SEO
+- [`docs/DEEP_LINKING.md`](docs/DEEP_LINKING.md) — plano (ainda não
+  implementado) de Universal Links/App Links pros apps nativos; ver antes de
+  mexer em `app.json` ou tentar deep link nativo
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — log cronológico (append-only) de
   decisões e descobertas recentes que ainda não foram promovidas pros
   arquivos acima
