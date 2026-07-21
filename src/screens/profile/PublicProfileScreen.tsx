@@ -45,6 +45,7 @@ interface Profile {
   level: number;
   streak: number;
   plan: Plan;
+  plan_expires_at: string | null;
   city_natal_id: string | null;
   state_uf: string | null;
 }
@@ -152,7 +153,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
     setNotFound(false);
     const { data } = await supabase
       .from('profiles')
-      .select('username, avatar_url, xp, level, streak, plan, city_natal_id, cities!city_natal_id(state_uf)')
+      .select('username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, cities!city_natal_id(state_uf)')
       .eq('id', userId)
       .single();
 
@@ -175,7 +176,12 @@ export function PublicProfileScreen({ route, navigation }: any) {
   const xpToNext  = XP_PER_LEVEL;
   const xpPct     = getXpProgress(profile?.xp ?? 0);
   const levelInfo = getLevelInfo(profile?.level ?? 1);
-  const isProProfile = profile?.plan === 'pro';
+  const isProProfile = (() => {
+    const plan    = profile?.plan ?? 'free';
+    const expires = profile?.plan_expires_at;
+    const expired = expires ? new Date(expires) < new Date() : false;
+    return (plan === 'pro' || plan === 'family' || plan === 'education') && !expired;
+  })();
 
   function handleBack() {
     if (navigation.canGoBack()) {

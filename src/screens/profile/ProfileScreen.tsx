@@ -135,7 +135,12 @@ export function ProfileScreen({ navigation }: any) {
   const xpCurrent   = getXpInCurrentLevel(profile?.xp ?? 0);
   const xpPct       = getXpProgress(profile?.xp ?? 0);
   const levelInfo   = getLevelInfo(profile?.level ?? 1);
-  const isPro       = profile?.plan === 'pro';
+  const isPro = (() => {
+    const plan    = profile?.plan ?? 'free';
+    const expires = profile?.plan_expires_at;
+    const expired = expires ? new Date(expires) < new Date() : false;
+    return (plan === 'pro' || plan === 'family' || plan === 'education') && !expired;
+  })();
   const profileUrl  = `culturanacional.com.br/${profile?.username ?? ''}`;
 
   async function handleCopyUrl() {
