@@ -6,6 +6,7 @@ export type AuthStackParamList = {
 
 export type AppStackParamList = {
   HomeTabs:     undefined;
+  AppEntry:     undefined;
   Estados:      undefined;
   Categorias:   undefined;
   Musica:       undefined;

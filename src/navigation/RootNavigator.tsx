@@ -36,6 +36,7 @@ const linking: LinkingOptions<any> = {
               Settings: 'configuracoes',
             },
           },
+          AppEntry: 'app', // rota reservada p/ links externos (ex: CTA da landing page)
           Estados: 'estados',
           Categorias: 'categorias',
           Musica: 'musica',

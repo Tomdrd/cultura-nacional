@@ -24,6 +24,7 @@ import { EstadosScreen }         from '../screens/estados/EstadosScreen';
 import { CategoriasScreen }      from '../screens/categorias/CategoriasScreen';
 import { MusicaScreen }          from '../screens/musica/MusicaScreen';
 import { CidadeSetupScreen }     from '../screens/onboarding/CidadeSetupScreen';
+import { AppEntryScreen }        from '../screens/AppEntryScreen';
 import { NotificationsScreen }   from '../screens/notifications/NotificationsScreen';
 import { useTheme }              from '../hooks/useTheme';
 import { HomeTheme }             from '../constants/colors';
@@ -100,6 +101,7 @@ export function AppNavigator() {
       initialRouteName={cityNatalId === null ? 'CidadeSetup' : 'HomeTabs'}
     >
       <Stack.Screen name="HomeTabs"     component={HomeTabs} />
+      <Stack.Screen name="AppEntry"     component={AppEntryScreen} />
       <Stack.Screen name="Quiz"         component={QuizScreen} />
       <Stack.Screen name="Duel"         component={DuelScreen} />
       <Stack.Screen name="Subscription" component={SubscriptionScreen} />
