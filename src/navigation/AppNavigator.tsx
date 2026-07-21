@@ -18,6 +18,7 @@ import { DuelScreen }            from '../screens/duel/DuelScreen';
 import { SubscriptionScreen }    from '../screens/subscription/SubscriptionScreen';
 import { MissionsScreen }        from '../screens/missions/MissionsScreen';
 import { AchievementsScreen }    from '../screens/achievements/AchievementsScreen';
+import { TopQuestionsScreen }    from '../screens/questions/TopQuestionsScreen';
 import { ViralModeScreen }       from '../screens/viral/ViralModeScreen';
 import { EstadosScreen }         from '../screens/estados/EstadosScreen';
 import { CategoriasScreen }      from '../screens/categorias/CategoriasScreen';
@@ -106,6 +107,7 @@ export function AppNavigator() {
       <Stack.Screen name="Subscription" component={SubscriptionScreen} />
       <Stack.Screen name="Missions"     component={MissionsScreen} />
       <Stack.Screen name="Achievements" component={AchievementsScreen} />
+      <Stack.Screen name="TopQuestions" component={TopQuestionsScreen} />
       <Stack.Screen name="Estados"      component={EstadosScreen} />
       <Stack.Screen name="Categorias"   component={CategoriasScreen} />
       <Stack.Screen name="Musica"       component={MusicaScreen} />

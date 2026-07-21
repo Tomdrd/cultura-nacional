@@ -40,6 +40,7 @@ Isso já causou bugs reais em produção 3 vezes:
 | `/assinatura` | Subscription |
 | `/missoes` | Missions |
 | `/conquistas` | Achievements |
+| `/destaques` | TopQuestions (perguntas mais bem avaliadas) |
 | `/configurar-cidade` | CidadeSetup |
 | `/perfil` | Profile (perfil do próprio usuário logado) |
 | `/modo-viral` | ViralMode |

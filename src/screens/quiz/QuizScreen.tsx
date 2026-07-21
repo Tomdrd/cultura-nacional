@@ -7,6 +7,8 @@ import CheckCircle from 'lucide-react-native/dist/esm/icons/circle-check';
 import XCircle from 'lucide-react-native/dist/esm/icons/circle-x';
 import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
 import Flag from 'lucide-react-native/dist/esm/icons/flag';
+import ThumbsUp from 'lucide-react-native/dist/esm/icons/thumbs-up';
+import ThumbsDown from 'lucide-react-native/dist/esm/icons/thumbs-down';
 import * as Speech from 'expo-speech';
 import { BlurView } from 'expo-blur';
 
@@ -81,6 +83,7 @@ export function QuizScreen({ route, navigation }: any) {
   const [finished,      setFinished]      = useState(false);
   const [results,       setResults]       = useState<boolean[]>([]);
   const [reportOpen,    setReportOpen]    = useState(false);
+  const [rating,        setRating]        = useState<boolean | null>(null);
 
   const fadeAnim     = useRef(new Animated.Value(1)).current;
   const feedbackAnim = useRef(new Animated.Value(0)).current;
@@ -227,6 +230,18 @@ export function QuizScreen({ route, navigation }: any) {
     }
   }
 
+  // 👍/👎 explícito do usuário sobre a pergunta — alimenta o ranking de
+  // qualidade (question_health). Upsert: pode mudar de ideia, 1 voto por
+  // pergunta por usuário (RLS garante que só mexe no próprio voto).
+  async function rateQuestion(isPositive: boolean) {
+    if (!user || rating === isPositive) return;
+    setRating(isPositive);
+    await supabase.from('question_ratings').upsert(
+      { user_id: user.id, question_id: questions[current].id, is_positive: isPositive },
+      { onConflict: 'user_id,question_id' }
+    );
+  }
+
   function nextQuestion() {
     Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
       if (current + 1 >= questions.length) {
@@ -236,6 +251,7 @@ export function QuizScreen({ route, navigation }: any) {
         setSelected(null);
         setAnswered(false);
         setAnswerResult(null);
+        setRating(null);
         Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
       }
     });
@@ -356,7 +372,7 @@ export function QuizScreen({ route, navigation }: any) {
             onPress={() => {
               setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
               setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
-              setAnswerResult(null); xpRef.current = 0; scoreRef.current = 0;
+              setAnswerResult(null); setRating(null); xpRef.current = 0; scoreRef.current = 0;
               stopTimer();
               loadQuestions();
             }}
@@ -507,9 +523,25 @@ export function QuizScreen({ route, navigation }: any) {
                 {feedbackMsg}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => setReportOpen(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Flag size={16} color={C.subtle} />
-            </TouchableOpacity>
+            <View style={styles.feedbackActions}>
+              <TouchableOpacity
+                onPress={() => rateQuestion(true)}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                style={[styles.rateBtn, rating === true && { backgroundColor: `${C.green}22` }]}
+              >
+                <ThumbsUp size={16} color={rating === true ? C.green : C.subtle} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => rateQuestion(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                style={[styles.rateBtn, rating === false && { backgroundColor: `${DANGER}22` }]}
+              >
+                <ThumbsDown size={16} color={rating === false ? DANGER_TEXT : C.subtle} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setReportOpen(true)} hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }} style={styles.rateBtn}>
+                <Flag size={16} color={C.subtle} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {answerResult?.explanation && (
@@ -558,6 +590,8 @@ const styles = StyleSheet.create({
   feedbackPanel:   { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopWidth: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' },
   feedbackContent: { padding: Spacing.xl, paddingBottom: Spacing.xl * 1.5 },
   feedbackHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  feedbackActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  rateBtn:         { padding: 6, borderRadius: Radius.full },
   feedbackMsg:     { fontSize: FontSize.md, fontWeight: FontWeight.bold },
   feedbackExplanation: { fontSize: FontSize.sm, lineHeight: 20, marginBottom: Spacing.lg },
   resultCard:      { margin: Spacing.xl, marginTop: 80, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, alignItems: 'center', gap: 8 },
