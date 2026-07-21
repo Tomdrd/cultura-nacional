@@ -142,3 +142,14 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   (`import X from 'lucide-react-native/dist/esm/icons/x'`), não o named
   import (`import { X } from 'lucide-react-native'`). Sempre usar o estilo
   individual ao adicionar novos ícones — o outro quebra o bundle web.
+- 2026-07-21: Deep link `/:slug` → `PublicProfileScreen` (ex: `culturanacional.com.br/tom`
+  abrindo o perfil de um usuário Pro) foi deixado de fora intencionalmente nesta sessão —
+  a área de routing/navigation estava sendo alterada em paralelo e o risco de conflito
+  era alto. Retomar quando essa área estabilizar. Pré-requisitos já prontos: coluna
+  `profile_slug` no banco (migration `add_profile_slug`), modal de edição no `ProfileScreen`,
+  fix de expiração de plano em ambos os screens de perfil. O que falta: resolver o slug
+  via query (`profile_slug OR username`) no `PublicProfileScreen` e mapear a rota no
+  linking config do `RootNavigator` sem conflitar com rotas existentes.
+- 2026-07-21: Redesign do card de pergunta aleatória na Home ficou pendente — mockups
+  foram avaliados (opções A/B/C, largura total, sem label "Aleatório", ícone da
+  subcategoria em destaque) mas nenhum aprovado. Retomar com nova proposta visual.
