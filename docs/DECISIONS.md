@@ -315,3 +315,14 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   `docs/incidents/2026-07-21-alert-alert-nao-funciona-web.md` — inclui
   auditoria confirmando que nenhuma outra tela usa `Alert.alert` com
   múltiplos botões (só alertas de um botão, que continuam seguros).
+- 2026-07-21: Resolvido o bloqueio no formulário de contato (Edge Function
+  `send-email` rejeitada pela Brevo com "sender not valid"). Causa raiz:
+  domínio duplicado na Brevo (`mail.culturanacional.com.br` cadastrado como
+  domínio próprio, além do `culturanacional.com.br` real) gerando registros
+  DNS conflitantes. Tentativa de autenticar via delegação NS do subdomínio
+  `mail` não propagou de forma confiável em 24h+; trocado para "Registros
+  DNS individuais" (TXT/CNAME direto na raiz do domínio), que autenticou em
+  minutos. Remetente `contato@culturanacional.com.br` cadastrado e
+  verificado automaticamente. Teste ponta a ponta confirmado (Edge Function
+  → Brevo → Cloudflare Email Routing → Gmail). Post-mortem completo em
+  `docs/incidents/2026-07-21-brevo-dominio-email-nao-autenticado.md`.
