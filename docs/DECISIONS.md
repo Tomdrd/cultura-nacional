@@ -165,3 +165,9 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   `docs/PLANO_TIMER_ACESSIBILIDADE.md` já existiam desde 11–15/07 e quase foram
   ignorados na reestruturação. Nenhum arquivo foi sobrescrito (sorte, não mérito).
   **Antes de criar qualquer doc nova, rode `find docs -type f | sort` primeiro.**
+- 2026-07-21: `public/termos.html` e `public/privacidade.html` redesenhadas
+  para usar o mesmo design system da `public/landing.html` (tokens de cor em
+  `:root` + `@media (prefers-color-scheme: light)`, fontes Plus Jakarta
+  Sans/Inter/JetBrains Mono, header/footer idênticos). Antes, essas duas
+  páginas tinham CSS mínimo hardcoded (sem dark mode). Texto legal
+  preservado 100% — só a camada visual mudou.

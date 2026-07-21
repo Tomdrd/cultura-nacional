@@ -1,39 +1,269 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Termos de Uso — Cultura Nacional</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #1a1a1a; line-height: 1.7; }
-    h1 { color: #009C3B; } h2 { color: #002776; margin-top: 32px; }
-    a { color: #009C3B; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termos de Uso — Cultura Nacional</title>
+<meta name="description" content="Termos de Uso do Cultura Nacional, aplicativo de quiz sobre a cultura brasileira.">
+<link rel="canonical" href="https://culturanacional.com.br/termos.html">
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"></noscript>
+<style>
+  :root {
+    --bg: #0e1015;
+    --card: #1c2029;
+    --card-border: #252b38;
+    --ink: #f0f2f5;
+    --muted: #7E879D;
+    --green: #009C3B;
+    --green-bright: #00C24A;
+    --yellow: #FFDF00;
+    --blue: #002776;
+    --blue-bright: #2255CC;
+    --shadow-strength: 0.6;
+    --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #FFFFFF;
+      --card: #FFFFFF;
+      --card-border: #D6D6D6;
+      --ink: #0A0A0A;
+      --muted: #6B6B6B;
+      --green: #00792E;
+      --green-bright: #00792E;
+      --yellow: #8A6D00;
+      --blue: #002776;
+      --blue-bright: #002776;
+      --shadow-strength: 0.12;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Header ---------- */
+
+  .header { padding: 28px 0; }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .brand img { width: 40px; height: 40px; border-radius: 11px; }
+
+  .brand span {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Legal content ---------- */
+
+  .legal-main { padding: 24px 0 88px; }
+
+  .legal-wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 28px;
+  }
+
+  .back-link:hover { color: var(--ink); }
+
+  .legal-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    background: rgba(0, 156, 59, 0.12);
+    border: 1px solid rgba(0, 156, 59, 0.3);
+    display: inline-flex;
+    padding: 6px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  .legal-header h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 36px;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+  }
+
+  .legal-updated {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 36px;
+  }
+
+  .legal-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, var(--shadow-strength));
+  }
+
+  .legal-card h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    color: var(--blue-bright);
+    margin: 30px 0 10px;
+  }
+
+  .legal-card h2:first-child { margin-top: 0; }
+
+  .legal-card p,
+  .legal-card li {
+    font-size: 15.5px;
+    color: var(--ink);
+    line-height: 1.75;
+    margin: 0 0 12px;
+  }
+
+  .legal-card ul { margin: 0 0 16px; padding-left: 20px; }
+
+  .legal-card a {
+    color: var(--green-bright);
+    text-decoration: underline;
+    text-decoration-color: rgba(0, 156, 59, 0.4);
+    text-underline-offset: 2px;
+  }
+
+  .legal-card a:hover { text-decoration-color: var(--green-bright); }
+
+  /* ---------- Footer ---------- */
+
+  .footer { padding: 40px 0 56px; border-top: 1px solid var(--card-border); }
+
+  .footer-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  .footer-links a { font-size: 14px; color: var(--muted); text-decoration: none; }
+
+  .footer-links a:hover { color: var(--ink); }
+
+  .footer-meta { font-size: 13px; color: var(--muted); }
+
+  .footer-meta p { margin: 0 0 6px; }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 560px) {
+    .legal-card { padding: 26px 20px; }
+    .legal-header h1 { font-size: 28px; }
+    .footer-grid { flex-direction: column; }
+  }
+</style>
+
 </head>
 <body>
-  <h1>Termos de Uso</h1>
-  <p><strong>Última atualização:</strong> julho de 2026</p>
-  <p>Ao usar o <strong>Cultura Nacional</strong>, você concorda com os seguintes termos.</p>
 
-  <h2>1. Uso do aplicativo</h2>
-  <p>O Cultura Nacional é um aplicativo de quiz sobre cultura brasileira destinado a maiores de 13 anos. O uso é pessoal e não comercial.</p>
+  <header class="header">
+    <div class="wrap">
+      <a class="brand" href="/">
+        <img src="/logo-header.png" alt="Logo do Cultura Nacional" width="40" height="40">
+        <span>Cultura Nacional</span>
+      </a>
+    </div>
+  </header>
 
-  <h2>2. Conta de usuário</h2>
-  <p>Você é responsável por manter a segurança da sua conta e por todas as atividades realizadas nela. Não é permitido compartilhar contas ou usar mecanismos para manipular pontuações e rankings.</p>
+  <main class="legal-main">
+    <div class="legal-wrap">
+      <a class="back-link" href="/">← Voltar para o início</a>
 
-  <h2>3. Conteúdo</h2>
-  <p>Todo o conteúdo do aplicativo (perguntas, textos, design) é de propriedade do Cultura Nacional. É proibida a reprodução sem autorização prévia.</p>
+      <div class="legal-header">
+        <span class="legal-eyebrow">Documento legal</span>
+        <h1>Termos de Uso</h1>
+        <p class="legal-updated">Última atualização: julho de 2026</p>
+      </div>
 
-  <h2>4. Assinatura CN Pro</h2>
-  <p>A assinatura CN Pro é cobrada mensalmente. Você pode cancelar a qualquer momento. O cancelamento é efetivo ao fim do período já pago.</p>
+      <div class="legal-card">
+        <p>Ao usar o <strong>Cultura Nacional</strong>, você concorda com os seguintes termos.</p>
 
-  <h2>5. Limitação de responsabilidade</h2>
-  <p>O aplicativo é fornecido "como está". Não garantimos disponibilidade ininterrupta ou ausência de erros no conteúdo.</p>
+        <h2>1. Uso do aplicativo</h2>
+        <p>O Cultura Nacional é um aplicativo de quiz sobre cultura brasileira destinado a maiores de 13 anos. O uso é pessoal e não comercial.</p>
 
-  <h2>6. Alterações</h2>
-  <p>Podemos atualizar estes termos. Notificaremos sobre mudanças significativas pelo aplicativo.</p>
+        <h2>2. Conta de usuário</h2>
+        <p>Você é responsável por manter a segurança da sua conta e por todas as atividades realizadas nela. Não é permitido compartilhar contas ou usar mecanismos para manipular pontuações e rankings.</p>
 
-  <h2>7. Contato</h2>
-  <p>Dúvidas: <a href="mailto:antonyeltonrodrigues@gmail.com">antonyeltonrodrigues@gmail.com</a></p>
+        <h2>3. Conteúdo</h2>
+        <p>Todo o conteúdo do aplicativo (perguntas, textos, design) é de propriedade do Cultura Nacional. É proibida a reprodução sem autorização prévia.</p>
+
+        <h2>4. Assinatura CN Pro</h2>
+        <p>A assinatura CN Pro é cobrada mensalmente. Você pode cancelar a qualquer momento. O cancelamento é efetivo ao fim do período já pago.</p>
+
+        <h2>5. Limitação de responsabilidade</h2>
+        <p>O aplicativo é fornecido "como está". Não garantimos disponibilidade ininterrupta ou ausência de erros no conteúdo.</p>
+
+        <h2>6. Alterações</h2>
+        <p>Podemos atualizar estes termos. Notificaremos sobre mudanças significativas pelo aplicativo.</p>
+
+        <h2>7. Contato</h2>
+        <p>Dúvidas: <a href="mailto:antonyeltonrodrigues@gmail.com">antonyeltonrodrigues@gmail.com</a></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-grid">
+      <div class="footer-links">
+        <a href="/privacidade.html">Política de Privacidade</a>
+        <a href="/termos.html">Termos de Uso</a>
+        <a href="mailto:antonyeltonrodrigues@gmail.com">Contato</a>
+      </div>
+      <div class="footer-meta">
+        <p>Dúvidas ou suporte: antonyeltonrodrigues@gmail.com</p>
+        <p>© 2026 Cultura Nacional. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>
