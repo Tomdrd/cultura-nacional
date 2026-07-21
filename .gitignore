@@ -42,4 +42,5 @@ supabase/.gitignore
 assets/flags-backup-*/
 fix_*.py
 v*.zip
+cultura-nacional-*.zip
 ao *
