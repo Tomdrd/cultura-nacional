@@ -90,3 +90,10 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   inline (StyleSheet só com layout), `StatusBar barStyle` condicional. Se
   encontrar outra tela com objeto `COLORS` local fixo em vez de `HomeTheme`,
   provavelmente tem o mesmo bug.
+- 2026-07-21: Varredura feita em todas as 21 telas de `src/screens` atrás do
+  mesmo bug do item acima: nenhuma outra tela define `COLORS` fixo local,
+  todas já usam `useTheme`, e nenhum `container` tem `backgroundColor` fixo
+  em hex. Os poucos hex fixos restantes (`ViralModeScreen`, dark;
+  `CidadeSetupScreen`, `SubscriptionScreen`) são cores semânticas
+  intencionais (branco sobre overlay de gravação, vermelho de erro, azul de
+  marca do CTA de assinatura) — não é o mesmo problema, não mexer.
