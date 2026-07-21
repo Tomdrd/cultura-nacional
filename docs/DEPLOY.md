@@ -74,6 +74,17 @@ A revisão é **manual** pelo time do Google — pode levar dias, não é
 instantânea, e a tela de "problemas encontrados" só atualiza depois da
 revisão nova ser concluída.
 
+**Status (2026-07-21): verificado e publicado em produção.** A marca foi
+aprovada e, em seguida, publicada pelo botão "Publicar branding" na mesma
+tela — sem isso, a aprovação expira em 7 dias e o app volta a mostrar a tela
+de aviso "app não verificado" pros usuários. O status atual em "Status da
+verificação" é "Sua marca foi verificada e está aparecendo para os
+usuários". Login com Google deve funcionar sem aviso pra qualquer conta, não
+só pras contas de teste cadastradas antes. Se precisar reverificar no
+futuro (mudança de nome do app, logo, domínio ou escopos), repetir o mesmo
+fluxo: landing acessível sem login → aguardar revisão manual → publicar
+branding assim que aprovado, dentro da janela de 7 dias.
+
 ## Imagens de compartilhamento (Open Graph / Twitter Card)
 
 `public/og-image.png` (1200×630) e `public/twitter-image.png` (1024×512) são

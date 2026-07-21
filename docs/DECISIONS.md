@@ -230,3 +230,10 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   `'Auth'`, dependendo de ter usuário logado. **Testar bem o botão de
   voltar** (logado e deslogado, com e sem histórico) antes de considerar
   isso 100% fechado.
+- 2026-07-21: Verificação de branding do Google (OAuth) aprovada e
+  publicada em produção (`console.cloud.google.com/auth/branding?project=cultura-nacional`).
+  Status mudou de "verificada, mas ainda não aparecendo" (aviso de expirar
+  em 7 dias) para "verificada e aparecendo para os usuários" depois de
+  clicar em "Publicar branding". Login com Google deixa de mostrar a tela
+  de aviso "app não verificado" pra qualquer usuário, não só contas de
+  teste. Ver `docs/DEPLOY.md` (seção "Verificação de branding do Google").
