@@ -52,6 +52,7 @@ const linking: LinkingOptions<any> = {
           Subscription: 'assinatura',
           Missions: 'missoes',
           Achievements: 'conquistas',
+          TopQuestions: 'destaques',
           CidadeSetup: 'configurar-cidade',
           Profile: 'perfil',
           ViralMode: 'modo-viral',

@@ -74,6 +74,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const newUser = session?.user ?? null;
+      const previousUserId = get().user?.id ?? null;
       set({ session, user: newUser });
       if (_event === 'PASSWORD_RECOVERY') {
         set({ isPasswordRecovery: true });
@@ -81,17 +82,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (_event === 'SIGNED_OUT') {
         set({ isPasswordRecovery: false });
       }
-      if (newUser) {
-        set({ profileLoading: true });
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('city_natal_id')
-          .eq('id', newUser.id)
-          .single();
-        set({ cityNatalId: profile?.city_natal_id ?? null, profileLoading: false });
-      } else {
+
+      if (!newUser) {
         set({ cityNatalId: null, profileLoading: false });
+        return;
       }
+
+      // O Supabase dispara este listener a cada evento de auth, inclusive
+      // TOKEN_REFRESHED — que roda automaticamente sempre que a aba/janela
+      // recupera o foco (comportamento padrão do supabase-js na web, não é
+      // bug do app). Sem esta checagem, o refetch abaixo alternava
+      // profileLoading true→false pro MESMO usuário a cada troca de aba, e o
+      // RootNavigator desmontava o NavigationContainer inteiro nesse
+      // intervalo (ver `if (loading || (session && profileLoading))`),
+      // perdendo o histórico de navegação — o botão de voltar parava de
+      // funcionar em qualquer tela. Ver docs/incidents/2026-07-21-profileLoading-desmonta-navegacao.md
+      const userChanged = newUser.id !== previousUserId;
+      if (!userChanged && !get().profileLoading) {
+        return;
+      }
+
+      set({ profileLoading: true });
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('city_natal_id')
+        .eq('id', newUser.id)
+        .single();
+      set({ cityNatalId: profile?.city_natal_id ?? null, profileLoading: false });
     });
     authSubscription = subscription;
   },

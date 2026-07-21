@@ -24,6 +24,22 @@ Se `git log HEAD..origin/main` mostrar commits que você não tem, **leia esses
 commits antes de continuar** — outra sessão pode já ter resolvido o que você
 ia fazer, ou pode ter mudado algo que afeta seu plano.
 
+## Retomando uma tarefa depois de uma pausa longa
+
+Se o usuário mandar "continua" numa conversa que ficou parada por várias
+horas (comum quando esbarra em limite de uso e volta depois de liberar), **não
+assuma que o estado do repositório é o mesmo de quando você parou.** Mesmo
+sendo a mesma conversa, com todo o histórico ainda disponível, isso não
+substitui rodar o checklist do topo deste arquivo de novo:
+
+```bash
+git fetch origin && git log --oneline HEAD..origin/main
+```
+
+Só continue editando o arquivo onde parou depois de confirmar que nenhuma
+outra sessão mexeu nele nesse meio-tempo. Se mexeu, leia o diff antes de
+retomar — pode ter mudado exatamente o trecho que você ia editar.
+
 ## Mapa do projeto
 
 - **Este repo** (`cultura-nacional`): app mobile React Native/Expo + a landing

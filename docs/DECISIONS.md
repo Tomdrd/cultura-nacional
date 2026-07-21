@@ -125,6 +125,57 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
     telas de "piores"/"melhores" perguntas no app e no painel admin
     (`cultura-nacional-admin`, repo separado — ainda não clonado, vai
     precisar de token novo quando chegar essa hora).
+- 2026-07-21: Etapa de app mobile do sistema de ranking de qualidade de
+  perguntas (continuação do item acima). Antes de começar, sincronizei com
+  14 commits novos no remoto (deep link de perfil público, redirect
+  `/undefined`, docs novas) — nenhum conflito com o que segue.
+  - `QuizScreen`: botões 👍/👎 no painel de feedback (ao lado do 🚩 de
+    denúncia já existente), upsert em `question_ratings`. Resetados a cada
+    pergunta nova e ao "jogar novamente".
+  - Nova tela `TopQuestionsScreen` (`src/screens/questions/`), rota
+    `TopQuestions` / path `/destaques`, card de entrada na Home ("Destaques").
+    Mostra só perguntas com `flag = 'boa'` — decisão de escopo: o app foca só
+    no lado positivo/engajamento ("melhores"); o lado "piores" (fila de
+    revisão de conteúdo) é o `painel admin`, não faz sentido expor pergunta
+    marcada como problemática pro usuário comum.
+  - Nova função `top_rated_questions(p_limit)`: versão fina de
+    `question_health()` já filtrada (`flag='boa'`) e ordenada, pra não trazer
+    as 1.600+ perguntas pro cliente à toa.
+  - **Achado de segurança corrigido antes de virar bug em produção**:
+    `question_health()`/`top_rated_questions()` foram criadas sem
+    `SECURITY DEFINER`. Como `question_ratings` só deixa o usuário ler o
+    próprio voto (RLS) e `question_reports` só admin lê, um usuário comum
+    chamando essas funções via RPC veria contagens erradas (só o próprio
+    voto, zero denúncias) — o agregado precisa rodar com privilégio do dono
+    da função, igual `submit_answer`. Corrigido com `ALTER FUNCTION ...
+    SECURITY DEFINER` nas duas. **Se criar função nova que agrega dados
+    entre usuários de tabela com RLS restritivo, sempre `SECURITY DEFINER`
+    — não é opcional.**
+  - **Observação, não corrigida (fora de escopo desta tarefa)**:
+    `src/types/navigation.ts` ainda tipa `PublicProfile: { userId: string }`,
+    mas o `PublicProfileScreen` já foi corrigido (commit de outra sessão,
+    2026-07-21) pra receber `slug`, não `userId`. O tipo ficou desatualizado
+    em relação ao código real — não mexi por não ser relacionado a esta
+    tarefa, mas vale corrigir na próxima sessão que mexer em perfil público.
+- 2026-07-21: Etapa do **painel admin** (`cultura-nacional-admin`, repo
+  separado) do sistema de ranking de qualidade de perguntas — registrado
+  aqui por ser conhecimento de banco/decisão compartilhada entre os dois
+  repos, por instrução do `AGENTS.md` de lá.
+  - Nova página `QualityPage.tsx` (`/qualidade`, item "Qualidade" no
+    Sidebar), consumindo `question_health()` diretamente (com paginação via
+    `.range()` + `count: 'exact'` encadeado no `.rpc()`, mesmo padrão de
+    paginação já usado em `QuestionsPage.tsx`). Abas por `flag`
+    (problemática/atenção/boa/sem dados), modal de detalhe que busca as
+    denúncias da pergunta (`question_reports`) e permite marcar
+    corrigido/descartado direto ali (reaproveitando a mesma ação já usada em
+    `ReportsPage.tsx`).
+  - **Observação, não corrigida (fora de escopo)**: `ReportsPage.tsx` usa a
+    classe `btn-danger`, que **não existe** em `index.css` (só `btn-primary`
+    e `btn-secondary` estão definidas) — o botão "Descartar" ali renderiza
+    sem estilo de botão nenhum. Não mexi por não ser relacionado a esta
+    tarefa (evitei usar essa classe na `QualityPage.tsx` nova). Vale
+    corrigir (ou adicionar a classe faltante, ou trocar pelas duas
+    existentes) na próxima sessão que mexer em `ReportsPage.tsx`.
 - 2026-07-21: Corrigido bug `isPro`/`isProProfile` em `ProfileScreen` e
   `PublicProfileScreen`: ambos checavam só `profile.plan === 'pro'` sem
   verificar `plan_expires_at` — usuário com plano expirado continuava com
@@ -243,3 +294,14 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   completo em `docs/incidents/2026-07-21-root-navigator-undefined-redirect.md`;
   regra permanente em `docs/NAVIGATION.md` ("Stack raiz — initialRouteName
   é obrigatório").
+- 2026-07-21: Corrigido bug reportado pelo usuário: botão de voltar parava
+  de funcionar em qualquer tela após trocar de aba do navegador e voltar.
+  Causa raiz: `TOKEN_REFRESHED` do Supabase (disparado automaticamente ao
+  focar a aba) fazia `authStore.ts` setar `profileLoading: true` mesmo pro
+  mesmo usuário já logado; `RootNavigator.tsx` usa esse flag pra decidir
+  entre mostrar o app ou um `ActivityIndicator` full-screen, então cada
+  ciclo desmontava e remontava o `NavigationContainer` inteiro — perdendo
+  todo o histórico de navegação. Corrigido só disparando o refetch de
+  perfil quando o usuário realmente muda (comparação de `id`), não a cada
+  evento de auth. Write-up completo em
+  `docs/incidents/2026-07-21-profileLoading-desmonta-navegacao.md`.

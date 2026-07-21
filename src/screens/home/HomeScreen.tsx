@@ -6,6 +6,7 @@ import Zap from 'lucide-react-native/dist/esm/icons/zap';
 import Music from 'lucide-react-native/dist/esm/icons/music';
 import Map from 'lucide-react-native/dist/esm/icons/map';
 import Tag from 'lucide-react-native/dist/esm/icons/tag';
+import Award from 'lucide-react-native/dist/esm/icons/award';
 import ChevronRight from 'lucide-react-native/dist/esm/icons/chevron-right';
 import Video from 'lucide-react-native/dist/esm/icons/video';
 import Flame from 'lucide-react-native/dist/esm/icons/flame';
@@ -305,6 +306,14 @@ export function HomeScreen({ navigation }: any) {
             </View>
             <Text style={[styles.sectionCardName, { color: C.text }]}>Música</Text>
             <Text style={[styles.sectionCardDesc, { color: C.muted }]}>MPB, Reggae e RAP brasileiro</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.card, styles.sectionCard, { backgroundColor: C.card, borderColor: C.border }]} onPress={() => navigation.navigate('TopQuestions')}>
+            <View style={[styles.iconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>
+              <Award size={18} color={C.text} />
+            </View>
+            <Text style={[styles.sectionCardName, { color: C.text }]}>Destaques</Text>
+            <Text style={[styles.sectionCardDesc, { color: C.muted }]}>Perguntas mais bem avaliadas</Text>
           </TouchableOpacity>
         </View>
       </View>

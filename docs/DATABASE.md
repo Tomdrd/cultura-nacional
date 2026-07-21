@@ -94,6 +94,21 @@ positivos/negativos) e uma `flag`: `problematica` / `atencao` / `boa` /
 `sem_dados`. Os pisos são parâmetros com default (10 respostas, 2 denúncias,
 5 votos) — ajuste esses números conforme o volume de uso crescer, sem
 precisar reescrever a função, ex: `select * from question_health(30, 3, 10)`.
+**Ambas `question_health()` e `top_rated_questions()` são `SECURITY
+DEFINER`** — obrigatório, já que agregam entre usuários dados protegidos por
+RLS (`question_ratings`, `question_reports`); sem isso, cada usuário só
+enxergaria o próprio voto/denúncia na agregação.
+
+`top_rated_questions(p_limit)` — versão fina de `question_health()`, já
+filtrada (`flag = 'boa'`) e ordenada por votos, usada pela tela `TopQuestions`
+do app (`/destaques`). Evita trazer as 1.600+ perguntas pro cliente à toa.
+
+**No app mobile**: `QuizScreen` tem os botões 👍/👎 (upsert em
+`question_ratings`, ao lado do 🚩 de denúncia já existente); `TopQuestions`
+mostra só as `boa` — decisão de escopo: o app foca no lado
+positivo/engajamento, a fila de revisão (`problematica`/`atencao`) é para o
+painel admin, não faz sentido expor pergunta marcada como problemática pro
+usuário comum.
 
 **Importante:** taxa de erro crua não indica pergunta ruim — perguntas
 `hard` erram mais por natureza. Por isso a função compara o acerto de cada
