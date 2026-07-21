@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert, Animated, Image, Platform, ScrollView } from 'react-native';
 import Swords from 'lucide-react-native/dist/esm/icons/swords';
 import Clock from 'lucide-react-native/dist/esm/icons/clock';
 import CheckCircle from 'lucide-react-native/dist/esm/icons/circle-check';
@@ -7,6 +7,7 @@ import XCircle from 'lucide-react-native/dist/esm/icons/circle-x';
 import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
 import Copy from 'lucide-react-native/dist/esm/icons/copy';
 import Users from 'lucide-react-native/dist/esm/icons/users';
+import UserPlus from 'lucide-react-native/dist/esm/icons/user-plus';
 import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
 import X from 'lucide-react-native/dist/esm/icons/x';
 import User from 'lucide-react-native/dist/esm/icons/user';
@@ -45,6 +46,18 @@ interface Opponent {
   avatar_url?: string | null;
 }
 
+type ChallengeTab = 'friends' | 'top' | 'new';
+
+interface ChallengeEntry {
+  id: string;
+  username: string;
+  avatar_url?: string | null;
+  level: number;
+  xp: number;
+}
+
+const CHALLENGE_LIMIT = 5;
+
 const TOTAL_QUESTIONS = 5;
 const TIME_PER_QUESTION = 15;
 
@@ -69,6 +82,13 @@ export function DuelScreen({ route, navigation }: any) {
   const [loading,      setLoading]      = useState(false);
   const [joinCode,     setJoinCode]     = useState('');
   const [showJoin,     setShowJoin]     = useState(false);
+
+  // ─── Lista compacta pra desafiar (Amigos / Melhores / Novos) ───
+  const [challengeTab,     setChallengeTab]     = useState<ChallengeTab>('friends');
+  const [challengeList,    setChallengeList]    = useState<ChallengeEntry[]>([]);
+  const [challengeLoading, setChallengeLoading] = useState(false);
+  const [followingIds,     setFollowingIds]     = useState<Set<string>>(new Set());
+  const [addingId,         setAddingId]         = useState<string | null>(null);
 
   const channelRef    = useRef<any>(null);
   // useRef para evitar stale closure no listener Realtime
@@ -137,6 +157,76 @@ export function DuelScreen({ route, navigation }: any) {
     supabase.from('profiles').select('avatar_url').eq('id', user.id).single()
       .then(({ data }) => { if (data) setMyAvatar(data.avatar_url); });
   }, [user]);
+
+  // ─── Carrega a lista compacta pra desafiar (Amigos / Melhores / Novos) ───
+  useEffect(() => {
+    if (!user || duelState !== 'lobby') return;
+    loadChallengeList(challengeTab);
+  }, [user, duelState, challengeTab]);
+
+  async function loadChallengeList(tab: ChallengeTab) {
+    if (!user) return;
+    setChallengeLoading(true);
+    let ids: string[] = [];
+
+    if (tab === 'friends') {
+      // Amigo = seguidor mútuo (eu sigo e ele me segue de volta)
+      const [{ data: iFollow }, { data: followMe }] = await Promise.all([
+        supabase.from('follows').select('following_id').eq('follower_id', user.id),
+        supabase.from('follows').select('follower_id').eq('following_id', user.id),
+      ]);
+      const followMeSet = new Set((followMe ?? []).map((r: any) => r.follower_id));
+      ids = (iFollow ?? [])
+        .map((r: any) => r.following_id)
+        .filter((id: string) => followMeSet.has(id))
+        .slice(0, CHALLENGE_LIMIT);
+    }
+
+    let list: ChallengeEntry[] = [];
+    if (tab === 'friends') {
+      if (ids.length > 0) {
+        const { data } = await supabase
+          .from('profiles').select('id, username, avatar_url, level, xp')
+          .in('id', ids);
+        list = (data ?? []) as ChallengeEntry[];
+      }
+    } else if (tab === 'top') {
+      const { data } = await supabase
+        .from('profiles').select('id, username, avatar_url, level, xp')
+        .neq('id', user.id)
+        .order('xp', { ascending: false })
+        .limit(CHALLENGE_LIMIT);
+      list = (data ?? []) as ChallengeEntry[];
+    } else {
+      const { data } = await supabase
+        .from('profiles').select('id, username, avatar_url, level, xp')
+        .neq('id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(CHALLENGE_LIMIT);
+      list = (data ?? []) as ChallengeEntry[];
+    }
+    setChallengeList(list);
+
+    // Descobre quais dessa lista o usuário já segue (pra esconder o botão de adicionar)
+    if (tab !== 'friends' && list.length > 0) {
+      const { data: mine } = await supabase
+        .from('follows').select('following_id')
+        .eq('follower_id', user.id)
+        .in('following_id', list.map(l => l.id));
+      setFollowingIds(new Set((mine ?? []).map((r: any) => r.following_id)));
+    } else {
+      setFollowingIds(new Set());
+    }
+    setChallengeLoading(false);
+  }
+
+  async function handleAddFriend(targetId: string) {
+    if (!user || addingId) return;
+    setAddingId(targetId);
+    const { error } = await supabase.from('follows').insert({ follower_id: user.id, following_id: targetId });
+    if (!error) setFollowingIds(prev => new Set(prev).add(targetId));
+    setAddingId(null);
+  }
 
   // ─── Lidar com Desafios e Convites por Parametros ─────────────
   useEffect(() => {
@@ -476,7 +566,10 @@ export function DuelScreen({ route, navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.topBack, { paddingTop: headerPaddingTop }]}>
           <ArrowLeft size={22} color={C.text} />
         </TouchableOpacity>
-        <View style={styles.center}>
+        <ScrollView
+          contentContainerStyle={[styles.center, { flexGrow: 1 }]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={[styles.iconWrap, { backgroundColor: C.iconBg, borderColor: C.border, borderWidth: 1 }]}>
             <Swords size={40} color={C.text} />
           </View>
@@ -520,7 +613,75 @@ export function DuelScreen({ route, navigation }: any) {
               </View>
             </View>
           )}
-        </View>
+
+          {!showJoin && (
+            <View style={styles.challengeSection}>
+              <View style={[styles.challengeTabs, { borderColor: C.border }]}>
+                {([
+                  { key: 'friends', label: 'Amigos', Icon: Users },
+                  { key: 'top',     label: 'Melhores', Icon: Trophy },
+                  { key: 'new',     label: 'Novos', Icon: UserPlus },
+                ] as { key: ChallengeTab; label: string; Icon: any }[]).map(({ key, label, Icon }) => (
+                  <TouchableOpacity
+                    key={key}
+                    onPress={() => setChallengeTab(key)}
+                    style={[styles.challengeTab, challengeTab === key && { borderBottomColor: C.green, borderBottomWidth: 2 }]}
+                  >
+                    <Icon size={13} color={challengeTab === key ? C.green : C.muted} />
+                    <Text style={[styles.challengeTabText, { color: challengeTab === key ? C.green : C.muted }]} numberOfLines={1}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {challengeLoading ? (
+                <ActivityIndicator color={C.green} style={{ marginTop: Spacing.lg }} />
+              ) : challengeList.length === 0 ? (
+                <Text style={[styles.challengeEmpty, { color: C.muted }]}>
+                  {challengeTab === 'friends' ? 'Nenhum amigo mútuo ainda.' : 'Ninguém por aqui ainda.'}
+                </Text>
+              ) : (
+                <View style={styles.challengeList}>
+                  {challengeList.map(entry => {
+                    const alreadyFollowing = challengeTab === 'friends' || followingIds.has(entry.id);
+                    return (
+                      <View key={entry.id} style={[styles.challengeRow, { backgroundColor: C.card, borderColor: C.border }]}>
+                        {entry.avatar_url
+                          ? <Image source={{ uri: entry.avatar_url }} style={styles.challengeAvatar} />
+                          : <View style={[styles.challengeAvatar, { backgroundColor: C.iconBg, alignItems: 'center', justifyContent: 'center' }]}><User size={14} color={C.muted} /></View>
+                        }
+                        <View style={styles.challengeInfo}>
+                          <Text style={[styles.challengeName, { color: C.text }]} numberOfLines={1}>{entry.username}</Text>
+                          <Text style={[styles.challengeMeta, { color: C.muted }]} numberOfLines={1}>Nv.{entry.level} · {entry.xp} XP</Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => createMatch(entry.id)}
+                          disabled={loading}
+                          style={[styles.challengeIconBtn, { backgroundColor: `${C.green}18` }]}
+                        >
+                          <Swords size={15} color={C.green} />
+                        </TouchableOpacity>
+                        {!alreadyFollowing && (
+                          <TouchableOpacity
+                            onPress={() => handleAddFriend(entry.id)}
+                            disabled={addingId === entry.id}
+                            style={[styles.challengeIconBtn, { backgroundColor: C.iconBg }]}
+                          >
+                            {addingId === entry.id
+                              ? <ActivityIndicator size="small" color={C.text} />
+                              : <UserPlus size={15} color={C.text} />
+                            }
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          )}
+        </ScrollView>
       </View>
     );
   }
@@ -717,6 +878,20 @@ const styles = StyleSheet.create({
   joinCancelText:  { fontSize: FontSize.sm },
   joinConfirm:     { flex: 1, height: 44, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   joinConfirmText: { color: '#FFF', fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+
+  // Seção "desafiar" (Amigos / Melhores / Novos) — compacta pra caber em telas pequenas (ex: iPhone SE)
+  challengeSection:  { width: '100%', marginTop: Spacing.xl },
+  challengeTabs:      { flexDirection: 'row', borderBottomWidth: 1, marginBottom: Spacing.md },
+  challengeTab:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8 },
+  challengeTabText:   { fontSize: scaleFont(10), fontWeight: FontWeight.medium },
+  challengeEmpty:     { fontSize: FontSize.xs, textAlign: 'center', paddingVertical: Spacing.lg },
+  challengeList:      { gap: 6 },
+  challengeRow:       { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, padding: 8 },
+  challengeAvatar:    { width: 30, height: 30, borderRadius: 15 },
+  challengeInfo:      { flex: 1, minWidth: 0 },
+  challengeName:      { fontSize: FontSize.xs, fontWeight: FontWeight.medium },
+  challengeMeta:      { fontSize: scaleFont(9), marginTop: 1 },
+  challengeIconBtn:   { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   waitTitle:       { fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginTop: Spacing.xl, marginBottom: 8 },
   waitSub:         { fontSize: FontSize.sm, textAlign: 'center', marginBottom: Spacing.xl },
   codeCard:        { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, alignItems: 'center', width: '100%', marginBottom: Spacing.md },
