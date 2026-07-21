@@ -563,7 +563,7 @@ export function DuelScreen({ route, navigation }: any) {
     const q = questions[current];
     return (
       <View style={[styles.container, { backgroundColor: C.bg }]}>
-        <View style={[styles.scoreBar, { borderBottomColor: C.border, paddingTop: headerPaddingTop }]}>
+        <View style={[styles.scoreBar, { paddingTop: headerPaddingTop }]}>
           <View style={styles.scoreItem}>
             <View style={[styles.avatarWrap, { backgroundColor: C.card, borderColor: C.green }]}>
               {myAvatar ? <Image source={{ uri: myAvatar }} style={styles.avatarImg} /> : <User size={18} color={C.green} />}
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
   shareBtnText:    { fontSize: FontSize.sm, fontWeight: FontWeight.medium },
   cancelBtn:       { padding: Spacing.md },
   cancelText:      { fontSize: FontSize.sm },
-  scoreBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 1 },
+  scoreBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl },
   scoreItem:       { alignItems: 'center', gap: 4, width: 84 },
   avatarWrap:      { width: 40, height: 40, borderRadius: 20, borderWidth: 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarImg:       { width: '100%', height: '100%' },
