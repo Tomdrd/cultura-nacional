@@ -84,6 +84,36 @@ Redirect URLs cadastradas no Supabase Auth Dashboard
 **Se for mudar essa rota ou o domínio, mude os dois lados ao mesmo tempo** —
 código E painel do Supabase — ou o login quebra em produção até sincronizar.
 
+## Stack raiz — `initialRouteName` é obrigatório
+
+O `Stack.Navigator` raiz do `RootNavigator.tsx` tem hoje dois tipos de
+filho: `PublicProfile` (sempre montado) e `Auth`/`App` (condicional,
+conforme `session`). Ele **precisa** de `initialRouteName` explícito:
+
+```tsx
+<Stack.Navigator
+  initialRouteName={session && !isPasswordRecovery ? 'App' : 'Auth'}
+  ...
+>
+```
+
+**Por quê:** sempre que o React Navigation não encontra, entre as screens
+atualmente montadas, o nome de rota que uma navegação (ou o `linking`) está
+pedindo, ele reconstrói o estado a partir de `initialRouteName ??
+routeNames[0]`. Sem o `initialRouteName` explícito, esse fallback caía no
+primeiro `Stack.Screen` declarado — `PublicProfile` — sem nenhum `slug`,
+e a URL virava literalmente `/undefined` (ver
+`docs/incidents/2026-07-21-root-navigator-undefined-redirect.md`). Isso
+acontece em pelo menos dois casos reais: uma URL de `App` chegando
+deslogado (ex: `/app`), e uma URL de `Auth` sendo resolvida no instante em
+que a sessão já ficou válida (ex: `/auth/callback` logo após o login).
+
+**Regra:** qualquer mudança em quais telas são filhos diretos do Stack raiz
+— adicionar uma nova, tornar uma sempre-montada, etc. — precisa reavaliar
+se `initialRouteName` ainda cobre corretamente todos os branches
+condicionais. Nunca deixar o Stack raiz com mais de uma screen e sem
+`initialRouteName` explícito.
+
 ## HomeTabs é um Tab.Navigator aninhado
 
 `HomeTabs` (dentro de `AppNavigator.tsx`) não é uma tela única, é um

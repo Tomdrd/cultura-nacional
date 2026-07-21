@@ -237,29 +237,9 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   clicar em "Publicar branding". Login com Google deixa de mostrar a tela
   de aviso "app não verificado" pra qualquer usuário, não só contas de
   teste. Ver `docs/DEPLOY.md` (seção "Verificação de branding do Google").
-- 2026-07-21: Corrigido bug reportado pelo usuário: CTA "Jogar agora" da
-  landing (`/app`) e o retorno do login Google (`/auth/callback`)
-  redirecionavam para `https://culturanacional.com.br/undefined`.
-  **Regressão introduzida pela própria correção anterior desta entrada**
-  (promover `PublicProfile` pra raiz do `RootNavigator`, sempre montado).
-  Causa raiz: o Stack raiz troca de filho condicionalmente entre `Auth` e
-  `App` (conforme sessão). Sempre que a rota-alvo de uma URL recebida (ou a
-  rota ativa no momento em que a sessão muda) pertence ao branch que NÃO
-  está montado no momento — ex: `/app` chegando deslogado (só `Auth`
-  montado), ou `/auth/callback` sendo resolvido bem no instante em que a
-  sessão já virou válida (só `App` montado) — o React Navigation não acha
-  esse nome de rota entre as screens registradas e reconstrói o estado a
-  partir de `routeNames[0]`, que agora é `PublicProfile` (por ser o
-  primeiro `Stack.Screen` declarado, desde que foi promovido pra raiz).
-  Como a URL de `PublicProfile` é o catch-all `:slug` e não há slug
-  nenhum nesse fallback, a barra de endereço vira literalmente
-  `/undefined`. Antes da promoção do `PublicProfile` pra raiz isso não
-  acontecia, porque o Stack raiz só tinha um único filho (`Auth` OU `App`)
-  — sem um catch-all irmão pra absorver esse fallback. Corrigido
-  adicionando `initialRouteName={session && !isPasswordRecovery ? 'App' :
-  'Auth'}` no `Stack.Navigator` raiz, garantindo que esse fallback caia no
-  branch correto em vez de esbarrar no `PublicProfile`. **Lição:** promover
-  uma tela catch-all (`:slug`) pra irmã de um Stack.Screen condicional é
-  arriscado — sempre revisar se o fallback de `routeNames[0]` continua
-  seguro depois. Testado com `expo export --platform web` limpo, sem erros
-  novos de `tsc`.
+- 2026-07-21: Corrigido bug reportado pelo usuário — CTA "Jogar agora" e
+  retorno do login Google redirecionavam para `/undefined`. Regressão da
+  promoção do `PublicProfile` pra raiz (entrada acima). Post-mortem
+  completo em `docs/incidents/2026-07-21-root-navigator-undefined-redirect.md`;
+  regra permanente em `docs/NAVIGATION.md` ("Stack raiz — initialRouteName
+  é obrigatório").

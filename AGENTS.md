@@ -58,6 +58,33 @@ Leia o arquivo relevante para a sua tarefa antes de mexer nessa área:
   `YYYY-MM-DD-slug.md`. Nunca edite um incidente já registrado — se descobrir
   mais sobre o mesmo bug depois, crie um arquivo novo referenciando o antigo.
 
+## Área de maior risco do projeto: `RootNavigator.tsx` / linking config
+
+Esse arquivo (`src/navigation/RootNavigator.tsx`, mais o `linking.config`
+nele) já causou **3 incidentes distintos** documentados (ver
+`docs/DECISIONS.md` e `docs/incidents/`): `/Home` sem path mapeado,
+`/app.html` no CTA da landing, perfil público inacessível sem sessão, e o
+mais recente, redirect pra `/undefined` no CTA "Jogar agora" e no login
+Google. Todos vieram da mesma família de problema: como o React Navigation
+resolve/reconstrói o estado de navegação quando uma URL ou uma transição de
+sessão não bate exatamente com o que está montado no momento.
+
+**Antes de mexer em `RootNavigator.tsx`, `AppNavigator.tsx`,
+`AuthNavigator.tsx` ou no `linking.config`, teste manualmente:**
+
+1. Cada URL reservada (`/app`, `/auth/callback`, `/perfil`, `/ranking`,
+   etc.) carregada direto no navegador, **deslogado**.
+2. As mesmas URLs carregadas direto, **logado**.
+3. Login (e-mail e Google) ao vivo, observando a URL final na barra de
+   endereço.
+4. Logout ao vivo, observando a URL final.
+
+Se qualquer um desses cenários terminar numa URL ou tela inesperada, não
+assuma que é cosmético — foi exatamente assim que os 3 incidentes
+anteriores começaram. Ver `docs/NAVIGATION.md` pra regras específicas
+(paths obrigatórios, `initialRouteName` do Stack raiz, zona de risco do
+`auth/callback`).
+
 ## Regra de ouro pra manter isso útil
 
 - Qualquer gotcha/descoberta que valeria a pena outra sessão saber vai pro
