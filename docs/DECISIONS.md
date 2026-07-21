@@ -314,3 +314,14 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   arriscado — sempre revisar se o fallback de `routeNames[0]` continua
   seguro depois. Testado com `expo export --platform web` limpo, sem erros
   novos de `tsc`.
+- 2026-07-21: Corrigido bug reportado pelo usuário: botão de voltar parava
+  de funcionar em qualquer tela após trocar de aba do navegador e voltar.
+  Causa raiz: `TOKEN_REFRESHED` do Supabase (disparado automaticamente ao
+  focar a aba) fazia `authStore.ts` setar `profileLoading: true` mesmo pro
+  mesmo usuário já logado; `RootNavigator.tsx` usa esse flag pra decidir
+  entre mostrar o app ou um `ActivityIndicator` full-screen, então cada
+  ciclo desmontava e remontava o `NavigationContainer` inteiro — perdendo
+  todo o histórico de navegação. Corrigido só disparando o refetch de
+  perfil quando o usuário realmente muda (comparação de `id`), não a cada
+  evento de auth. Write-up completo em
+  `docs/incidents/2026-07-21-profileLoading-desmonta-navegacao.md`.
