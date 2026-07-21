@@ -214,3 +214,19 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   certificado do Google Play App Signing) e termina em build nativo novo +
   submissão pras lojas — não é só um commit. Checklist de pré-requisitos no
   próprio arquivo.
+- 2026-07-21: Corrigido (com confirmação explícita antes de mexer, por ser
+  rota de autenticação) o bug descoberto na entrada anterior: `PublicProfile`
+  saiu de dentro do `AppNavigator` e virou tela sempre montada na raiz do
+  `RootNavigator`, ao lado do `App`/`Auth` condicional — agora existe
+  independente de sessão ativa. `linking.config` ajustado (movido
+  `PublicProfile: ':slug'` pra fora de `App.screens`, pra raiz). Chamadas
+  internas (`navigation.navigate('PublicProfile', ...)` no Ranking,
+  FollowList, Notifications) continuam funcionando via propagação padrão do
+  React Navigation pro navegador pai. **Efeito colateral pego e corrigido no
+  mesmo commit**: `handleBack` em `PublicProfileScreen` fazia
+  `navigation.reset({ routes: [{ name: 'HomeTabs' }] })` quando não havia
+  histórico — `HomeTabs` só existe dentro do `AppNavigator`, não na raiz;
+  agora reseta pra `'App'` (que abre `HomeTabs` por conta própria) ou
+  `'Auth'`, dependendo de ter usuário logado. **Testar bem o botão de
+  voltar** (logado e deslogado, com e sem histórico) antes de considerar
+  isso 100% fechado.

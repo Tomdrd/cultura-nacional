@@ -210,8 +210,12 @@ export function PublicProfileScreen({ route, navigation }: any) {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      // Sem histórico de navegação (ex: perfil aberto direto por link/deep link)
-      navigation.reset({ index: 0, routes: [{ name: 'HomeTabs' }] });
+      // Sem histórico de navegação (ex: perfil aberto direto por link/deep
+      // link). PublicProfile vive na raiz agora (ver docs/DECISIONS.md,
+      // 2026-07-21), então o reset mira 'App' (que abre HomeTabs por conta
+      // própria) ou 'Auth' — não mais 'HomeTabs' direto, que é interno ao
+      // AppNavigator e não existe nesse nível.
+      navigation.reset({ index: 0, routes: [{ name: user ? 'App' : 'Auth' }] });
     }
   }
 

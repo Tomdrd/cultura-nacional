@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../store/authStore';
 import { AuthNavigator } from './AuthNavigator';
 import { AppNavigator } from './AppNavigator';
+import { PublicProfileScreen } from '../screens/profile/PublicProfileScreen';
 import { useTheme } from '../hooks/useTheme';
 import { ActivityIndicator, View, Platform, Linking } from 'react-native';
 import { supabase } from '../lib/supabase';
@@ -19,6 +20,11 @@ const linking: LinkingOptions<any> = {
   ],
   config: {
     screens: {
+      // Sempre acessível, com ou sem sessão ativa — ver docs/DECISIONS.md
+      // (2026-07-21): antes vivia dentro de App.screens, então sumia da
+      // árvore de navegação (e caía em auth/callback) pra quem não estava
+      // logado, quebrando todo link de perfil compartilhado.
+      PublicProfile: ':slug', // URL amigável: /tom → PublicProfile com slug="tom"
       Auth: {
         screens: {
           ResetPassword: 'auth/reset-password',
@@ -50,7 +56,6 @@ const linking: LinkingOptions<any> = {
           Profile: 'perfil',
           ViralMode: 'modo-viral',
           FollowList: 'seguidores',
-          PublicProfile: ':slug', // URL amigável: /tom → PublicProfile com slug="tom"
         },
       },
     },
@@ -118,6 +123,7 @@ export function RootNavigator() {
   return (
     <NavigationContainer ref={navigationRef} linking={linking} onReady={() => setNavReady(true)}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
         {session && !isPasswordRecovery ? (
           <Stack.Screen name="App" component={AppNavigator} />
         ) : (
