@@ -67,3 +67,26 @@ Leia o arquivo relevante para a sua tarefa antes de mexer nessa área:
   Nunca reescreva entradas antigas ali (isso evita conflito de merge entre
   sessões paralelas). De tempos em tempos, alguém consolida o que ainda é
   relevante de lá para os arquivos estáveis, e limpa o que já foi superado.
+
+## Quando atualizar README.md e CHANGELOG.md
+
+Esses dois são diferentes do `docs/DECISIONS.md` — são "vitrine" do projeto,
+não log. Não faz sentido tocar neles a cada commit.
+
+**Atualize o `README.md` quando:**
+- Mudar algo que ele descreve explicitamente: stack, estrutura de `src/`,
+  variáveis de ambiente, comandos de setup
+- Um número que ele expõe mudar de **ordem de grandeza** (ex: "389+" pra
+  "1.600+" perguntas vale a pena; "1.600" pra "1.650" não)
+- Uma feature sair da lista 🔜 e virar ✅ em produção, ou o contrário
+- Um link quebrar (domínio mudou, arquivo foi movido/renomeado) — isso é
+  sempre na hora, não espera gatilho nenhum
+
+**Não vale atualizar o README a cada** bugfix pontual, ajuste de UI, ou
+mudança interna que não muda o que está descrito nele — isso é
+`docs/DECISIONS.md`/`docs/incidents/`.
+
+**`CHANGELOG.md`** segue o mesmo ritmo, mas amarrado a **marco de release**
+de verdade (não a cada commit): compile a partir do `docs/DECISIONS.md`
+quando for bater uma versão nova, aprovar a verificação do Google, publicar
+nas lojas, etc. — não em paralelo ao dia a dia.
