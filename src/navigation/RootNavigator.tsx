@@ -122,7 +122,21 @@ export function RootNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef} linking={linking} onReady={() => setNavReady(true)}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        // Sem isso, toda vez que "App"/"Auth" trocam de lugar como filho
+        // condicional (login, logout, ou chegada direta numa URL do branch
+        // que ainda não está montado — ex: '/app' deslogado, ou
+        // '/auth/callback' já com sessão pronta), o React Navigation não
+        // acha o nome de rota antigo entre as screens registradas e recria
+        // o estado a partir de routeNames[0] — que é 'PublicProfile', o
+        // primeiro Stack.Screen declarado abaixo. Como a URL dele é o
+        // catch-all ':slug' e não há slug nenhum nesse fallback, a barra de
+        // endereço vira literalmente '/undefined'. Fixando o
+        // initialRouteName pro branch certo (App/Auth) garante que esse
+        // fallback caia no lugar certo em vez de esbarrar no PublicProfile.
+        initialRouteName={session && !isPasswordRecovery ? 'App' : 'Auth'}
+      >
         <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
         {session && !isPasswordRecovery ? (
           <Stack.Screen name="App" component={AppNavigator} />
