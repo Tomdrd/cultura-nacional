@@ -395,12 +395,14 @@ export function QuizScreen({ route, navigation }: any) {
 
       <ReportModal visible={reportOpen} questionId={q.id} questionText={q.text} onClose={() => setReportOpen(false)} />
 
-      <View style={[styles.progressBg, { backgroundColor: C.border }]}>
-        <Animated.View style={[styles.progressFill, {
-          backgroundColor: C.green,
-          width: progressAnim.interpolate({ inputRange:[0,1], outputRange:['0%','100%'] }),
-        }]} />
-      </View>
+      {shouldUseTimer && (
+        <View style={[styles.progressBg, { backgroundColor: C.border }]}>
+          <Animated.View style={[styles.progressFill, {
+            backgroundColor: C.green,
+            width: progressAnim.interpolate({ inputRange:[0,1], outputRange:['0%','100%'] }),
+          }]} />
+        </View>
+      )}
 
       <View style={styles.counterRow}>
         {questions.map((_, i) => (
