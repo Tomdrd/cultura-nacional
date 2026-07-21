@@ -305,3 +305,13 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   perfil quando o usuário realmente muda (comparação de `id`), não a cada
   evento de auth. Write-up completo em
   `docs/incidents/2026-07-21-profileLoading-desmonta-navegacao.md`.
+- 2026-07-21: Corrigido bug reportado pelo usuário: "Limpar notificações" em
+  `NotificationsScreen.tsx` parecia funcionar mas não apagava nada de
+  verdade. Causa raiz: `Alert.alert()` nativo com múltiplos botões não
+  dispara `onPress` de forma confiável no build web (react-native-web); o
+  projeto já tinha `CustomAlert.tsx` como substituto pronto pra isso, só
+  essa tela não tinha sido migrada. Aproveitado o pedido do usuário pra
+  adicionar exclusão de notificação individual também. Write-up completo em
+  `docs/incidents/2026-07-21-alert-alert-nao-funciona-web.md` — inclui
+  auditoria confirmando que nenhuma outra tela usa `Alert.alert` com
+  múltiplos botões (só alertas de um botão, que continuam seguros).
