@@ -378,7 +378,7 @@ export function QuizScreen({ route, navigation }: any) {
   const isCorrectAnswer = answerResult?.is_correct ?? false;
   return (
     <View style={[styles.container, { backgroundColor: C.bg }]}>
-      <View style={[styles.topBar, { borderBottomColor: C.border, paddingTop: headerPaddingTop }]}>
+      <View style={[styles.topBar, { paddingTop: headerPaddingTop }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color={C.text} />
         </TouchableOpacity>
@@ -395,12 +395,14 @@ export function QuizScreen({ route, navigation }: any) {
 
       <ReportModal visible={reportOpen} questionId={q.id} questionText={q.text} onClose={() => setReportOpen(false)} />
 
-      <View style={[styles.progressBg, { backgroundColor: C.border }]}>
-        <Animated.View style={[styles.progressFill, {
-          backgroundColor: C.green,
-          width: progressAnim.interpolate({ inputRange:[0,1], outputRange:['0%','100%'] }),
-        }]} />
-      </View>
+      {shouldUseTimer && (
+        <View style={[styles.progressBg, { backgroundColor: C.border }]}>
+          <Animated.View style={[styles.progressFill, {
+            backgroundColor: C.green,
+            width: progressAnim.interpolate({ inputRange:[0,1], outputRange:['0%','100%'] }),
+          }]} />
+        </View>
+      )}
 
       <View style={styles.counterRow}>
         {questions.map((_, i) => (
@@ -533,7 +535,7 @@ const styles = StyleSheet.create({
   emptyText:       { fontSize: FontSize.sm, textAlign: 'center' },
   backBtn:         { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, borderRadius: Radius.md },
   backBtnText:     { color: '#FFF', fontWeight: FontWeight.medium },
-  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl, borderBottomWidth: 1 },
+  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.xl },
   topTitle:        { fontSize: FontSize.md, fontWeight: FontWeight.medium },
   timerBadge:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
   timerText:       { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
