@@ -136,3 +136,33 @@ mudança interna que não muda o que está descrito nele — isso é
 de verdade (não a cada commit): compile a partir do `docs/DECISIONS.md`
 quando for bater uma versão nova, aprovar a verificação do Google, publicar
 nas lojas, etc. — não em paralelo ao dia a dia.
+
+## Ícones vs. emoji
+
+Elementos de UI usam ícone de verdade do lucide (`lucide-react-native` aqui,
+`lucide-react` no painel admin), não emoji como caractere de texto —
+inclusive quando o emoji "combina" visualmente (👍/👎, 🔴/🟢, etc.). Import
+direto do ícone específico, não do pacote inteiro (ver
+`src/types/lucide-icons.d.ts` pro porquê).
+
+```tsx
+// ❌ não
+<Text>👍 {count}</Text>
+
+// ✅ sim
+import ThumbsUp from 'lucide-react-native/dist/esm/icons/thumbs-up';
+<View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+  <ThumbsUp size={14} color={C.green} />
+  <Text>{count}</Text>
+</View>
+```
+
+**Emoji como caractere de texto só onde já é o padrão estabelecido**: título
+de notificação push (`src/lib/notifications.ts`) e mensagens
+comemorativas/chamativas pontuais (ex: resultado de duelo em
+`DuelScreen.tsx`) — lugares onde o emoji é conteúdo (chama atenção numa
+notificação do sistema), não um substituto de ícone de interface.
+
+Na dúvida: se o emoji está representando um conceito de UI recorrente (voto,
+status, ação) ele é ícone; se é um toque de expressividade num texto
+esporádico e chamativo (notificação, título de resultado), pode ser emoji.

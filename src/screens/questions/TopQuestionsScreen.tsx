@@ -66,7 +66,7 @@ export function TopQuestionsScreen({ navigation }: any) {
           <Award size={40} color={C.muted} />
           <Text style={[styles.emptyTitle, { color: C.text }]}>Ainda sem destaques</Text>
           <Text style={[styles.emptyText, { color: C.muted }]}>
-            Conforme mais gente jogar e avaliar perguntas com 👍, elas aparecem aqui.
+            Conforme mais gente jogar e avaliar perguntas, as favoritas aparecem aqui.
           </Text>
         </View>
       ) : (
