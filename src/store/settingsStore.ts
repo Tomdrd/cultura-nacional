@@ -28,7 +28,7 @@ export const useSettingsStore = create<SettingsState>()(
       notifStreak:    true,
       notifMissions:  true,
       notifDuel:      true,
-      audioNarration: true,
+      audioNarration: false, // desativado por padrão
       audioSfx:       true,
       quizTimer:      false, // desativado por padrão
       setThemeMode:      (mode) => set({ themeMode: mode }),
