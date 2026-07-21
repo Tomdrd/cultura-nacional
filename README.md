@@ -2,6 +2,8 @@
 
 Quiz mobile sobre a cultura, história, turismo e curiosidades do Brasil — organizado por todos os 27 estados, com subcategorias, duelos em tempo real, gamificação e Modo Viral para compartilhar nas redes sociais.
 
+**Produção:** [culturanacional.com.br](https://culturanacional.com.br) · Painel admin: [admin.culturanacional.com.br](https://admin.culturanacional.com.br) (repositório separado, [`cultura-nacional-admin`](https://github.com/Tomdrd/cultura-nacional-admin))
+
 ## 📱 Tecnologias
 
 | Camada | Tecnologia |
@@ -44,7 +46,7 @@ src/
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/tomdrd/cultura-nacional.git
+git clone https://github.com/Tomdrd/cultura-nacional.git
 cd cultura-nacional
 
 # 2. Instale as dependências
@@ -98,12 +100,14 @@ docs(readme): atualiza documentação
 
 ## 📊 Banco de dados
 
-Projeto Supabase: `fvgvnvzziukvplpyvqki` (sa-east-1 — São Paulo)
+Projeto Supabase: `fvgvnvzziukvplpyvqki` (sa-east-1 — São Paulo) — compartilhado com o painel admin.
 
 Tabelas principais:
 - `states` — 27 estados brasileiros
-- `cities` — municípios com coordenadas
-- `questions` — 389+ perguntas ativas
+- `cities` — 5.571 municípios brasileiros cadastrados (todos, usados na seleção
+  de cidade natal); conteúdo de perguntas específicas por cidade é um subconjunto
+  menor, em expansão — ver `docs/DATABASE.md`
+- `questions` — 1.600+ perguntas ativas
 - `profiles` — perfis de usuário com XP e streak
 - `matches` — partidas de duelo
 - `city_rankings` — ranking por cidade
@@ -112,9 +116,10 @@ Tabelas principais:
 
 ## 📄 Documentação
 
-- [Política de Privacidade](docs/politica-de-privacidade.md)
-- [Termos de Uso](docs/termos-de-uso.md)
+- [Política de Privacidade](https://culturanacional.com.br/privacidade.html) · [Termos de Uso](https://culturanacional.com.br/termos.html) (páginas ao vivo, servidas de `public/`)
 - [CHANGELOG](CHANGELOG.md)
+- [`AGENTS.md`](AGENTS.md) — guia para quem (humano ou IA) for mexer no código: arquitetura, convenções, checklist de início de trabalho
+- [`docs/`](docs/) — navegação/linking config, banco de dados, deploy, decisões recentes e histórico de incidentes
 
 ## 📱 Funcionalidades
 
@@ -134,4 +139,4 @@ Tabelas principais:
 
 ## 👨‍💻 Autor
 
-Desenvolvido por **Antônio Élton Rodrigues** — [@tomdrd](https://github.com/tomdrd)
+Desenvolvido por **Antônio Élton Rodrigues** — [@Tomdrd](https://github.com/Tomdrd)
