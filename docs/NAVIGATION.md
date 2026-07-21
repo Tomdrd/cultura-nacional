@@ -49,6 +49,17 @@ Isso já causou bugs reais em produção 3 vezes:
 | `/auth/reset-password` | ResetPassword |
 | `/:slug` (qualquer coisa não mapeada acima) | `PublicProfile` — trata o segmento como username |
 
+**Atenção, ângulo diferente do bug acima:** até 2026-07-21, isso valia até
+pra links de perfil *legítimos*. `PublicProfileScreen` só sabia ler
+`route.params.userId` (um UUID) — nunca `route.params.slug` (o que o linking
+config realmente entrega nessa rota). Resultado: todo link compartilhado
+(`culturanacional.com.br/algumslug`) clicado direto (fora do app) caía em
+"Perfil não encontrado". Corrigido resolvendo `slug` → `userId` via
+`profile_slug OR username` (ambos com índice único) antes de carregar o
+resto — `profile_slug` é a URL personalizada de usuários Pro (ver
+`ProfileScreen.tsx`), com fallback pro `username`. Ver `docs/DECISIONS.md`
+(2026-07-21).
+
 **Consequência prática:** nenhum username de usuário pode coincidir com
 nenhum dos paths reservados acima (`app`, `ranking`, `quiz`, `perfil`, etc.).
 Se o cadastro de usuário permitir escolher username livremente, considere

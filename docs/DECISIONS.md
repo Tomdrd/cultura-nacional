@@ -177,3 +177,16 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   cadastro do Registro.br, **assim que o e-mail novo estiver configurado e
   recebendo de verdade**. Não fazer a troca antes disso (o contato é usado
   pra exercício de direitos de LGPD).
+- 2026-07-21: Resolvida a pendência do deep link `/:slug` deixada em aberto
+  antes (ver entrada anterior "Deep link `/:slug` ... foi deixado de fora
+  intencionalmente"). `PublicProfileScreen` só lia `route.params.userId`,
+  nunca `route.params.slug` — resultado: todo link de perfil compartilhado
+  clicado direto (fora do app) caía em "Perfil não encontrado", com dezenas
+  de erros `invalid input syntax for type uuid: "undefined"` nos logs do
+  Postgres (as 3 queries da tela rodando com userId indefinido, em rajada,
+  a cada acesso). Corrigido: a tela agora resolve `slug` contra
+  `profile_slug OR username` (ambos com índice único no banco) antes de
+  disparar qualquer query de perfil. `handleCopyUrl` e a URL exibida também
+  passaram a priorizar `profile_slug` sobre `username`, igual já era feito
+  no `ProfileScreen`. Rota `PublicProfile: ':slug'` no linking config já
+  estava correta, não precisou mexer nela.

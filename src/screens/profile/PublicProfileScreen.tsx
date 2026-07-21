@@ -40,6 +40,7 @@ function getLevelInfo(level: number) {
 
 interface Profile {
   username: string;
+  profile_slug: string | null;
   avatar_url: string | null;
   xp: number;
   level: number;
@@ -53,11 +54,12 @@ interface Profile {
 interface CityInfo { name: string; state_uf: string; }
 
 export function PublicProfileScreen({ route, navigation }: any) {
-  const { userId } = route.params;
+  const { userId: paramUserId, slug } = route.params ?? {};
   const { isDark } = useTheme();
   const C = isDark ? HomeTheme.dark : HomeTheme.light;
   const headerPaddingTop = useHeaderTopPadding();
   const { user } = useAuthStore();
+  const [userId,      setUserId]      = useState<string | undefined>(paramUserId);
   const [profile,     setProfile]     = useState<Profile | null>(null);
   const [city,        setCity]        = useState<CityInfo | null>(null);
   const [cityRank,    setCityRank]    = useState<number | null>(null);
@@ -72,7 +74,28 @@ export function PublicProfileScreen({ route, navigation }: any) {
 
   const isMe = user?.id === userId;
 
+  // Deep link amigável (culturanacional.com.br/algumslug) chega como
+  // route.params.slug, não userId. O slug pode ser profile_slug (Pro,
+  // personalizado) OU username (fallback) — mesma prioridade usada pra
+  // montar a URL em ProfileScreen.tsx. Resolve pro id real antes de
+  // carregar qualquer coisa (ver docs/DECISIONS.md, 2026-07-21).
   useEffect(() => {
+    if (paramUserId || !slug) return;
+    supabase.from('profiles').select('id')
+      .or(`profile_slug.eq.${slug},username.eq.${slug}`)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.id) {
+          setUserId(data.id);
+        } else {
+          setNotFound(true);
+          setLoading(false);
+        }
+      });
+  }, [paramUserId, slug]);
+
+  useEffect(() => {
+    if (!userId) return;
     loadProfile();
     loadFollowInfo();
     loadQuizStats();
@@ -143,7 +166,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
 
   async function handleCopyUrl() {
     if (!profile?.username) return;
-    await Clipboard.setStringAsync(`https://culturanacional.com.br/${profile.username}`);
+    await Clipboard.setStringAsync(`https://culturanacional.com.br/${profile.profile_slug ?? profile.username}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -153,7 +176,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
     setNotFound(false);
     const { data } = await supabase
       .from('profiles')
-      .select('username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, cities!city_natal_id(state_uf)')
+      .select('username, profile_slug, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, cities!city_natal_id(state_uf)')
       .eq('id', userId)
       .single();
 
@@ -256,7 +279,7 @@ export function PublicProfileScreen({ route, navigation }: any) {
                 style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
               >
                 <Text style={[styles.urlText, { color: C.subtle }]} numberOfLines={1}>
-                  culturanacional.com.br/{profile?.username}
+                  culturanacional.com.br/{profile?.profile_slug ?? profile?.username}
                 </Text>
                 <Copy size={13} color={C.muted} />
               </TouchableOpacity>
