@@ -171,3 +171,9 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   Sans/Inter/JetBrains Mono, header/footer idênticos). Antes, essas duas
   páginas tinham CSS mínimo hardcoded (sem dark mode). Texto legal
   preservado 100% — só a camada visual mudou.
+- 2026-07-21: Pendência registrada em `docs/DEPLOY.md` — trocar o e-mail
+  pessoal `antonyeltonrodrigues@gmail.com` por
+  `contato@culturanacional.com.br` em landing/termos/privacidade e no
+  cadastro do Registro.br, **assim que o e-mail novo estiver configurado e
+  recebendo de verdade**. Não fazer a troca antes disso (o contato é usado
+  pra exercício de direitos de LGPD).
