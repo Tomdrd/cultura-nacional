@@ -159,12 +159,12 @@ export function QuizScreen({ route, navigation }: any) {
   // Painel de feedback desliza de baixo pra cima ao responder (estilo
   // Duolingo); ao avançar de pergunta, some na hora (sem animação de saída)
   useEffect(() => {
-    if (answered) {
+    if (answerResult !== null) {
       Animated.spring(feedbackAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 6 }).start();
     } else {
       feedbackAnim.setValue(0);
     }
-  }, [answered]);
+  }, [answerResult]);
 
   async function loadQuestions() {
     setLoading(true);
