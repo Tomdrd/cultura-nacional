@@ -157,6 +157,25 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
     2026-07-21) pra receber `slug`, não `userId`. O tipo ficou desatualizado
     em relação ao código real — não mexi por não ser relacionado a esta
     tarefa, mas vale corrigir na próxima sessão que mexer em perfil público.
+- 2026-07-21: Etapa do **painel admin** (`cultura-nacional-admin`, repo
+  separado) do sistema de ranking de qualidade de perguntas — registrado
+  aqui por ser conhecimento de banco/decisão compartilhada entre os dois
+  repos, por instrução do `AGENTS.md` de lá.
+  - Nova página `QualityPage.tsx` (`/qualidade`, item "Qualidade" no
+    Sidebar), consumindo `question_health()` diretamente (com paginação via
+    `.range()` + `count: 'exact'` encadeado no `.rpc()`, mesmo padrão de
+    paginação já usado em `QuestionsPage.tsx`). Abas por `flag`
+    (problemática/atenção/boa/sem dados), modal de detalhe que busca as
+    denúncias da pergunta (`question_reports`) e permite marcar
+    corrigido/descartado direto ali (reaproveitando a mesma ação já usada em
+    `ReportsPage.tsx`).
+  - **Observação, não corrigida (fora de escopo)**: `ReportsPage.tsx` usa a
+    classe `btn-danger`, que **não existe** em `index.css` (só `btn-primary`
+    e `btn-secondary` estão definidas) — o botão "Descartar" ali renderiza
+    sem estilo de botão nenhum. Não mexi por não ser relacionado a esta
+    tarefa (evitei usar essa classe na `QualityPage.tsx` nova). Vale
+    corrigir (ou adicionar a classe faltante, ou trocar pelas duas
+    existentes) na próxima sessão que mexer em `ReportsPage.tsx`.
 - 2026-07-21: Corrigido bug `isPro`/`isProProfile` em `ProfileScreen` e
   `PublicProfileScreen`: ambos checavam só `profile.plan === 'pro'` sem
   verificar `plan_expires_at` — usuário com plano expirado continuava com
