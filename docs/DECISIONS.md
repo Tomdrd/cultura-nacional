@@ -153,3 +153,15 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
 - 2026-07-21: Redesign do card de pergunta aleatória na Home ficou pendente — mockups
   foram avaliados (opções A/B/C, largura total, sem label "Aleatório", ícone da
   subcategoria em destaque) mas nenhum aprovado. Retomar com nova proposta visual.
+- 2026-07-20: Write-up completo do bug recorrente de "path não mapeado no linking
+  config" (3 ocorrências: `/Home`, `/app.html`→`/Home` de novo, tela `CidadeSetup`)
+  registrado em `docs/incidents/2026-07-19-linking-config-path-nao-mapeado.md`,
+  seguindo o mesmo template de `docs/incidents/2026-07-15-quiz-desempenho-incorreto.md`
+  (Sintoma/Causa raiz/Correção/Prevenção). Use esse arquivo pra entender o histórico
+  completo; a lista de paths mapeados atualmente vive em `docs/NAVIGATION.md`.
+- 2026-07-20: Lição de processo: uma sessão criou a estrutura `docs/*.md` +
+  `docs/DECISIONS.md` (este arquivo) sem antes checar se `docs/` já tinha conteúdo —
+  `mkdir -p` não avisa se o diretório já existe. `docs/incidents/` e
+  `docs/PLANO_TIMER_ACESSIBILIDADE.md` já existiam desde 11–15/07 e quase foram
+  ignorados na reestruturação. Nenhum arquivo foi sobrescrito (sorte, não mérito).
+  **Antes de criar qualquer doc nova, rode `find docs -type f | sort` primeiro.**

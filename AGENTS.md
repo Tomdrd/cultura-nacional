@@ -49,6 +49,11 @@ Leia o arquivo relevante para a sua tarefa antes de mexer nessa área:
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — log cronológico (append-only) de
   decisões e descobertas recentes que ainda não foram promovidas pros
   arquivos acima
+- [`docs/incidents/`](docs/incidents/) — write-ups completos (sintoma, causa
+  raiz, correção, prevenção) de bugs significativos o bastante pra merecer
+  mais que uma linha no `DECISIONS.md`. Um arquivo por incidente, nomeado
+  `YYYY-MM-DD-slug.md`. Nunca edite um incidente já registrado — se descobrir
+  mais sobre o mesmo bug depois, crie um arquivo novo referenciando o antigo.
 
 ## Regra de ouro pra manter isso útil
 
