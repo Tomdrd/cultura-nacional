@@ -45,6 +45,15 @@ Faz fallback cidade → estado com reservoir sampling ponderado e ordenação de
 dificuldade progressiva. O modo Relâmpago usa aleatoriedade pura via o
 parâmetro `p_progressive`.
 
+## RLS: sempre `(select auth.uid())`, nunca `auth.uid()` cru
+
+Em qualquer policy nova, escreva `(select auth.uid())` (ou `auth.role()`)
+em vez de chamar a função direto. O Postgres cacheia o resultado de uma
+subquery uma vez por statement; a chamada direta é reavaliada linha a linha,
+o que fica caro em tabelas grandes. Mesma lógica de acesso, plano de
+execução melhor. Ver `docs/DECISIONS.md` (2026-07-20) para o histórico da
+correção retroativa.
+
 ## Auditoria de migrations aplicadas
 
 ```sql

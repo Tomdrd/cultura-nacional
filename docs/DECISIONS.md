@@ -50,3 +50,36 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   `docs/*.md` + log append-only aqui), porque múltiplas sessões de IA sem
   visibilidade entre si precisam de uma fonte de verdade compartilhada que
   não fique obsoleta.
+- 2026-07-20: Auditoria de performance/segurança no banco (via advisor do
+  Supabase MCP, sem passar por este repo — mudanças só no banco, nenhum
+  arquivo de código alterado):
+  - Adicionados 14 índices em foreign keys sem cobertura (`matches`,
+    `match_answers`, `profiles`, `question_reports`, `user_achievements`,
+    `user_badges`, `user_seen_questions`, `user_state_progress`, `badges`,
+    `city_rankings`). Puramente aditivo.
+  - 34 policies de RLS reescritas trocando `auth.uid()`/`auth.role()` por
+    `(select auth.uid())`/`(select auth.role())` — mesma lógica de acesso,
+    mas avaliada uma vez por statement em vez de por linha. Ver
+    `docs/DATABASE.md` se for mexer em RLS: reaproveitar esse padrão em
+    policies novas.
+  - **Falha de segurança corrigida**: `question_reports` tinha a policy
+    `reports_admin_update` com `qual = true` — **qualquer pessoa, mesmo sem
+    login, podia atualizar qualquer report de qualquer usuário**. Removida.
+    Junto com ela, removidas `reports_select_all` (liberava leitura de
+    todos os reports pra qualquer autenticado) e `reports_select_own`/
+    `reports_admin_select` (lógica antiga, checava `profiles.plan = 'edu'`,
+    incoerente com o `is_admin()` usado no resto do banco). Hoje
+    `question_reports` só permite: usuário cria o próprio report (`INSERT`,
+    `auth.uid() = user_id`); só admin (`is_admin()`) lê e atualiza.
+  - `admin_emails` também liberava leitura pra qualquer usuário autenticado
+    via a policy `"authenticated users can view admin_emails"` (`qual =
+    true`). Removida — agora só `is_admin()` lê essa tabela. Isso não quebra
+    `is_admin()` (usada em várias outras policies) porque a função é
+    `SECURITY DEFINER` e não depende de RLS pra se autoconsultar.
+  - **Pendente, não mexido**: `user_achievements` tem duas constraints
+    UNIQUE idênticas (`user_achievements_unique_user_achievement` e
+    `user_achievements_user_id_achievement_id_key`, ambas
+    `UNIQUE (user_id, achievement_id)`). Antes de dropar uma, procurar no
+    código por `ON CONFLICT ON CONSTRAINT user_achievements_unique_user_achievement`
+    ou pelo nome `_key` — se algum INSERT/upsert referenciar o nome
+    específico, dropar a errada quebra esse código.
