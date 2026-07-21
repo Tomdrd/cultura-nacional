@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, Image, Alert
+  ActivityIndicator, Image
 } from 'react-native';
 import Bell from 'lucide-react-native/dist/esm/icons/bell';
 import UserPlus from 'lucide-react-native/dist/esm/icons/user-plus';
@@ -16,6 +16,7 @@ import { useUnreadNotifications } from '../../hooks/useUnreadNotifications';
 import { supabase } from '../../lib/supabase';
 import { HomeTheme } from '../../constants/colors';
 import { Spacing, FontSize, FontWeight, Radius, scaleFont } from '../../constants/layout';
+import { CustomAlert } from '../../components/ui/CustomAlert';
 
 interface Notification {
   id: string;
@@ -60,6 +61,8 @@ export function NotificationsScreen({ navigation }: any) {
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading]             = useState(true);
+  const [confirmClear, setConfirmClear]   = useState(false);
+  const [alert, setAlert] = useState<{ visible: boolean; title: string; message?: string }>({ visible: false, title: '' });
   const channelRef = useRef<any>(null);
 
   async function fetchNotifications() {
@@ -107,17 +110,39 @@ export function NotificationsScreen({ navigation }: any) {
     }, [user?.id])
   );
 
-  async function handleClearAll() {
+  function handleClearAll() {
     if (!user) return;
-    Alert.alert('Limpar notificações', 'Tem certeza que deseja apagar todas as notificações?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Limpar', style: 'destructive', onPress: async () => {
-          setLoading(true);
-          await supabase.from('notifications').delete().eq('user_id', user.id);
-          setNotifications([]);
-          setLoading(false);
-      }}
-    ]);
+    setConfirmClear(true);
+  }
+
+  async function confirmClearAll() {
+    setConfirmClear(false);
+    if (!user) return;
+    setLoading(true);
+    const { error } = await supabase.from('notifications').delete().eq('user_id', user.id);
+    if (error) {
+      setLoading(false);
+      setAlert({ visible: true, title: 'Não foi possível limpar', message: 'Tente novamente em instantes.' });
+      return;
+    }
+    setNotifications([]);
+    setLoading(false);
+  }
+
+  async function handleDeleteOne(id: string) {
+    if (!user) return;
+    const prev = notifications;
+    // Otimista: remove da tela na hora, mas reverte se o delete falhar de verdade
+    setNotifications(current => current.filter(n => n.id !== id));
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (error) {
+      setNotifications(prev);
+      setAlert({ visible: true, title: 'Não foi possível apagar', message: 'Tente novamente em instantes.' });
+    }
   }
 
   function handleNotifPress(item: Notification) {
@@ -137,11 +162,9 @@ export function NotificationsScreen({ navigation }: any) {
   function renderItem({ item }: { item: Notification }) {
     const color = iconColor(item.type, C);
     const avatarUrl = item.data?.followerAvatar || item.data?.senderAvatar || item.data?.opponentAvatar;
-    
+
     return (
-      <TouchableOpacity
-        onPress={() => handleNotifPress(item)}
-        activeOpacity={item.type === 'duel_invite' || item.type === 'new_follower' ? 0.7 : 1}
+      <View
         style={[
           styles.item,
           {
@@ -150,20 +173,36 @@ export function NotificationsScreen({ navigation }: any) {
           },
         ]}
       >
-        <View style={[styles.iconWrap, { backgroundColor: isDark ? C.iconBg : `${color}18` }]}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={{ width: 40, height: 40, borderRadius: 20 }} />
-          ) : (
-            <NotifIcon type={item.type} color={color} />
-          )}
-        </View>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
-          <Text style={[styles.title, { color: C.text }]}>{item.title}</Text>
-          <Text style={[styles.body, { color: C.muted }]} numberOfLines={2}>{item.body}</Text>
-        </View>
-        <Text style={[styles.time, { color: C.muted }]}>{timeAgo(item.created_at)}</Text>
-        {!item.read && <View style={[styles.dot, { backgroundColor: C.green }]} />}
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleNotifPress(item)}
+          activeOpacity={item.type === 'duel_invite' || item.type === 'new_follower' ? 0.7 : 1}
+          style={styles.itemPressable}
+        >
+          <View style={[styles.iconWrap, { backgroundColor: isDark ? C.iconBg : `${color}18` }]}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+            ) : (
+              <NotifIcon type={item.type} color={color} />
+            )}
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <Text style={[styles.title, { color: C.text }]}>{item.title}</Text>
+            <Text style={[styles.body, { color: C.muted }]} numberOfLines={2}>{item.body}</Text>
+          </View>
+          <Text style={[styles.time, { color: C.muted }]}>{timeAgo(item.created_at)}</Text>
+          {!item.read && <View style={[styles.dot, { backgroundColor: C.green }]} />}
+        </TouchableOpacity>
+
+        {/* Botão de excluir individual: sibling do TouchableOpacity acima, não aninhado,
+            pra evitar conflito de toque entre os dois. */}
+        <TouchableOpacity
+          onPress={() => handleDeleteOne(item.id)}
+          style={styles.deleteBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Trash2 size={16} color={C.muted} />
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -203,6 +242,23 @@ export function NotificationsScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      <CustomAlert
+        visible={confirmClear}
+        title="Limpar notificações"
+        message="Tem certeza que deseja apagar todas as notificações?"
+        buttons={[
+          { label: 'Cancelar', variant: 'secondary', onPress: () => setConfirmClear(false) },
+          { label: 'Limpar',   variant: 'danger',    onPress: confirmClearAll },
+        ]}
+        onDismiss={() => setConfirmClear(false)}
+      />
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.title}
+        message={alert.message}
+        onDismiss={() => setAlert({ visible: false, title: '' })}
+      />
     </View>
   );
 }
@@ -213,7 +269,9 @@ const styles = StyleSheet.create({
   center:      { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: Spacing.xl },
   emptyTitle:  { fontSize: FontSize.md, fontWeight: FontWeight.bold, marginTop: 8 },
   emptyBody:   { fontSize: FontSize.sm, textAlign: 'center', lineHeight: 20 },
-  item:        { flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md },
+  item:          { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1 },
+  itemPressable: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: Spacing.md },
+  deleteBtn:     { paddingHorizontal: Spacing.md, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   iconWrap:    { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   title:       { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginBottom: 2 },
   body:        { fontSize: FontSize.xs, lineHeight: 18 },
