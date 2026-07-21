@@ -83,3 +83,10 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
     código por `ON CONFLICT ON CONSTRAINT user_achievements_unique_user_achievement`
     ou pelo nome `_key` — se algum INSERT/upsert referenciar o nome
     específico, dropar a errada quebra esse código.
+- 2026-07-21: `EstadosScreen` ainda usava um objeto `COLORS` fixo (hardcoded,
+  só dark), sem aplicar `useTheme`/`HomeTheme` — modo claro não tinha efeito
+  nessa tela. Corrigido seguindo o padrão de `CategoriasScreen`: `const {
+  isDark } = useTheme()`, `HomeTheme.dark`/`HomeTheme.light`, cores aplicadas
+  inline (StyleSheet só com layout), `StatusBar barStyle` condicional. Se
+  encontrar outra tela com objeto `COLORS` local fixo em vez de `HomeTheme`,
+  provavelmente tem o mesmo bug.
