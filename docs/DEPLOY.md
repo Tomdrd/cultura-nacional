@@ -1,0 +1,87 @@
+# Deploy, domínio e landing page
+
+## Domínios
+
+- `culturanacional.com.br` (+ `www`) → este projeto Vercel (`cultura-nacional`)
+- `admin.culturanacional.com.br` → projeto Vercel separado (`cultura-nacional-admin`)
+- DNS gerenciado no Registro.br (registros `A`/`CNAME` manuais, não
+  delegação de nameservers para o Vercel)
+
+## Como a raiz do domínio serve DUAS coisas diferentes
+
+`culturanacional.com.br/` precisa mostrar uma landing page pública (sem
+login, explicando o app — exigência do Google para verificação de branding
+OAuth), mas o app de verdade também precisa funcionar nesse mesmo domínio.
+
+A solução está no `vercel.json`:
+
+```json
+"buildCommand": "npx expo export --platform web && cp dist/index.html dist/app.html && cp public/landing.html dist/index.html",
+"rewrites": [{ "source": "/(.*)", "destination": "/app.html" }]
+```
+
+O build do Expo gera o app em `index.html`; o script copia esse arquivo pra
+`app.html` e coloca `public/landing.html` no lugar de `index.html`. Como
+arquivo estático existente tem prioridade sobre rewrite no Vercel:
+
+- `/` → serve `index.html` (a landing page) diretamente, sem passar pelo rewrite
+- `/termos.html`, `/privacidade.html` → também são arquivos estáticos reais (copiados de `public/`)
+- Qualquer outro path (`/app`, `/auth/callback`, `/perfil`, etc.) → não existe
+  como arquivo estático, cai no rewrite `/(.*) → /app.html`, carregando o app
+  React de verdade
+
+**Não mexa nesse mecanismo sem entender a ordem de prioridade
+estático-antes-de-rewrite do Vercel** — é frágil e fácil de quebrar sem
+perceber (ver `docs/NAVIGATION.md` para o histórico de bugs relacionados a
+paths não mapeados nesse contexto).
+
+**Link para "abrir o app" a partir da landing page: use sempre `/app`** (rota
+reservada, ver `docs/NAVIGATION.md`), nunca `/app.html` direto.
+
+## Painel admin — bloqueio de indexação
+
+O admin panel **nunca** deve aparecer no Google. Tem duas camadas de
+proteção: `public/robots.txt` (`Disallow: /`) e `<meta name="robots"
+content="noindex, nofollow">` no `index.html`. Se recriar o projeto do zero,
+não esqueça as duas.
+
+## SEO da landing page
+
+Score atual (PageSpeed Insights, mobile): 100/100/100/100, 3/3 navegação
+agêntica. Elementos que sustentam isso:
+
+- Fontes do Google carregadas de forma assíncrona (`preload` + `onload`,
+  não `<link rel="stylesheet">` direto) — evita bloqueio de renderização
+- Imagens com `width`/`height` explícitos e otimizadas pro tamanho de
+  exibição real (não usar o ícone de app de 1024×1024 direto num `<img>`
+  pequeno — ver `public/logo-header.png`, versão 96×96 dedicada)
+- `<main>` como landmark de navegação
+- `robots.txt`/`sitemap.xml` com domínio correto e **só páginas genuinamente
+  públicas** (não listar rotas que exigem login)
+- `<link rel="canonical">`, Open Graph completo (`og:url`/`type`/`locale`),
+  JSON-LD `SoftwareApplication`
+
+Ao mudar a landing page, revalide rodando o PageSpeed Insights de novo depois
+do deploy — não assuma que a nota se mantém.
+
+## Verificação de branding do Google (OAuth)
+
+Console: `console.cloud.google.com/auth/branding?project=cultura-nacional`.
+Exige: página inicial acessível sem login, que explique a finalidade do app
+em texto, com nome batendo com o configurado no consent screen. A landing
+page (`public/landing.html`) foi desenhada especificamente para atender isso.
+A revisão é **manual** pelo time do Google — pode levar dias, não é
+instantânea, e a tela de "problemas encontrados" só atualiza depois da
+revisão nova ser concluída.
+
+## Imagens de compartilhamento (Open Graph / Twitter Card)
+
+`public/og-image.png` (1200×630) e `public/twitter-image.png` (1024×512) são
+geradas programaticamente (Pillow + fonte Plus Jakarta Sans convertida de
+woff2 pra ttf via fonttools, já que o ambiente de build não baixa fontes de
+`fonts.gstatic.com`). Se precisar regenerar, replique a identidade visual da
+landing page (paleta, tipografia, card de pergunta) em vez de usar só a logo.
+
+Depois de trocar essas imagens, rode "Extrair novamente" no Facebook Sharing
+Debugger (`developers.facebook.com/tools/debug/`) — ele cacheia a prévia por
+URL e não atualiza sozinho.
