@@ -125,3 +125,20 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
     telas de "piores"/"melhores" perguntas no app e no painel admin
     (`cultura-nacional-admin`, repo separado — ainda não clonado, vai
     precisar de token novo quando chegar essa hora).
+- 2026-07-21: Corrigido bug `isPro`/`isProProfile` em `ProfileScreen` e
+  `PublicProfileScreen`: ambos checavam só `profile.plan === 'pro'` sem
+  verificar `plan_expires_at` — usuário com plano expirado continuava com
+  acesso a features Pro. Corrigido com IIFE que checa plano + expiração.
+  Inclui `family` e `education` além de `pro`. `plan_expires_at` foi
+  adicionado à interface e query do `PublicProfileScreen` (faltava).
+- 2026-07-21: Adicionada edição de URL amigável (`profile_slug`) no
+  `ProfileScreen` para usuários CN Pro ativos. Botão lápis ao lado da URL
+  abre modal com preview em tempo real, validação de formato (3-30 chars,
+  lowercase/números/hífens) e check de unicidade no banco. A coluna
+  `profile_slug` já existia no banco (migration aplicada em sessão anterior).
+  URL exibe `profile_slug` se definido, fallback para `username`.
+  Domínio correto: `culturanacional.com.br` (não `cultura-nacional.vercel.app`).
+- 2026-07-21: Lucide imports neste projeto usam o estilo individual
+  (`import X from 'lucide-react-native/dist/esm/icons/x'`), não o named
+  import (`import { X } from 'lucide-react-native'`). Sempre usar o estilo
+  individual ao adicionar novos ícones — o outro quebra o bundle web.

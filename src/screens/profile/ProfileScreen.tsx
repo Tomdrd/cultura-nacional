@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import User from 'lucide-react-native/dist/esm/icons/user';
 import MapPin from 'lucide-react-native/dist/esm/icons/map-pin';
 import Trophy from 'lucide-react-native/dist/esm/icons/trophy';
@@ -13,6 +13,8 @@ import Check from 'lucide-react-native/dist/esm/icons/check';
 import Lock from 'lucide-react-native/dist/esm/icons/lock';
 import Swords from 'lucide-react-native/dist/esm/icons/swords';
 import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
+import Pencil from 'lucide-react-native/dist/esm/icons/pencil';
+import X from 'lucide-react-native/dist/esm/icons/x';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
@@ -51,6 +53,7 @@ interface Profile {
   city_natal_id: string | null;
   created_at: string;
   state_uf: string | null;
+  profile_slug: string | null;
 }
 
 interface CityInfo { name: string; state_uf: string; }
@@ -69,6 +72,10 @@ export function ProfileScreen({ navigation }: any) {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [quizStats, setQuizStats] = useState({ total: 0, correct: 0 });
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [slugInput,     setSlugInput]     = useState('');
+  const [slugError,     setSlugError]     = useState('');
+  const [slugSaving,    setSlugSaving]    = useState(false);
 
   useEffect(() => { loadProfile(); loadFollowInfo(); loadQuizStats(); }, []);
 
@@ -105,7 +112,7 @@ export function ProfileScreen({ navigation }: any) {
     setLoading(true);
     const { data } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, created_at, cities!city_natal_id(state_uf)')
+      .select('id, username, avatar_url, xp, level, streak, plan, plan_expires_at, city_natal_id, created_at, profile_slug, cities!city_natal_id(state_uf)')
       .eq('id', user.id)
       .single();
 
@@ -141,7 +148,41 @@ export function ProfileScreen({ navigation }: any) {
     const expired = expires ? new Date(expires) < new Date() : false;
     return (plan === 'pro' || plan === 'family' || plan === 'education') && !expired;
   })();
-  const profileUrl  = `culturanacional.com.br/${profile?.username ?? ''}`;
+  function sanitizeSlug(input: string) {
+    return input.toLowerCase().replace(/[^a-z0-9\-]/g, '').replace(/--+/g, '-');
+  }
+  function isValidSlug(slug: string) {
+    return /^[a-z0-9][a-z0-9\-]{1,28}[a-z0-9]$/.test(slug) && slug.length >= 3 && slug.length <= 30;
+  }
+  function openEditModal() {
+    setSlugInput(profile?.profile_slug ?? profile?.username ?? '');
+    setSlugError('');
+    setEditModalOpen(true);
+  }
+  function handleSlugChange(text: string) {
+    const clean = sanitizeSlug(text);
+    setSlugInput(clean);
+    if (clean.length > 0 && clean.length < 3) setSlugError('Mínimo 3 caracteres');
+    else if (clean.length > 0 && !isValidSlug(clean)) setSlugError('Letras minúsculas, números e hífens. Sem hífen no início ou fim.');
+    else setSlugError('');
+  }
+  async function handleSaveSlug() {
+    if (!user || !profile) return;
+    const slug = slugInput.trim();
+    if (!isValidSlug(slug)) { setSlugError('URL inválida.'); return; }
+    if (slug === profile.profile_slug) { setEditModalOpen(false); return; }
+    setSlugSaving(true);
+    const { data: existing } = await supabase.from('profiles').select('id').eq('profile_slug', slug).neq('id', user.id).maybeSingle();
+    if (existing) { setSlugError('Essa URL já está em uso.'); setSlugSaving(false); return; }
+    const { error } = await supabase.from('profiles').update({ profile_slug: slug }).eq('id', user.id);
+    setSlugSaving(false);
+    if (error) { setSlugError('Erro ao salvar. Tente novamente.'); return; }
+    setProfile((prev: Profile | null) => prev ? { ...prev, profile_slug: slug } : prev);
+    setEditModalOpen(false);
+  }
+
+  const urlSlug   = profile?.profile_slug ?? profile?.username ?? '';
+  const profileUrl  = `culturanacional.com.br/${urlSlug}`;
 
   async function handleCopyUrl() {
     await Clipboard.setStringAsync(`https://${profileUrl}`);
@@ -181,16 +222,24 @@ export function ProfileScreen({ navigation }: any) {
           {profile?.plan && <VerifiedBadge plan={profile.plan} size={20} />}
         </View>
         {isPro ? (
-          <TouchableOpacity
-            onPress={handleCopyUrl}
-            style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border }]}
-          >
-            <Text style={[styles.urlText, { color: C.subtle }]} numberOfLines={1}>{profileUrl}</Text>
-            {copied
-              ? <Check size={14} color={C.green} />
-              : <Copy size={14} color={C.muted} />
-            }
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '90%' }}>
+            <TouchableOpacity
+              onPress={handleCopyUrl}
+              style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border, flex: 1 }]}
+            >
+              <Text style={[styles.urlText, { color: C.subtle }]} numberOfLines={1}>{profileUrl}</Text>
+              {copied
+                ? <Check size={14} color={C.green} />
+                : <Copy size={14} color={C.muted} />
+              }
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={openEditModal}
+              style={[styles.urlPill, { backgroundColor: C.iconBg, borderColor: C.border, paddingHorizontal: 10 }]}
+            >
+              <Pencil size={14} color={C.subtle} />
+            </TouchableOpacity>
+          </View>
         ) : (
           <TouchableOpacity
             onPress={() => navigation.navigate('Subscription')}
@@ -355,6 +404,49 @@ export function ProfileScreen({ navigation }: any) {
       </TouchableOpacity>
 
       <View style={{ height: 40 }} />
+
+      <Modal visible={editModalOpen} transparent animationType="fade" onRequestClose={() => setEditModalOpen(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: Spacing.xl }}>
+          <View style={{ width: '100%', maxWidth: 400, backgroundColor: C.card, borderRadius: 20, borderWidth: 1, borderColor: C.border, padding: Spacing.xl, gap: Spacing.md }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: FontSize.md, fontWeight: FontWeight.bold, color: C.text }}>Editar URL do perfil</Text>
+              <TouchableOpacity onPress={() => setEditModalOpen(false)}><X size={18} color={C.muted} /></TouchableOpacity>
+            </View>
+            <Text style={{ fontSize: FontSize.xs, color: C.muted, lineHeight: 18 }}>Letras minúsculas, números e hífens. Entre 3 e 30 caracteres.</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', backgroundColor: C.iconBg, borderRadius: Radius.md, borderWidth: 1, borderColor: C.border, paddingHorizontal: 12, paddingVertical: 8 }}>
+              <Text style={{ fontSize: FontSize.xs, color: C.muted }}>culturanacional.com.br/</Text>
+              <Text style={{ fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: slugError ? '#E24B4A' : C.green }}>{slugInput || '...'}</Text>
+            </View>
+            <TextInput
+              value={slugInput}
+              onChangeText={handleSlugChange}
+              placeholder="minha-url"
+              placeholderTextColor={C.muted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={30}
+              style={{ borderWidth: 1, borderRadius: Radius.md, paddingHorizontal: 14, paddingVertical: 10, fontSize: FontSize.sm, borderColor: slugError ? '#E24B4A' : C.border, color: C.text, backgroundColor: C.iconBg }}
+            />
+            {slugError
+              ? <Text style={{ fontSize: FontSize.xs, color: '#E24B4A', marginTop: -4 }}>{slugError}</Text>
+              : <Text style={{ fontSize: FontSize.xs, color: C.muted, textAlign: 'right', marginTop: -4 }}>{slugInput.length}/30</Text>
+            }
+            <View style={{ flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.xs }}>
+              <TouchableOpacity onPress={() => setEditModalOpen(false)} style={{ flex: 1, borderWidth: 1, borderColor: C.border, borderRadius: Radius.md, paddingVertical: 11, alignItems: 'center' }}>
+                <Text style={{ fontSize: FontSize.sm, fontWeight: FontWeight.medium, color: C.subtle }}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSaveSlug}
+                disabled={slugSaving || !!slugError || slugInput.length < 3}
+                style={{ flex: 1, borderRadius: Radius.md, paddingVertical: 11, alignItems: 'center', backgroundColor: C.green, opacity: (slugSaving || !!slugError || slugInput.length < 3) ? 0.5 : 1 }}
+              >
+                {slugSaving ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={{ color: '#FFF', fontSize: FontSize.sm, fontWeight: FontWeight.bold }}>Salvar</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
     </ScrollView>
   );
 }
