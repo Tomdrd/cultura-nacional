@@ -97,3 +97,31 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   `CidadeSetupScreen`, `SubscriptionScreen`) são cores semânticas
   intencionais (branco sobre overlay de gravação, vermelho de erro, azul de
   marca do CTA de assinatura) — não é o mesmo problema, não mexer.
+- 2026-07-21: Criado o sistema de ranking de qualidade de perguntas
+  (mudanças só no banco, nenhum arquivo de código alterado ainda — app e
+  admin panel ficam pra próxima etapa). Ver `docs/DATABASE.md` seção
+  "Ranking de qualidade de perguntas" para a documentação estável. Resumo
+  das decisões de design:
+  - Taxa de erro crua não conta sozinha — só denúncia (`question_reports`,
+    excluindo `dismissed`) e desvio de acerto **relativo à média do próprio
+    nível de dificuldade** (não um número fixo), porque pergunta `hard`
+    naturalmente erra mais. `submit_answer()` agora persiste
+    `questions.times_answered`/`times_correct` (antes calculava
+    `v_is_correct` e descartava, sem guardar nada).
+  - Pisos mínimos escolhidos pro volume atual do app (ainda pequeno: ~1300
+    perguntas já vistas, mas poucas visualizações cada): 10 respostas pra
+    taxa de acerto contar, 2 denúncias ativas, 5 votos 👍/👎. São parâmetros
+    da função `question_health()`, não constantes fixas — ajustar conforme
+    o volume crescer, sem precisar reescrever a função.
+  - Nova tabela `question_ratings` (👍/👎 explícito, 1 voto por usuário por
+    pergunta, upsert se mudar de ideia) com RLS seguindo o mesmo padrão de
+    `question_reports`: usuário lê/escreve o próprio voto, admin
+    (`is_admin()`) lê tudo.
+  - Advisor do Supabase rodado depois da migration: sem erro novo. O
+    warning de "multiple permissive policies" em `question_ratings`
+    (admin_select + select_own) é o mesmo padrão já presente em `questions`,
+    `profiles`, `matches` etc. — não é regressão, é como o projeto já fazia.
+  - **Pendente (próxima etapa)**: botão 👍/👎 no `QuizScreen` do app mobile;
+    telas de "piores"/"melhores" perguntas no app e no painel admin
+    (`cultura-nacional-admin`, repo separado — ainda não clonado, vai
+    precisar de token novo quando chegar essa hora).

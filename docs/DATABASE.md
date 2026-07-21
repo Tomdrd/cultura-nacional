@@ -69,3 +69,34 @@ Preenchimento em lotes de 30, com fact-checking via busca web e checagem de
 duplicidade antes de inserir. Meta: 80 perguntas por capital, nas 27 capitais
 estaduais. Ver `docs/DECISIONS.md` para o progresso mais recente (cidade
 atual da fila).
+
+## Ranking de qualidade de perguntas (`question_health`)
+
+Sistema pra identificar perguntas problemáticas (gabarito errado, ambíguas,
+desatualizadas) e perguntas bem avaliadas, usado tanto no app quanto no
+painel admin (`cultura-nacional-admin`).
+
+**Sinais e onde vivem:**
+- `questions.times_answered` / `questions.times_correct` — contadores
+  incrementados dentro de `submit_answer()` a cada resposta do quiz normal
+  (fora de duelo). Não existe tabela de histórico por resposta aqui, só o
+  agregado — se precisar de granularidade por usuário/tentativa no futuro,
+  isso precisa de uma tabela nova.
+- `question_reports` — denúncias manuais já existentes. Só conta como sinal
+  negativo se `status <> 'dismissed'`.
+- `question_ratings` — tabela nova, 1 linha por `(user_id, question_id)`
+  com `is_positive boolean` (👍/👎 explícito do usuário no app).
+
+**Função `question_health(p_min_answers, p_min_reports, p_min_votes)`**
+Retorna, por pergunta ativa, os números crus (acerto observado, média de
+acerto das perguntas da mesma `difficulty`, denúncias ativas/total, votos
+positivos/negativos) e uma `flag`: `problematica` / `atencao` / `boa` /
+`sem_dados`. Os pisos são parâmetros com default (10 respostas, 2 denúncias,
+5 votos) — ajuste esses números conforme o volume de uso crescer, sem
+precisar reescrever a função, ex: `select * from question_health(30, 3, 10)`.
+
+**Importante:** taxa de erro crua não indica pergunta ruim — perguntas
+`hard` erram mais por natureza. Por isso a função compara o acerto de cada
+pergunta com a **média do próprio nível de dificuldade** (só entre perguntas
+com volume mínimo), não com um número fixo. Ver `docs/DECISIONS.md`
+(2026-07-21) para o histórico da decisão e o racional completo.
