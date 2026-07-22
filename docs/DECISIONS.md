@@ -365,3 +365,15 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   autenticado e recebendo de verdade (ver incidente
   2026-07-21-brevo-dominio-email-nao-autenticado.md). Ainda falta trocar o
   e-mail de contato/titular no painel do Registro.br (fora deste repo).
+- 2026-07-22 [Bia]: Usuário reportou favicon aparecendo como globo cinza
+  padrão no resultado de busca do Google. Investigado e **não é bug de
+  código**: tag `<link rel="icon" href="/favicon.png">` presente em
+  `public/landing.html`, arquivo `public/favicon.png` existe (48×48 PNG,
+  dentro do mínimo recomendado), acessível ao vivo em produção, e
+  `robots.txt` não bloqueia a raiz para o Googlebot. Era atraso normal de
+  indexação (site com verificação de branding recém publicada em 21/07).
+  Resolvido pedindo reindexação manual via Google Search Console →
+  Inspeção de URL → "Solicitar indexação". Se o globo cinza persistir por
+  semanas depois disso, aí sim vale investigar mais a fundo (ex: cache de
+  CDN servindo versão antiga, ou Googlebot recebendo resposta diferente da
+  do navegador comum).
