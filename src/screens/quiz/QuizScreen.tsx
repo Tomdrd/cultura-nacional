@@ -243,17 +243,23 @@ export function QuizScreen({ route, navigation }: any) {
   }
 
   function nextQuestion() {
-    Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
-      if (current + 1 >= questions.length) {
-        finishQuiz();
-      } else {
-        setCurrent(prev => prev + 1);
-        setSelected(null);
-        setAnswered(false);
-        setAnswerResult(null);
-        setRating(null);
-        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-      }
+    // Desliza o painel de feedback pra baixo antes de limpar o state,
+    // evitando o flash causado por um frame intermediário onde feedbackAnim
+    // ainda está em 1 (painel visível) mas answered/answerResult já foram
+    // zerados — o que fazia o painel aparecer sem cor definida por um instante.
+    Animated.timing(feedbackAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+        if (current + 1 >= questions.length) {
+          finishQuiz();
+        } else {
+          setCurrent(prev => prev + 1);
+          setSelected(null);
+          setAnswered(false);
+          setAnswerResult(null);
+          setRating(null);
+          Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+        }
+      });
     });
   }
 
