@@ -358,3 +358,10 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   navegação: nulo.** Só falta validação visual (não funcional) do tom do
   spinner/fundo no dark mode, que qualquer sessão futura pode marcar como
   resolvida assim que o usuário confirmar visualmente.
+- 2026-07-22: E-mail pessoal `antonyeltonrodrigues@gmail.com` substituído por
+  `contato@culturanacional.com.br` em `public/landing.html`,
+  `public/termos.html` e `public/privacidade.html` (rodapé, seção de
+  contato/LGPD). Condição da pendência anterior satisfeita — domínio
+  autenticado e recebendo de verdade (ver incidente
+  2026-07-21-brevo-dominio-email-nao-autenticado.md). Ainda falta trocar o
+  e-mail de contato/titular no painel do Registro.br (fora deste repo).

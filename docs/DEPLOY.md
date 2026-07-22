@@ -97,12 +97,10 @@ Depois de trocar essas imagens, rode "Extrair novamente" no Facebook Sharing
 Debugger (`developers.facebook.com/tools/debug/`) — ele cacheia a prévia por
 URL e não atualiza sozinho.
 
-## Pendência: trocar e-mail de contato pessoal por `contato@culturanacional.com.br`
+## Resolvido: e-mail de contato trocado por `contato@culturanacional.com.br`
 
-O e-mail pessoal `antonyeltonrodrigues@gmail.com` ainda é usado como contato
-público em vários lugares. **Quando `contato@culturanacional.com.br`
-estiver configurado corretamente** (registro MX/e-mail funcional no
-domínio), trocar em:
+O e-mail pessoal `antonyeltonrodrigues@gmail.com` foi substituído por
+`contato@culturanacional.com.br` em:
 
 - `public/landing.html` — link `mailto:` do rodapé e texto "Dúvidas ou
   suporte"
@@ -110,10 +108,6 @@ domínio), trocar em:
 - `public/privacidade.html` — link `mailto:` da seção de contato (LGPD) e
   rodapé
 
-Também trocar o e-mail de contato/titular cadastrado no **Registro.br**
-(painel do domínio `culturanacional.com.br`) para o novo endereço, já que
-hoje aponta para o e-mail pessoal.
-
-Não fazer essa troca antes do e-mail novo estar recebendo de verdade —
-usuários usam esse contato para exercer direitos de LGPD e suporte, não
-pode virar um buraco negro.
+**Pendente (manual, fora deste repositório):** trocar também o e-mail de
+contato/titular cadastrado no painel do **Registro.br** para o domínio
+`culturanacional.com.br`, que ainda aponta para o e-mail pessoal.
