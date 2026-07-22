@@ -349,3 +349,12 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   (URLs logado/deslogado, login, logout) que o próprio AGENTS.md exige
   antes de mexer nesse arquivo. **Precisa de teste manual do usuário antes
   de considerar 100% seguro.**
+- 2026-07-22: Auditado o impacto do refactor de tema acima em
+  `RootNavigator.tsx` (sem rodar código, só leitura): `colors` só é usado
+  ali em dois pontos cosméticos da tela de loading
+  (`backgroundColor: colors.background`, `color: colors.primary`) --
+  `linking.config`, `initialRouteName` e o resto da lógica de roteamento
+  não foram tocados pelo commit `6572a2a`. **Risco de regressão de
+  navegação: nulo.** Só falta validação visual (não funcional) do tom do
+  spinner/fundo no dark mode, que qualquer sessão futura pode marcar como
+  resolvida assim que o usuário confirmar visualmente.
