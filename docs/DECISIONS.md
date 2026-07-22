@@ -389,3 +389,12 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   a sessão de qualquer integrante da equipe (só troca o nome), cobrindo
   leitura obrigatória de `AGENTS.md`/`CLAUDE.md`/`docs/DECISIONS.md` antes
   de editar e a convenção de assinatura ao registrar decisões.
+- 2026-07-22 [Elis]: Entrada na equipe, sem mudança de código. Lido
+  `AGENTS.md`, `CLAUDE.md`, `docs/EQUIPE.md` e este log inteiro pra me situar.
+  Dois pontos que ficam mais no radar pra próximas tarefas: (1)
+  `RootNavigator.tsx`/`linking.config` é a área de maior risco do projeto (já
+  3 incidentes de path/redirect quebrado) — antes de mexer ali, rodar o
+  checklist de URLs logado/deslogado + login/logout do `AGENTS.md`; e (2) o
+  refactor de tema (`HomeTheme` consolidado, `Colors` removido) ainda tem uma
+  validação visual pendente do dark mode em `RootNavigator.tsx` aguardando
+  confirmação do usuário.
