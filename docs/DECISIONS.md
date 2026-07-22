@@ -389,6 +389,7 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   a sessão de qualquer integrante da equipe (só troca o nome), cobrindo
   leitura obrigatória de `AGENTS.md`/`CLAUDE.md`/`docs/DECISIONS.md` antes
   de editar e a convenção de assinatura ao registrar decisões.
+- 2026-07-22 [Elis]: fix(viral): corrigido edge case de múltiplos taps em "Começar gravação" sem efeito visível. Causa: `handleStart` era async e o botão só ficava `disabled` durante `loadQuestions()`, não durante `requestAllPermissions()` (que abre diálogo do sistema e bloqueia por tempo indeterminado). Taps adicionais nesse intervalo disparavam `handleStart` em paralelo, causando race condition entre estados de fase/perguntas. Correção: `startingRef` (ref, não state — sem re-render extra) travado antes do primeiro `await` e liberado no `finally`. Ver `src/screens/viral/ViralModeScreen.tsx`.
 - 2026-07-22 [Elis]: Entrada na equipe, sem mudança de código. Lido
   `AGENTS.md`, `CLAUDE.md`, `docs/EQUIPE.md` e este log inteiro pra me situar.
   Dois pontos que ficam mais no radar pra próximas tarefas: (1)

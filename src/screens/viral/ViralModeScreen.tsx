@@ -87,6 +87,7 @@ export function ViralModeScreen({ navigation, route }: any) {
   const xpRef = useRef(0);
   const timerRef = useRef<any>(null);
   const recordingPromiseRef = useRef<Promise<any> | null>(null);
+  const startingRef = useRef(false); // impede múltiplos taps em "Começar gravação"
   const [recordedVideoUri, setRecordedVideoUri] = useState<string | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -156,13 +157,19 @@ export function ViralModeScreen({ navigation, route }: any) {
   }
 
   async function handleStart() {
-    const ok = await requestAllPermissions();
-    if (!ok) {
-      Alert.alert('Permissões necessárias', 'Precisamos acesso à câmera e microfone para o Modo Viral.');
-      return;
+    if (startingRef.current) return;
+    startingRef.current = true;
+    try {
+      const ok = await requestAllPermissions();
+      if (!ok) {
+        Alert.alert('Permissões necessárias', 'Precisamos acesso à câmera e microfone para o Modo Viral.');
+        return;
+      }
+      await loadQuestions();
+      setPhase('countdown');
+    } finally {
+      startingRef.current = false;
     }
-    await loadQuestions();
-    setPhase('countdown');
   }
 
   async function startQuiz() {
