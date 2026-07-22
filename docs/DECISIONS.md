@@ -469,3 +469,9 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   (HomeScreen) nem em `VIRAL_CATEGORIES` (ViralModeScreen) — são listas
   curadas/subconjuntos deliberados, não a lista completa de subcategorias;
   se quiser Futebol nesses modos também, é mudança separada e pequena.
+- 2026-07-22 [Bia]: Expandida categoria Futebol de 10 para 40 perguntas.
+  Geradas 30 novas perguntas (distribuição: 15 easy, 18 medium, 7 hard)
+  cobrindo Copas do Mundo, Libertadores, Brasileirão, jogadores lendários,
+  estádios, regras. Evitadas duplicações com as 10 primeiras. Futebol agora
+  tem volume comparável a Rock (30 q.) e pode suportar rotação sem
+  reciclagem excessiva.
