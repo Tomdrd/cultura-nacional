@@ -16,6 +16,7 @@ import Utensils from 'lucide-react-native/dist/esm/icons/utensils';
 import Leaf from 'lucide-react-native/dist/esm/icons/leaf';
 import Compass from 'lucide-react-native/dist/esm/icons/compass';
 import Lightbulb from 'lucide-react-native/dist/esm/icons/lightbulb';
+import Goal from 'lucide-react-native/dist/esm/icons/goal';
 import Guitar from 'lucide-react-native/dist/esm/icons/guitar';
 import Mic2 from 'lucide-react-native/dist/esm/icons/mic-vocal';
 import { useFocusEffect } from '@react-navigation/native';
@@ -52,6 +53,7 @@ const CATEGORY_META: Record<string, { Icon: any; color: string }> = {
   'Natureza':     { Icon: Leaf,      color: '#3DC77A' },
   'Turismo':      { Icon: Compass,   color: '#3EC6C6' },
   'Curiosidades': { Icon: Lightbulb, color: '#FFD24D' },
+  'Futebol':      { Icon: Goal,      color: '#1E8A3C' },
   'MPB':          { Icon: Guitar,    color: '#A78BFA' },
   'Reggae':       { Icon: Leaf,      color: '#E2A33D' },
   'RAP':          { Icon: Mic2,      color: '#E2635B' },
@@ -308,12 +310,17 @@ export function HomeScreen({ navigation }: any) {
             <Text style={[styles.sectionCardDesc, { color: C.muted }]}>MPB, Reggae e RAP brasileiro</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.card, styles.sectionCard, { backgroundColor: C.card, borderColor: C.border }]} onPress={() => navigation.navigate('TopQuestions')}>
+          <TouchableOpacity style={[styles.card, styles.sectionCard, { backgroundColor: C.card, borderColor: C.border }]} onPress={() => navigation.navigate('Quiz', { subcategory: 'Futebol' })}>
             <View style={[styles.iconBox, { backgroundColor: C.iconBg, borderColor: C.border }]}>
-              <Award size={18} color={C.text} />
+              <Goal size={18} color={C.text} />
             </View>
-            <Text style={[styles.sectionCardName, { color: C.text }]}>Destaques</Text>
-            <Text style={[styles.sectionCardDesc, { color: C.muted }]}>Perguntas mais bem avaliadas</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={[styles.sectionCardName, { color: C.text }]}>Futebol</Text>
+              <View style={[styles.badge, { backgroundColor: '#1E8A3C' }]}>
+                <Text style={styles.badgeText}>NOVO</Text>
+              </View>
+            </View>
+            <Text style={[styles.sectionCardDesc, { color: C.muted }]}>Seleção, Copas e Libertadores</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -356,4 +363,6 @@ const styles = StyleSheet.create({
   uf:              { fontSize: scaleFont(9), fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8 },
   sectionCardName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, marginTop: 4, marginBottom: 4 },
   sectionCardDesc: { fontSize: FontSize.xs, lineHeight: 17 },
+  badge:           { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
+  badgeText:       { fontSize: scaleFont(8), fontWeight: FontWeight.bold, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.4 },
 });
