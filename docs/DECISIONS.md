@@ -408,3 +408,11 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   removido) está feita, mas ainda falta validação visual manual do dark
   mode em `RootNavigator.tsx` — sem simulador/dispositivo neste ambiente
   pra confirmar, depende do usuário testar ao vivo.
+- 2026-07-22 [Marina]: Entrada na equipe, sem mudança de código. Lido
+  `AGENTS.md`, `CLAUDE.md`, `docs/EQUIPE.md` e este log inteiro pra me situar.
+  Principais aprendizados: (1) `RootNavigator.tsx`/`linking.config` é a área
+  crítica do projeto com 3+ incidentes de routing/redirect quebrado —
+  checklist obrigatório antes de mexer ali (URLs logado/deslogado +
+  login/logout do `AGENTS.md`); (2) consolidação de tema para `HomeTheme`
+  único já está fechada, mas validação visual do dark mode em
+  `RootNavigator.tsx` ainda pendente (sem simulador neste ambiente).
