@@ -200,3 +200,27 @@ notificação do sistema), não um substituto de ícone de interface.
 Na dúvida: se o emoji está representando um conceito de UI recorrente (voto,
 status, ação) ele é ícone; se é um toque de expressividade num texto
 esporádico e chamativo (notificação, título de resultado), pode ser emoji.
+
+## Modelo e nível de esforço — regras para todas as sessões
+
+Disponíveis: **Sonnet 4.6** (padrão) e **Haiku 4.5** (tarefas mecânicas).
+Esforços disponíveis: Baixo · Médio · Alto · Máx. Toggle de **Pensamento** separado.
+
+### Quando usar cada combinação
+
+| Situação | Modelo | Esforço | Pensamento |
+|---|---|---|---|
+| Código, debug, documentação, conteúdo geral | Sonnet 4.6 | Baixo | Off |
+| Gerar perguntas de quiz em bulk | Haiku 4.5 | Baixo | Off |
+| Planejar feature nova, revisar arquivo inteiro | Sonnet 4.6 | Médio | Off |
+| Bug que já voltou, decisão de arquitetura | Sonnet 4.6 | Alto | On |
+| Auth, navegação, RLS, `RootNavigator.tsx` | Sonnet 4.6 | Alto | On |
+| Revisão crítica de segurança | Sonnet 4.6 | Máx | On |
+
+### Regras fixas
+
+- **Mantenha Baixo como padrão.** Só suba o esforço quando o problema pedir — Alto/Máx consomem o limite muito mais rápido.
+- **Pensamento desligado por padrão.** Ligue só para bugs obscuros ou decisões com muitas variáveis. Em tarefas diretas não agrega e gasta limite à toa.
+- **Não troque de modelo sem motivo.** Sonnet 4.6 resolve a esmagadora maioria dos casos. Haiku só para tarefas mecânicas de alto volume.
+- **7 sessões paralelas multiplicam o consumo.** Se o limite estiver acabando rápido, verifique se alguma sessão está rodando em Alto/Máx desnecessariamente.
+- **Quando estiver em dúvida sobre qual esforço usar**, pergunte ao usuário antes de iniciar — um task longo em Máx pode travar outras sessões por consumo de limite.
