@@ -31,7 +31,8 @@ export type Subcategory =
   | 'Gastronomia'
   | 'Natureza'
   | 'Turismo'
-  | 'Curiosidades';
+  | 'Curiosidades'
+  | 'Futebol';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 

@@ -7,6 +7,7 @@ import Utensils from 'lucide-react-native/dist/esm/icons/utensils';
 import Leaf from 'lucide-react-native/dist/esm/icons/leaf';
 import Compass from 'lucide-react-native/dist/esm/icons/compass';
 import Lightbulb from 'lucide-react-native/dist/esm/icons/lightbulb';
+import Goal from 'lucide-react-native/dist/esm/icons/goal';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -19,6 +20,7 @@ const CATEGORIAS = [
   { name: 'Natureza',     Icon: Leaf,      desc: 'Flora, fauna e biomas' },
   { name: 'Turismo',      Icon: Compass,   desc: 'Pontos turísticos e destinos' },
   { name: 'Curiosidades', Icon: Lightbulb, desc: 'Fatos surpreendentes do Brasil' },
+  { name: 'Futebol',      Icon: Goal,      desc: 'Seleção, clubes e Copas do Mundo' },
 ];
 
 export function CategoriasScreen({ navigation }: any) {

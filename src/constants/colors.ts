@@ -12,6 +12,7 @@ export const CategoryColors = {
   natureza:     '#009C3B',
   turismo:      '#378ADD',
   curiosidades: '#D4537E',
+  futebol:      '#1E8A3C',
   musica:       '#7F3FBF',
   reggae:       '#2E8B57',
   rap:          '#1A1A2E',
