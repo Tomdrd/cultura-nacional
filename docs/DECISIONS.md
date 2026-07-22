@@ -440,3 +440,19 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   (nem Sobral, verificado nesta sessão) — o padrão de 30 perguntas por
   cidade existe só para as 27 capitais; Boa Vista (RR), Porto Velho (RO) e
   Palmas (TO) ainda estão zeradas, candidatas óbvias para a próxima rodada.
+
+- 2026-07-22 [Nara]: BUG CRÍTICO de segurança no quiz — resposta correta
+  sempre na opção A em 75,3% das perguntas (1.244 de 1.652). As perguntas
+  foram geradas por IA sem embaralhamento de opções; o banco armazenava o
+  answer_index original (0 na maioria dos casos). Selecionar sempre a letra A
+  acertava 3 de cada 4 perguntas.
+  SOLUÇÃO: embaralhamento Fisher-Yates no RPC get_random_quiz_questions,
+  com mapeamento persistido em question_shuffle_map (user_id, question_id,
+  shuffled_order). O submit_answer faz o de-map antes de comparar com o
+  gabarito — gabarito nunca exposto ao cliente. correct_index retornado ao
+  cliente agora reflete a posição embaralhada. Migration aplicada:
+  fix_quiz_answer_shuffle. Nenhuma mudança necessária no QuizScreen.tsx
+  (interface de retorno do RPC e do submit_answer permanece idêntica).
+  ATENÇÃO FUTURA: todo pipeline de geração de perguntas por IA deve
+  embaralhar as opções antes de inserir no banco, e nunca colocar a resposta
+  correta sempre na mesma posição.
