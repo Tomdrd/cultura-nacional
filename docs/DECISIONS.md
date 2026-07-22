@@ -326,3 +326,26 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   verificado automaticamente. Teste ponta a ponta confirmado (Edge Function
   → Brevo → Cloudflare Email Routing → Gmail). Post-mortem completo em
   `docs/incidents/2026-07-21-brevo-dominio-email-nao-autenticado.md`.
+- 2026-07-21: Consolidados os dois objetos de tema paralelos (`HomeTheme` e
+  `Colors`) que coexistiam em `src/constants/colors.ts` em um só
+  (`HomeTheme`). Levantamento mostrou que `HomeTheme` já era o padrão
+  dominante (26 telas/componentes, incluindo os primitivos compartilhados
+  Button/Input/CustomAlert/ScreenContainer) contra apenas 4 arquivos usando
+  `Colors` via `useTheme()` (ReportModal, WelcomePlanModal, RootNavigator,
+  SubscriptionScreen) -- nenhum deles importava `Colors` diretamente, só
+  através do hook, então bastou trocar a fonte dentro de `useTheme.ts`.
+  `HomeTheme` ganhou os campos que faltavam (`background`, `textSecondary`,
+  `textMuted`, `primary`, `accent`), derivados dos mesmos valores base
+  (`bg`, `muted`, `green`, `yellow`) para não haver dois lugares pra editar
+  a mesma cor. `Colors.brand` virou `BrandColors` (nada mais o referenciava
+  fora do próprio arquivo). `npx tsc --noEmit`: 0 erros antes e depois.
+  **Efeito colateral esperado, não um bug**: os 4 arquivos migrados têm
+  agora um tom de fundo/borda/cinza ligeiramente diferente no dark mode
+  (ex: fundo `#0A0A0A` → `#0e1015`), porque os dois temas nunca foram
+  idênticos de verdade, só pareciam por terem nomes de campo parecidos.
+  **Pendente**: `RootNavigator.tsx` está entre os 4 migrados e é a "área de
+  maior risco do projeto" (ver seção própria no AGENTS.md) -- este ambiente
+  não tem simulador/dispositivo pra rodar o checklist de navegação
+  (URLs logado/deslogado, login, logout) que o próprio AGENTS.md exige
+  antes de mexer nesse arquivo. **Precisa de teste manual do usuário antes
+  de considerar 100% seguro.**

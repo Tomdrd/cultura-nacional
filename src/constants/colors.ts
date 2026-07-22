@@ -1,45 +1,9 @@
-export const Colors = {
-  brand: {
-    green:  '#009C3B',
-    yellow: '#FFDF00',
-    blue:   '#002776',
-  },
-  light: {
-    background:      '#FFFFFF',
-    backgroundAlt:   '#F5F5F5',
-    card:            '#FFFFFF',
-    border:          '#E5E5E5',
-    text:            '#0A0A0A',
-    textSecondary:   '#6B6B6B',
-    textMuted:       '#767676',
-    primary:         '#009C3B',
-    primaryText:     '#FFFFFF',
-    accent:          '#FFDF00',
-    accentText:      '#002776',
-    accentTextSafe:  '#8A6D00',
-    danger:          '#E24B4A',
-    success:         '#009C3B',
-    warning:         '#FFDF00',
-  },
-  dark: {
-    background:      '#0A0A0A',
-    backgroundAlt:   '#141414',
-    card:            '#1A1A1A',
-    border:          '#2A2A2A',
-    text:            '#F5F5F5',
-    textSecondary:   '#A0A0A0',
-    textMuted:       '#6B6B6B',
-    primary:         '#009C3B',
-    primaryText:     '#FFFFFF',
-    primaryTextOnDark: '#4FC97A',
-    accent:          '#FFDF00',
-    accentText:      '#002776',
-    accentTextSafe:  '#FFDF00',
-    danger:          '#E24B4A',
-    success:         '#009C3B',
-    warning:         '#FFDF00',
-  },
-};
+// Cores da marca, fora do tema light/dark (não mudam com o tema).
+export const BrandColors = {
+  green:  '#009C3B',
+  yellow: '#FFDF00',
+  blue:   '#002776',
+} as const;
 
 export const CategoryColors = {
   cultura:      '#7F77DD',
@@ -79,22 +43,46 @@ export function withOpacity(hexColor: string, level: number): string {
   return `${hexColor}${hex}`;
 }
 
-// Paleta do redesign inspirado na EstadosScreen (Home + tab bar inferior,
-// que fica colada nela). Própria/independente do Colors light/dark padrão
-// pra manter fidelidade exata ao mockup aprovado - cor só onde tem
-// significado (XP/progresso), resto em tons neutros.
+// Tema único do app (light/dark). Fonte única de verdade pra qualquer cor
+// de superfície/texto/borda usada nas telas -- pra trocar uma cor do app
+// inteiro (ex: o background), edite só os valores base abaixo (bg, card,
+// border, text, muted, green...); os campos derivados (background,
+// textSecondary, textMuted, primary, accent) reaproveitam esses mesmos
+// valores, então nunca ficam fora de sincronia.
+//
+// Histórico: até 2026-07-21 existiam dois objetos de tema paralelos
+// (HomeTheme e um antigo `Colors`, usado só por 4 arquivos). Consolidado
+// num só -- ver docs/DECISIONS.md dessa data.
+const darkBase = {
+  bg: '#0e1015', card: '#1c2029', iconBg: '#16191f', border: '#252b38',
+  text: '#f0f2f5', muted: '#7E879D', subtle: '#8a92a0', green: '#009C3B', yellow: '#FEDD00',
+  danger: '#E24B4A',
+};
+
+const lightBase = {
+  bg: '#FFFFFF', card: '#FFFFFF', iconBg: '#F0F0F0', border: '#D6D6D6',
+  text: '#0A0A0A', muted: '#6B6B6B', subtle: '#4A4A4A', green: '#00792E', yellow: '#8A6D00',
+  danger: '#E24B4A',
+};
+
 export const HomeTheme = {
   dark: {
-    bg: '#0e1015', card: '#1c2029', iconBg: '#16191f', border: '#252b38',
-    text: '#f0f2f5', muted: '#7E879D', subtle: '#8a92a0', green: '#009C3B', yellow: '#FEDD00',
-    danger: '#E24B4A',
+    ...darkBase,
+    background:    darkBase.bg,
+    textSecondary: darkBase.muted,
+    textMuted:     darkBase.muted,
+    primary:       darkBase.green,
+    accent:        darkBase.yellow,
   },
   light: {
-    bg: '#FFFFFF', card: '#FFFFFF', iconBg: '#F0F0F0', border: '#D6D6D6',
-    text: '#0A0A0A', muted: '#6B6B6B', subtle: '#4A4A4A', green: '#00792E', yellow: '#8A6D00',
-    danger: '#E24B4A',
+    ...lightBase,
+    background:    lightBase.bg,
+    textSecondary: lightBase.muted,
+    textMuted:     lightBase.muted,
+    primary:       lightBase.green,
+    accent:        lightBase.yellow,
   },
 } as const;
 
 export type ColorScheme = 'light' | 'dark';
-export type ThemeColors = typeof Colors.light;
+export type ThemeColors = typeof HomeTheme.light;

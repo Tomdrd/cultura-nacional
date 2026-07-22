@@ -142,12 +142,17 @@ nas lojas, etc. — não em paralelo ao dia a dia.
 Nunca use hex solto, espaçamento "mágico" (`marginTop: 13`) ou tamanho de
 fonte numérico direto em uma tela nova — a fonte única de verdade já existe:
 
-- **`src/constants/colors.ts`** — `Colors.brand.{green,yellow,blue}` (a
-  paleta brasileira: `#009C3B` / `#FFDF00` / `#002776`), mais os temas
-  `Colors.light`/`Colors.dark` completos (`background`, `card`, `border`,
-  `text`, `textSecondary`, `textMuted`, `primary`, `accent`, `danger`, etc.),
-  acessados via `useTheme()`. Também tem `CategoryColors`, `RegionColors`,
-  `MedalColors`, `QuickActionColors` pra contextos específicos.
+- **`src/constants/colors.ts`** — `HomeTheme.light`/`HomeTheme.dark` é o
+  **único** objeto de tema do app (campos: `bg`/`background`, `card`,
+  `iconBg`, `border`, `text`, `muted`/`textSecondary`/`textMuted`, `subtle`,
+  `green`/`primary`, `yellow`/`accent`, `danger`), acessado via
+  `const { isDark } = useTheme(); const C = isDark ? HomeTheme.dark : HomeTheme.light;`
+  (o padrão usado em praticamente toda tela — inclusive `Button.tsx`,
+  `Input.tsx`, `CustomAlert.tsx`, `ScreenContainer.tsx`) ou via
+  `const { colors } = useTheme();` (equivalente, mesmo objeto). `BrandColors`
+  tem as 3 cores da marca fora do tema (`green`/`yellow`/`blue`, não mudam
+  com light/dark). `CategoryColors`, `RegionColors`, `MedalColors`,
+  `QuickActionColors` são paletas à parte, pra contextos específicos.
 - **`src/constants/layout.ts`** — `Spacing` (`xs` a `xxxl`), `Radius` (`sm` a
   `full`), `FontSize` (já escalado por tamanho de tela via `scaleFont()`,
   não precisa reescalar de novo), `FontWeight`.
@@ -155,6 +160,16 @@ fonte numérico direto em uma tela nova — a fonte única de verdade já existe
 Uma tela nova sempre puxa cor do tema ativo (`useTheme()`), nunca hardcoda
 `'#FFFFFF'` ou `'#009C3B'` direto — isso é o que garante que o modo escuro
 funcione automaticamente sem trabalho extra na tela.
+
+**Histórico:** até 2026-07-21 existia um segundo objeto de tema (`Colors`,
+com nomes parecidos mas valores de cor genuinamente diferentes do
+`HomeTheme` — ex: fundo escuro `#0A0A0A` vs `#0e1015`), usado só por 4
+arquivos (`ReportModal.tsx`, `WelcomePlanModal.tsx`, `RootNavigator.tsx`,
+`SubscriptionScreen.tsx`) através do `colors` retornado por `useTheme()`.
+Consolidado num único tema (`HomeTheme`, por ser o já dominante) nessa
+data — ver `docs/DECISIONS.md`. Se algum código ainda referenciar `Colors`
+ou `ThemeColors` importado direto de `colors.ts`, é resquício desatualizado
+e deve ser migrado pro `HomeTheme`.
 
 ## Ícones vs. emoji
 
