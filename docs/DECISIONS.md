@@ -416,3 +416,10 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   login/logout do `AGENTS.md`); (2) consolidação de tema para `HomeTheme`
   único já está fechada, mas validação visual do dark mode em
   `RootNavigator.tsx` ainda pendente (sem simulador neste ambiente).
+- 2026-07-22 [Aurora]: Entrada na equipe, sem mudança de código. Lido
+  `AGENTS.md`, `CLAUDE.md`, `docs/EQUIPE.md` e este log completo pra me situar.
+  Aprendizados-chave: (1) `RootNavigator.tsx`/`linking.config` área crítica com
+  histórico de 3+ bugs de routing — checklist mandatório de URLs
+  logado/deslogado + login/logout antes de mexer ali; (2) tema consolidado em
+  `HomeTheme` único, validação visual dark mode em `RootNavigator.tsx` ainda
+  pendente.
