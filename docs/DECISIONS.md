@@ -423,3 +423,20 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   logado/deslogado + login/logout antes de mexer ali; (2) tema consolidado em
   `HomeTheme` único, validação visual dark mode em `RootNavigator.tsx` ainda
   pendente.
+- 2026-07-22 [Vitória]: Aumentada a quantidade de perguntas de Fortaleza (CE)
+  de 13 para 30, igualando o padrão das demais capitais (mudança só no banco,
+  nenhum arquivo de código alterado). Distribuição final por subcategoria:
+  Cultura 6, Curiosidades 5, Gastronomia 6, História 5, Turismo 6, Natureza 2
+  (Natureza estava zerada). Todas as 17 perguntas novas foram checadas contra
+  fontes externas antes de escrever (Theatro José de Alencar/estrutura de
+  ferro da Escócia, Parque Estadual do Cocó, Ponte dos Ingleses, cajuína/
+  Rodolfo Teófilo, Quinta do Caranguejo na Praia do Futuro, lei de janeiro/
+  2025 que reconheceu as barracas da Praia do Futuro como Patrimônio Cultural
+  Brasileiro, seca de 1915/campo de concentração do Alagadiço, estátua
+  Iracema Guardiã). Mesmo padrão de estrutura das perguntas existentes
+  (4 alternativas, `explanation` com justificativa factual, `city_id`/
+  `state_id` de Fortaleza/Ceará). **Observação para quem for repetir esse
+  processo em outra cidade**: nenhuma cidade não-capital tem perguntas hoje
+  (nem Sobral, verificado nesta sessão) — o padrão de 30 perguntas por
+  cidade existe só para as 27 capitais; Boa Vista (RR), Porto Velho (RO) e
+  Palmas (TO) ainda estão zeradas, candidatas óbvias para a próxima rodada.
