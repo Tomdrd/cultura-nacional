@@ -457,3 +457,15 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   ATENÇÃO FUTURA: todo pipeline de geração de perguntas por IA deve
   embaralhar as opções antes de inserir no banco, e nunca colocar a resposta
   correta sempre na mesma posição.
+- 2026-07-22 [Bia]: Criada nova subcategoria **Futebol** a pedido do
+  usuário. Alterado `questions_subcategory_check` e
+  `matches_subcategory_check` (mesmo ENUM-via-CHECK compartilhado pelas
+  duas tabelas) para incluir `'Futebol'` junto das já existentes. Inseridas
+  10 perguntas gerais (sem `state_id`/`city_id`), fact-checadas via busca
+  web antes de inserir (Copas do Mundo, Seleção, Maracanã, Libertadores).
+  No app: `Subcategory` (types/index.ts), `CategoryColors.futebol`
+  (colors.ts) e novo card em `CategoriasScreen.tsx` (ícone `Goal` do
+  lucide-react-native). **Não incluí** Futebol em `RANDOM_SUBCATEGORIES`
+  (HomeScreen) nem em `VIRAL_CATEGORIES` (ViralModeScreen) — são listas
+  curadas/subconjuntos deliberados, não a lista completa de subcategorias;
+  se quiser Futebol nesses modos também, é mudança separada e pequena.
