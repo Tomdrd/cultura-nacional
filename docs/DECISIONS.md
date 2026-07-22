@@ -377,3 +377,15 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   semanas depois disso, aí sim vale investigar mais a fundo (ex: cache de
   CDN servindo versão antiga, ou Googlebot recebendo resposta diferente da
   do navegador comum).
+- 2026-07-22 [Nara]: Revisão de organização, sem mudança de código. Usuário
+  pediu um resumo histórico do projeto pra ajudar a organizar o que cada
+  integrante da equipe já fez. Conferido `git log` (todos os commits
+  aparecem como `Tomdrd`, já que a identidade git segue o histórico do
+  repo, não o nome da sessão de IA) e `docs/DECISIONS.md` (só a entrada da
+  Bia sobre o favicon estava assinada até este ponto — a convenção de
+  `docs/EQUIPE.md` é recente, então não há como atribuir retroativamente
+  o restante do log a integrantes específicos). Criado
+  `docs/PROMPT_ONBOARDING_IA.md`: prompt genérico reutilizável pra iniciar
+  a sessão de qualquer integrante da equipe (só troca o nome), cobrindo
+  leitura obrigatória de `AGENTS.md`/`CLAUDE.md`/`docs/DECISIONS.md` antes
+  de editar e a convenção de assinatura ao registrar decisões.
