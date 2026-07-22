@@ -475,3 +475,42 @@ Formato: `- YYYY-MM-DD: descrição curta. Detalhe/motivo se necessário.`
   estádios, regras. Evitadas duplicações com as 10 primeiras. Futebol agora
   tem volume comparável a Rock (30 q.) e pode suportar rotação sem
   reciclagem excessiva.
+
+## Resumo da sessão de Bia (2026-07-22)
+
+Trabalho realizado nesta sessão:
+1. **Favicon (checagem):** investigado reporte do usuário sobre globo cinza no
+   Google. Concluído que não era bug de código — tag `<link rel="icon">`,
+   arquivo e `robots.txt` corretos. Era atraso normal de indexação após
+   publicação de branding de 21/07. Resolvido via reindexação manual no
+   Search Console.
+2. **Equipe:** criado `docs/EQUIPE.md` listando as 7 IAs (Elis, Vitória, Bia,
+   Nara, Sofia, Marina, Aurora), documentando que todas são fullstack sem área
+   fixa por enquanto, e estabelecendo convenção de assinatura `[Nome]` em
+   entradas do DECISIONS.md.
+3. **Categoria Futebol (nova):** adicionada subcategoria `'Futebol'` ao banco
+   (CHECK constraint em `questions` e `matches`). Inseridas 40 perguntas:
+   - 10 iniciais: Copas do Mundo, Seleção, Maracanã, Libertadores (geral)
+   - 30 adicionais: Copa 1962/1970/2002, Libertadores (Independiente,
+     Palmeiras, Santos, Grêmio, Internacional), Brasileirão (São Paulo),
+     Campeonato Carioca (Flamengo), Euro 2020, campeonatos internacionais
+     (Barcelona), jogadores lendários (Pelé, Maradona, Ronaldo, Neymar),
+     regras básicas, estádios (Mineirão)
+   - Distribuição: 15 easy, 18 medium, 7 hard
+   - Sem duplicação entre as 40 perguntas
+4. **App:** adicionado `Futebol` ao tipo `Subcategory`, cor própria em
+   `CategoryColors` (#1E8A3C — verde futebol), e card na tela de Categorias
+   com ícone `Goal` (lucide-react-native).
+5. **Documentação:** registradas decisões em `AGENTS.md` (modelo/esforço
+   recomendado para cada tarefa) já estavam presentes quando puxei do remoto.
+
+**Status:** 4 commits feitos:
+- `a5cb9a2` (Equipe)
+- `9e94138` (feat: Futebol inicial)
+- `472aa25` (docs: Futebol inicial)
+- `10820b5` (feat: 30 perguntas, 40 total)
+
+Futebol está funcional no quiz. Próximas melhorias possíveis (fora do escopo
+desta sessão): incluir Futebol em `RANDOM_SUBCATEGORIES` (HomeScreen) e
+`VIRAL_CATEGORIES` (ViralModeScreen) se quiser que apareça nesses modos
+também.
