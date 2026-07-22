@@ -137,6 +137,25 @@ de verdade (não a cada commit): compile a partir do `docs/DECISIONS.md`
 quando for bater uma versão nova, aprovar a verificação do Google, publicar
 nas lojas, etc. — não em paralelo ao dia a dia.
 
+## Cor, espaçamento e tipografia
+
+Nunca use hex solto, espaçamento "mágico" (`marginTop: 13`) ou tamanho de
+fonte numérico direto em uma tela nova — a fonte única de verdade já existe:
+
+- **`src/constants/colors.ts`** — `Colors.brand.{green,yellow,blue}` (a
+  paleta brasileira: `#009C3B` / `#FFDF00` / `#002776`), mais os temas
+  `Colors.light`/`Colors.dark` completos (`background`, `card`, `border`,
+  `text`, `textSecondary`, `textMuted`, `primary`, `accent`, `danger`, etc.),
+  acessados via `useTheme()`. Também tem `CategoryColors`, `RegionColors`,
+  `MedalColors`, `QuickActionColors` pra contextos específicos.
+- **`src/constants/layout.ts`** — `Spacing` (`xs` a `xxxl`), `Radius` (`sm` a
+  `full`), `FontSize` (já escalado por tamanho de tela via `scaleFont()`,
+  não precisa reescalar de novo), `FontWeight`.
+
+Uma tela nova sempre puxa cor do tema ativo (`useTheme()`), nunca hardcoda
+`'#FFFFFF'` ou `'#009C3B'` direto — isso é o que garante que o modo escuro
+funcione automaticamente sem trabalho extra na tela.
+
 ## Ícones vs. emoji
 
 Elementos de UI usam ícone de verdade do lucide (`lucide-react-native` aqui,
