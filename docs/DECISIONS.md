@@ -528,3 +528,12 @@ também.
   (HomeScreen) nem `VIRAL_CATEGORIES` (ViralModeScreen), que também são
   arrays hardcoded — se quiser Rock nesses modos também, precisa adicionar
   lá.
+- 2026-07-24 [Aurora]: Revisão e correção de pergunta sobre Pelé
+  (id: 69750ff0-093c-47ca-a2ef-36bccf4b00ef). Pergunta original:
+  "Quantos gols Pelé marcou em sua carreira profissional, aproximadamente?"
+  — texto ambíguo (poderia ser 757 ou 1.283 dependendo se conta amistosos).
+  CORREÇÃO: alterada pergunta para "Quantos gols Pelé marcou em partidas
+  oficialmente reconhecidas pela FIFA?" e expandida explicação para deixar
+  claro: 757 gols em partidas oficiais (FIFA), ~1.283 total (incluindo
+  amistosos/testes). Resposta correta permanece "757" (índice 0). Mudança
+  só no banco, nenhum arquivo de código alterado.
