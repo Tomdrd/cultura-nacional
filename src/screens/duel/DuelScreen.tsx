@@ -129,7 +129,8 @@ export function DuelScreen({ route, navigation }: any) {
   // correspondente. Só ativo na web e enquanto o duelo está em andamento.
   // Diferente do QuizScreen, aqui não existe um botão "próxima pergunta"
   // manual — o avanço já é automático (setTimeout em handleAnswer, ver
-  // nextQuestion), então não há atalho de Enter para avançar.
+  // nextQuestion), então não há atalho de Enter para avançar durante o duelo.
+  // Na tela de resultado: Enter = jogar novamente; Backspace = voltar.
   useEffect(() => {
     if (Platform.OS !== 'web' || duelState !== 'playing') return;
 
@@ -151,6 +152,27 @@ export function DuelScreen({ route, navigation }: any) {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [duelState, current, answered, questions]);
+
+  // Teclado na tela de resultado do duelo
+  useEffect(() => {
+    if (Platform.OS !== 'web' || duelState !== 'finished') return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        resetDuel();
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        navigation.goBack();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [duelState]);
 
   useEffect(() => {
     if (!user) return;
@@ -846,6 +868,11 @@ export function DuelScreen({ route, navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.homeBtn}>
             <Text style={[styles.homeBtnText, { color: C.muted }]}>Voltar ao início</Text>
           </TouchableOpacity>
+          {Platform.OS === 'web' && (
+            <Text style={[styles.keyboardHint, { color: C.muted }]}>
+              Enter para jogar novamente · Backspace para voltar
+            </Text>
+          )}
         </View>
       </View>
     );

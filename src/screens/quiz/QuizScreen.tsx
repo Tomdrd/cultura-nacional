@@ -128,17 +128,35 @@ export function QuizScreen({ route, navigation }: any) {
     scrollRef.current?.scrollTo?.({ y: 0, animated: false });
   }, [current]);
 
-  // Acessibilidade por teclado (versão web): A/B/C/D marcam a alternativa
-  // correspondente, Enter avança para a próxima pergunta. Só ativo na web
-  // (Platform.OS === 'web') porque no nativo não há teclado físico padrão.
+  // Acessibilidade por teclado (versão web):
+  // - Durante o quiz: A/B/C/D selecionam alternativa; Enter avança para a próxima pergunta.
+  // - Na tela de resultado: Enter = jogar novamente; Backspace = voltar.
+  // Só ativo na web (Platform.OS === 'web') porque no nativo não há teclado físico padrão.
   useEffect(() => {
-    if (Platform.OS !== 'web' || loading || finished || reportOpen) return;
+    if (Platform.OS !== 'web' || loading || reportOpen) return;
 
     function handleKeyDown(e: KeyboardEvent) {
       // Não interfere se o usuário estiver digitando em outro campo (ex: modal de report)
       const target = e.target as HTMLElement | null;
       if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
 
+      // Tela de resultado
+      if (finished) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
+          setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
+          setAnswerResult(null); setRating(null); xpRef.current = 0; scoreRef.current = 0;
+          stopTimer();
+          loadQuestions();
+        } else if (e.key === 'Backspace') {
+          e.preventDefault();
+          navigation.goBack();
+        }
+        return;
+      }
+
+      // Durante o quiz
       const key = e.key.toUpperCase();
       const letters = ['A', 'B', 'C', 'D'];
       if (letters.includes(key)) {
@@ -391,6 +409,11 @@ export function QuizScreen({ route, navigation }: any) {
           >
             <Text style={[styles.resultBtnText, { color: C.text }]}>Voltar</Text>
           </TouchableOpacity>
+          {Platform.OS === 'web' && (
+            <Text style={[styles.keyboardHint, { color: C.muted }]}>
+              Enter para jogar novamente · Backspace para voltar
+            </Text>
+          )}
         </View>
       </View>
     );
