@@ -90,6 +90,10 @@ export function QuizScreen({ route, navigation }: any) {
   const xpRef        = useRef(0);
   const scoreRef     = useRef(0);
   const scrollRef    = useRef<any>(null);
+  // Ref para jogar novamente sem closure stale no handler de teclado:
+  // o useEffect de keydown é registrado uma vez com finished=true na closure,
+  // mas restartRef.current sempre aponta para a versão mais recente da função.
+  const restartRef   = useRef<() => void>(() => {});
 
   const totalSeconds = mode === 'relampago' ? 30 * TOTAL_QUESTIONS : TIME_PER_QUESTION * TOTAL_QUESTIONS;
 
@@ -132,6 +136,18 @@ export function QuizScreen({ route, navigation }: any) {
   // - Durante o quiz: A/B/C/D selecionam alternativa; Enter avança para a próxima pergunta.
   // - Na tela de resultado: Enter = jogar novamente; Backspace = voltar.
   // Só ativo na web (Platform.OS === 'web') porque no nativo não há teclado físico padrão.
+
+  // Mantém restartRef sempre atualizado com a closure fresca, para o handler
+  // de teclado não chamar uma versão stale de restartQuiz.
+  function restartQuiz() {
+    setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
+    setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
+    setAnswerResult(null); setRating(null); xpRef.current = 0; scoreRef.current = 0;
+    stopTimer();
+    loadQuestions();
+  }
+  restartRef.current = restartQuiz;
+
   useEffect(() => {
     if (Platform.OS !== 'web' || loading || reportOpen) return;
 
@@ -144,11 +160,7 @@ export function QuizScreen({ route, navigation }: any) {
       if (finished) {
         if (e.key === 'Enter') {
           e.preventDefault();
-          setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
-          setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
-          setAnswerResult(null); setRating(null); xpRef.current = 0; scoreRef.current = 0;
-          stopTimer();
-          loadQuestions();
+          restartRef.current();
         } else if (e.key === 'Backspace') {
           e.preventDefault();
           navigation.goBack();
@@ -393,13 +405,7 @@ export function QuizScreen({ route, navigation }: any) {
         <View style={styles.resultActions}>
           <TouchableOpacity
             style={[styles.resultBtn, { backgroundColor: C.green }]}
-            onPress={() => {
-              setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
-              setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
-              setAnswerResult(null); setRating(null); xpRef.current = 0; scoreRef.current = 0;
-              stopTimer();
-              loadQuestions();
-            }}
+            onPress={restartQuiz}
           >
             <Text style={styles.resultBtnText}>Jogar novamente</Text>
           </TouchableOpacity>
