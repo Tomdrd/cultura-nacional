@@ -537,3 +537,12 @@ também.
   claro: 757 gols em partidas oficiais (FIFA), ~1.283 total (incluindo
   amistosos/testes). Resposta correta permanece "757" (índice 0). Mudança
   só no banco, nenhum arquivo de código alterado.
+- 2026-07-24 [Aurora]: BUG CRÍTICO em pergunta sobre maior estádio do Brasil
+  (id: 8c60b863-0850-4dd3-acff-df46706198f0). Pergunta original indicava
+  Mineirão como resposta correta (~61.846 lugares) quando na verdade o
+  Morumbi (~72.000) é o maior. Opções também eram fracas (incluía "Estádio
+  da Juventus" ~16.000). CORREÇÃO: opções substituídas por estádios reais
+  grandes (Mineirão, Mané Garrincha, Morumbi, Maracanã), resposta correta
+  mudada para Morumbi (índice 2), explicação atualizada com capacidades
+  reais e menção aos outros grandes estádios. Mudança só no banco, nenhum
+  arquivo de código alterado.
