@@ -514,3 +514,17 @@ Futebol está funcional no quiz. Próximas melhorias possíveis (fora do escopo
 desta sessão): incluir Futebol em `RANDOM_SUBCATEGORIES` (HomeScreen) e
 `VIRAL_CATEGORIES` (ViralModeScreen) se quiser que apareça nesses modos
 também.
+- 2026-07-23 [Sofia]: Criada nova subcategoria **Rock** em Música. Adicionado
+  `'Rock'` ao CHECK constraint de `subcategory` em `questions` e `matches`
+  (genre já existia em `music_genres` com ícone, slug `rock`, só faltava
+  liberar o valor pra perguntas). Inseridas 30 perguntas de Rock Nacional
+  (10 easy, 12 medium, 8 hard) cobrindo Legião Urbana, Titãs, Barão
+  Vermelho/Cazuza, Raul Seixas, Paralamas do Sucesso, RPM, Ultraje a Rigor
+  e Capital Inicial — fatos checados via busca antes de inserir. Também
+  adicionado `Rock` ao array `GENEROS` em `src/screens/musica/MusicaScreen.tsx`
+  (ícone `Zap` do lucide-react-native), que é hardcoded e não lê de
+  `music_genres` — sem essa mudança o gênero não aparecia na tela de Música
+  mesmo com perguntas no banco. Não mexi em `RANDOM_SUBCATEGORIES`
+  (HomeScreen) nem `VIRAL_CATEGORIES` (ViralModeScreen), que também são
+  arrays hardcoded — se quiser Rock nesses modos também, precisa adicionar
+  lá.

@@ -4,6 +4,7 @@ import ArrowLeft from 'lucide-react-native/dist/esm/icons/arrow-left';
 import Guitar from 'lucide-react-native/dist/esm/icons/guitar';
 import Leaf from 'lucide-react-native/dist/esm/icons/leaf';
 import Mic2 from 'lucide-react-native/dist/esm/icons/mic-vocal';
+import Zap from 'lucide-react-native/dist/esm/icons/zap';
 import { useTheme } from '../../hooks/useTheme';
 import { useHeaderTopPadding } from '../../hooks/useHeaderTopPadding';
 import { Spacing, FontSize, FontWeight, Radius } from '../../constants/layout';
@@ -13,6 +14,7 @@ const GENEROS = [
   { name: 'MPB',    Icon: Guitar, desc: 'Música Popular Brasileira' },
   { name: 'Reggae', Icon: Leaf,   desc: 'Ritmo e cultura rastafári' },
   { name: 'RAP',    Icon: Mic2,   desc: 'Rimas e batidas urbanas' },
+  { name: 'Rock',   Icon: Zap,    desc: 'Guitarras e atitude nacional' },
 ];
 
 export function MusicaScreen({ navigation }: any) {
