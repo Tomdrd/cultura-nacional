@@ -553,3 +553,14 @@ também.
   Opções reordenadas para incluir os 3 maiores (Maracanã > Mané Garrincha
   ~70.000 > Morumbi ~72.000). Explicação atualizada com fato verificado.
   Fontes: CNN Brasil, dados de capacidade oficial. Mudança só no banco.
+- 2026-07-24 [Elis]: feat(admin): pipeline de geração de perguntas via Gemini
+  1.5 Flash (AI Studio, gratuito, sem Grounding, sem cartão). Edge Function
+  `generate-questions` no repo `cultura-nacional-admin`: recebe estado/cidade/
+  subcategoria/dificuldade/quantidade, chama Gemini com prompt defensivo (só
+  fatos consolidados), embaralha opções com Fisher-Yates antes de retornar
+  (obrigatório — ver bug histórico de resposta sempre em A), e retorna campo
+  `confidence` (alta/media/baixa) com motivo, para revisão humana. Página
+  `/gerar` no painel admin com aprovação individual ou em bloco, edição inline
+  de opções/gabarito/explicação, e salvamento direto no banco. PENDENTE:
+  deploy da Edge Function + configurar secret GEMINI_API_KEY no Supabase
+  (instruções passadas ao usuário separadamente).
