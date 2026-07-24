@@ -564,3 +564,20 @@ também.
   de opções/gabarito/explicação, e salvamento direto no banco. PENDENTE:
   deploy da Edge Function + configurar secret GEMINI_API_KEY no Supabase
   (instruções passadas ao usuário separadamente).
+- 2026-07-22 [Vitória]: Inseridas 33 perguntas sobre Sobral (CE) no banco do
+  Cultura Nacional (city_id eb305c05, state_id bbd8e9d9). Sobral é cidade
+  especial no projeto — sem número fixo, diferente das capitais (30 cada).
+  Processo: (1) auditou-se o banco de 100 perguntas hardcoded do
+  sobral_game.js (projeto v15-com-supabase), identificando ~45 aproveitáveis,
+  2 com erros factuais confirmados (Q7: Terrenos Novos não é bairro antigo;
+  Q51: confunde Padre Ibiapina com "Chagas do Iguatu") e ~30 não verificáveis
+  na seção Personalidades; (2) todas as 33 perguntas inseridas foram checadas
+  contra fontes externas (IPHAN, Diocese de Sobral, Prefeitura, Diário do
+  Nordeste, Wikipédia) antes de escrever. Fatos-chave confirmados: eclipse
+  1919/Eddington, Vila 1773/cidade 1841, Estrada de Ferro 1882/Camocim,
+  Dom José Tupinambá da Frota como PRIMEIRO bispo (1916–1959, não Dom Lustosa
+  — erro recorrente no banco original), Museu Dom José fundado em 1951 com
+  30.000+ peças e 20.000 moedas, Domingos Olímpio e o Theatro São João (1880,
+  2º mais antigo do CE), Padre Ibiapina nascido em Sobral em 1806 (Venerável
+  desde mar/2025, ainda não beatificado), tombamento IPHAN do centro histórico
+  em 2000. Distribuição: Cultura 13, História 9, Turismo 5, Natureza 6.
