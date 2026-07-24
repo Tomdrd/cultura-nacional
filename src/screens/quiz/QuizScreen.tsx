@@ -140,6 +140,9 @@ export function QuizScreen({ route, navigation }: any) {
   // Mantém restartRef sempre atualizado com a closure fresca, para o handler
   // de teclado não chamar uma versão stale de restartQuiz.
   function restartQuiz() {
+    // loading=true primeiro: evita flash de "Sem perguntas" ou barra de
+    // progresso sem conteúdo enquanto o React processa os outros resets.
+    setLoading(true);
     setFinished(false); setCurrent(0); setScore(0); setXpEarned(0);
     setResults([]); setSelected(null); setAnswered(false); setQuestions([]);
     setAnswerResult(null); setRating(null); xpRef.current = 0; scoreRef.current = 0;
